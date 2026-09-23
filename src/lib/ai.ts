@@ -190,6 +190,35 @@ ${datos}`,
   });
 }
 
+// ---------------------------------------------------------------- buscador de temas (radar a demanda)
+export type ResultadoTema = {
+  titulo: string; url: string; fuente: string; fecha: string; resumen: string; por_que: string;
+  keyword: string; interes: number; intencion: string; ya_cubierto: string;
+};
+export type IdeaTema = { titulo_articulo: string; keyword: string; angulo: string; por_que: string };
+export type Busqueda = { panorama: string; resultados: ResultadoTema[]; ideas: IdeaTema[] };
+
+export async function buscarTema(consulta: string, blog: string[]) {
+  return json<Busqueda>({
+    nombre: "buscador_temas", web: true, esfuerzo: "low", maxTokens: 20000,
+    sistema: `${VOZ}
+Actúas como documentalista y editor SEO. Buscas en la web las noticias y publicaciones MÁS RECIENTES y fiables sobre el tema que te piden y eliges las que mejor sirven para escribir un artículo que posicione en Google España y sea citado por buscadores con IA.`,
+    usuario: `Tema a investigar: «${consulta}»
+
+1. panorama: 3-5 frases con lo que está pasando ahora mismo con este tema (con fechas).
+2. resultados: 6-10 fuentes concretas (URL exacta de la noticia, anuncio oficial, documentación o estudio; nada de agregadores, foros ni páginas de categoría), de las últimas semanas si existen. Para cada una: titulo, url, fuente (medio), fecha (AAAA-MM-DD o "s/f"), resumen (2 frases en español), por_que (qué ángulo SEO ofrece), keyword (lo que se busca en Google España, minúsculas), interes (0-100: novedad + demanda de búsqueda + encaje con pymes españolas), intencion (Informacional/Comercial/Transaccional/Navegacional) y ya_cubierto (título del artículo del blog que ya trata lo mismo, o cadena vacía).
+3. ideas: 3-5 artículos que convendría escribir sobre este tema (titulo_articulo 45-65 caracteres, keyword, angulo, por_que), evitando lo que el blog ya cubre.
+
+ARTÍCULOS QUE YA TIENE EL BLOG:
+${blog.map((t) => `- ${t}`).join("\n")}`,
+    esquema: obj({
+      panorama: str(),
+      resultados: arr(obj({ titulo: str(), url: str(), fuente: str(), fecha: str(), resumen: str(), por_que: str(), keyword: str(), interes: { type: "integer" }, intencion: str(), ya_cubierto: str() })),
+      ideas: arr(obj({ titulo_articulo: str(), keyword: str(), angulo: str(), por_que: str() })),
+    }),
+  });
+}
+
 // ---------------------------------------------------------------- agente de Telegram (function calling)
 export type LlamadaHerramienta = { name: string; arguments: string; call_id: string };
 export async function agente(input: unknown[], herramientas: unknown[], sistema: string) {

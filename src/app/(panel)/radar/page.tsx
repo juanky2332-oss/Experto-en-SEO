@@ -3,8 +3,11 @@ import { Card, PageHeader, Badge, tonoScore, fecha, Empty, type Tono } from "@/c
 import { BotonAccion } from "@/components/BotonAccion";
 import { prepararRadar, descartarRadar, radarAhora } from "../acciones";
 import { Radar as RadarIcon } from "lucide-react";
+import { ultimasBusquedas } from "@/lib/temas";
+import { BuscadorTemas } from "./BuscadorTemas";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 export const metadata = { title: "Radar IA" };
 
 type Item = { id: number; title: string; url: string; source: string; published_at: Date | null; score: number; resumen: string; motivo: string; keyword: string; categoria: string; cluster: string; status: string; digest_date: string };
@@ -16,11 +19,12 @@ const EST: Record<string, { label: string; tone: Tono }> = {
 };
 
 export default async function Radar() {
-  const [digests, items, fuentes] = await Promise.all([
+  const [digests, items, fuentes, busquedas] = await Promise.all([
     sql<Digest[]>`select to_char(fecha,'YYYY-MM-DD') fecha, data from seo.digests order by fecha desc limit 7`,
     sql<Item[]>`select id, title, url, source, published_at, score, resumen, motivo, keyword, categoria, cluster, status, to_char(digest_date,'YYYY-MM-DD') digest_date
       from seo.radar where score is not null and created_at > now() - interval '14 days' order by digest_date desc, score desc limit 120`,
     sql<{ source: string; n: number }[]>`select source, count(*)::int n from seo.radar where created_at > now() - interval '14 days' group by 1 order by 2 desc`,
+    ultimasBusquedas(),
   ]);
   const hoy = digests[0];
   const clusters = new Map<string, number>();
@@ -32,6 +36,8 @@ export default async function Radar() {
       <PageHeader title="Radar IA" subtitle="Cada mañana a las 8:30 leo 14 fuentes de referencia (OpenAI, Anthropic, Google, DeepMind, TechCrunch, The Verge, MIT Tech Review, Xataka…), te resumo lo importante y puntúo qué merece artículo.">
         <BotonAccion accion={radarAhora} className="btn btn-primary"><RadarIcon size={15} /> Lanzar radar ahora</BotonAccion>
       </PageHeader>
+
+      <BuscadorTemas anteriores={busquedas} />
 
       {hoy ? (
         <div className="mb-6 grid gap-6 xl:grid-cols-3">

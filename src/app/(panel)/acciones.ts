@@ -297,3 +297,12 @@ export async function borrarEtiquetasVacias() {
     return vacias.length;
   }, "Etiquetas vacías eliminadas");
 }
+
+export async function buscarTemaAccion(consulta: string) {
+  return seguro(async () => {
+    const { investigarTema } = await import("@/lib/temas");
+    const r = await investigarTema(consulta, "app");
+    revalidatePath("/radar");
+    return r;
+  });
+}

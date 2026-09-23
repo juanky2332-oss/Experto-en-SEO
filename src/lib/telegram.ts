@@ -7,6 +7,7 @@ import { editar, enviarAPapelera, deshacer, limpiarContenido, registrar } from "
 import { analizar } from "./seo/analizar";
 import { inventario, anioActual } from "./seo/inventario";
 import { agente, type LlamadaHerramienta } from "./ai";
+import { investigarTema } from "./temas";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -73,7 +74,7 @@ async function comando(texto: string): Promise<Respuesta> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n/estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n/tema texto · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/estado":
       return estado();
     case "/articulos": {
@@ -113,6 +114,24 @@ async function comando(texto: string): Promise<Respuesta> {
         order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id limit 8`;
       if (!l.length) return { text: `No hay recomendaciones abiertas. Genera el plan en ${APP}/estrategia` };
       return { text: `🧭 <b>Lo más urgente</b>\n\n${l.map((r) => `• [${r.prioridad}] ${esc(r.titulo)}${r.post_id ? ` (/post ${r.post_id})` : ""}`).join("\n")}\n\nPlan completo: ${APP}/estrategia` };
+    }
+    case "/tema": {
+      if (arg.trim().length < 3) return { text: "Uso: /tema tendencias Claude" };
+      await telegram(`🔎 Buscando en la web lo mejor sobre «${esc(arg)}»… (30-90 s)`);
+      const r = await investigarTema(arg, "telegram");
+      const top = r.items.slice(0, 3);
+      for (const x of top) {
+        const icono = x.interes >= 75 ? "🟢" : x.interes >= 55 ? "🟡" : "🔴";
+        const aviso = x.ya_cubierto ? `\n⚠️ Ya lo cubre: «${esc(x.ya_cubierto)}»` : "";
+        await telegram(
+          `📌 <b>${esc(x.titulo)}</b>\n<i>${esc(x.fuente)}</i> · ${esc(x.url)}\n\n${esc(x.resumen)}\n\n${icono} Interés ${x.interes}/100 — ${esc(x.por_que)}\n🔑 <code>${esc(x.keyword)}</code>${aviso}`,
+          [{ text: "📝 Preparar artículo", data: `prep:${x.id}` }, { text: "🙈 Descartar", data: `skip:${x.id}` }],
+        );
+      }
+      const ideas = r.ideas.map((i) => `• ${esc(i.titulo_articulo)} — <code>${esc(i.keyword)}</code>`).join("\n");
+      return {
+        text: `🧭 <b>${esc(r.consulta)}</b>\n\n${esc(r.panorama)}\n\n<b>Artículos que escribiría:</b>\n${ideas}\n\n${r.items.length} fuentes en el Radar de la app: ${APP}/radar`,
+      };
     }
     case "/buscar": {
       const q = arg.toLowerCase();
@@ -182,6 +201,8 @@ const HERRAMIENTAS = [
   { type: "function", name: "arreglos_seguros", description: "Aplica los arreglos automáticos sin IA (schema duplicado, firma, enlaces de contacto).", strict: true,
     parameters: { type: "object", additionalProperties: false, required: ["id"], properties: { id: { type: "integer" } } } },
   { type: "function", name: "estado_web", description: "Resumen de la salud SEO del sitio.", strict: true, parameters: { type: "object", additionalProperties: false, required: [], properties: {} } },
+  { type: "function", name: "investigar_tema", description: "Busca en la web las mejores noticias y publicaciones recientes sobre un tema para decidir qué publicar (envía al usuario las mejores fuentes con botón para preparar el artículo).", strict: true,
+    parameters: { type: "object", additionalProperties: false, required: ["tema"], properties: { tema: { type: "string" } } } },
   { type: "function", name: "preparar_noticia", description: "Prepara el brief de una noticia (URL) para publicarla.", strict: true,
     parameters: { type: "object", additionalProperties: false, required: ["url"], properties: { url: { type: "string" } } } },
 ];
@@ -242,6 +263,11 @@ async function ejecutarHerramienta(l: LlamadaHerramienta, botones: Boton[]): Pro
       }
       case "estado_web":
         return (await estado()).text.replace(/<[^>]+>/g, "");
+      case "investigar_tema": {
+        const r = await comando("/tema " + a.tema);
+        await telegram(r.text, r.buttons ?? []);
+        return "Búsqueda hecha y enviada al usuario con las fuentes y botones. Resume en una frase y no repitas la lista.";
+      }
       case "preparar_noticia":
         await publicador({ action: "brief_url", url: a.url });
         return "Enviada al publicador: el brief llegará en ~1 minuto con botones para aprobar.";

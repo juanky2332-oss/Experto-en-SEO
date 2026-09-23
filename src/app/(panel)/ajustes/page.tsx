@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Ajustes" };
 
 const COMANDOS = [
+  ["/tema tendencias Claude", "Busca en la web lo mejor sobre un tema y te propone qué publicar"],
   ["/estado", "Salud SEO, problemas críticos y temas del radar"],
   ["/articulos", "Los 10 artículos que más ayuda necesitan"],
   ["/post 6807", "Ficha SEO de un artículo con sus problemas"],
