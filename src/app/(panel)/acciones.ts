@@ -234,9 +234,22 @@ export async function probarTelegram() {
 export async function velocidad(url: string) {
   return seguro(async () => {
     const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices&locale=es${process.env.PAGESPEED_KEY ? `&key=${process.env.PAGESPEED_KEY}` : ""}`;
-    const r = await fetch(api, { signal: AbortSignal.timeout(90_000) });
+    let r = await fetch(api, { signal: AbortSignal.timeout(90_000) });
+    if (r.status === 429 || r.status >= 500) {
+      await new Promise((s) => setTimeout(s, 4000));
+      r = await fetch(api, { signal: AbortSignal.timeout(90_000) });
+    }
     const j = await r.json();
-    if (!r.ok) throw new Error(j?.error?.message ?? `PageSpeed ${r.status}`);
+    if (!r.ok) {
+      const m: string = j?.error?.message ?? `PageSpeed ${r.status}`;
+      if (/quota/i.test(m))
+        throw new Error(
+          process.env.PAGESPEED_KEY
+            ? "Se ha agotado la cuota diaria de tu clave de PageSpeed (25.000 consultas). Vuelve a probar mañana."
+            : "Google ha agotado hoy la cuota gratuita compartida de PageSpeed. Con una clave propia gratuita (variable PAGESPEED_KEY en Vercel) no vuelve a pasar: Google Cloud → APIs → «PageSpeed Insights API» → Habilitar → Credenciales → Crear clave de API.",
+        );
+      throw new Error(m);
+    }
     const c = j.lighthouseResult.categories;
     const a = j.lighthouseResult.audits;
     const data = {
