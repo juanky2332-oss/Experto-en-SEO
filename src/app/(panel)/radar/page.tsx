@@ -18,7 +18,8 @@ const EST: Record<string, { label: string; tone: Tono }> = {
   published: { label: "Publicada", tone: "emerald" }, skipped: { label: "Descartada", tone: "slate" },
 };
 
-export default async function Radar() {
+export default async function Radar({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = await searchParams;
   const [digests, items, fuentes, busquedas] = await Promise.all([
     sql<Digest[]>`select to_char(fecha,'YYYY-MM-DD') fecha, data from seo.digests order by fecha desc limit 7`,
     sql<Item[]>`select id, title, url, source, published_at, score, resumen, motivo, keyword, categoria, cluster, status, to_char(digest_date,'YYYY-MM-DD') digest_date
@@ -37,7 +38,7 @@ export default async function Radar() {
         <BotonAccion accion={radarAhora} className="btn btn-primary"><RadarIcon size={15} /> Lanzar radar ahora</BotonAccion>
       </PageHeader>
 
-      <BuscadorTemas anteriores={busquedas} />
+      <BuscadorTemas anteriores={busquedas} inicial={q ?? ""} />
 
       {hoy ? (
         <div className="mb-6 grid gap-6 xl:grid-cols-3">

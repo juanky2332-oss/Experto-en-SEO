@@ -9,8 +9,8 @@ import type { ResultadoBusqueda } from "@/lib/temas";
 
 const SUGERENCIAS = ["tendencias Claude", "agentes de IA para pymes", "novedades de ChatGPT", "Gemini para empresas", "automatización con n8n", "AI Act obligaciones pymes", "IA para atención al cliente"];
 
-export function BuscadorTemas({ anteriores }: { anteriores: ResultadoBusqueda[] }) {
-  const [q, setQ] = useState("");
+export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: ResultadoBusqueda[]; inicial?: string }) {
+  const [q, setQ] = useState(inicial);
   const [res, setRes] = useState<ResultadoBusqueda | null>(anteriores[0] ?? null);
   const [err, setErr] = useState("");
   const [pend, start] = useTransition();
@@ -35,7 +35,7 @@ export function BuscadorTemas({ anteriores }: { anteriores: ResultadoBusqueda[] 
         <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); buscar(q); }}>
           <div className="relative flex-1">
             <Search size={17} className="absolute top-3 left-3 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="p. ej. tendencias Claude, IA en clínicas, novedades de Gemini…" className="input py-2.5 pl-10 text-slate-900" />
+            <input autoFocus={!!inicial} value={q} onChange={(e) => setQ(e.target.value)} placeholder="p. ej. tendencias Claude, IA en clínicas, novedades de Gemini…" className="input py-2.5 pl-10 text-slate-900" />
           </div>
           <button className="btn btn-primary justify-center py-2.5" disabled={pend}>{pend ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} {pend ? "Buscando en la web…" : "Buscar"}</button>
         </form>

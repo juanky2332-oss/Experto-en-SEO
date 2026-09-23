@@ -28,7 +28,9 @@ export default async function Estrategia() {
     sql<{ created_at: Date; data: Plan }[]>`select created_at, data from seo.audits where kind = 'plan' order by created_at desc limit 1`,
     sql<Rec[]>`select * from seo.recommendations where status = 'open' order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id`,
   ]);
-  const grupos = Object.keys(TIPOS).map((t) => [t, recs.filter((r) => r.tipo === t)] as const).filter(([, l]) => l.length);
+  const calendario = [...recs.filter((r) => r.tipo === "publicar"), ...recs.filter((r) => r.tipo === "no_publicar")];
+  const grupos = Object.keys(TIPOS).filter((t) => t !== "publicar" && t !== "no_publicar").map((t) => [t, recs.filter((r) => r.tipo === t)] as const).filter(([, l]) => l.length);
+  const kw = (d: string) => d.match(/[Kk]eyword «([^»]+)»/)?.[1] ?? "";
 
   return (
     <>
@@ -37,6 +39,26 @@ export default async function Estrategia() {
           <Sparkles size={15} /> {plan ? "Regenerar plan" : "Generar plan"}
         </BotonAccion>
       </PageHeader>
+
+      {calendario.length > 0 && (
+        <Card className="mb-6" title="Calendario editorial: qué publicar" subtitle="Ordenado por prioridad. «Buscar fuentes» abre el buscador del Radar con la keyword; desde ahí, «Preparar artículo» lo redacta y publica.">
+          <ul className="divide-y divide-[var(--line)]">
+            {calendario.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 font-medium text-slate-900"><Badge tone={r.tipo === "publicar" ? PRIO[r.prioridad] : "slate"}>{r.tipo === "publicar" ? r.prioridad : "evitar"}</Badge>{r.titulo}</p>
+                  <p className="mt-1 text-sm text-slate-600">{r.detalle}</p>
+                </div>
+                <div className="flex gap-2">
+                  {r.tipo === "publicar" && <Link href={`/radar?q=${encodeURIComponent(kw(r.detalle) || r.titulo.replace(/^Semana d+ · (Pilar: )?/, ""))}`} className="btn btn-primary">Buscar fuentes</Link>}
+                  <BotonAccion accion={resolverRecomendacion.bind(null, r.id, "applied")} className="btn btn-ghost">Hecho</BotonAccion>
+                  <BotonAccion accion={resolverRecomendacion.bind(null, r.id, "dismissed")} className="btn btn-ghost">Descartar</BotonAccion>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {plan ? (
         <div className="mb-6 grid gap-6 xl:grid-cols-3">

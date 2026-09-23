@@ -13,7 +13,7 @@ export const maxDuration = 120;
 
 export default async function Resumen() {
   const inv = await inventario();
-  const [historial, radar, digest, acciones, fotoHoy] = await Promise.all([
+  const [historial, radar, digest, acciones, fotoHoy, calendario] = await Promise.all([
     historialSalud(),
     sql<{ id: number; title: string; source: string; score: number; resumen: string; status: string; keyword: string }[]>`
       select id, title, source, score, resumen, status, keyword from seo.radar
@@ -21,6 +21,7 @@ export default async function Resumen() {
     sql<{ fecha: string; data: { titular_dia?: string; puntos?: { titulo: string; explicacion: string }[] } }[]>`select to_char(fecha,'YYYY-MM-DD') fecha, data from seo.digests order by fecha desc limit 1`,
     sql<Accion[]>`select * from seo.actions order by created_at desc limit 8`,
     sql`select 1 from seo.score_history where post_id = 0 and fecha = current_date`,
+    sql<{ id: number; titulo: string; prioridad: string; detalle: string }[]>`select id, titulo, prioridad, detalle from seo.recommendations where status = 'open' and tipo = 'publicar' order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id limit 5`,
   ]);
   if (!fotoHoy.length) await guardarFoto(inv); // primera visita del día: se guarda la foto para la gráfica
 
@@ -62,6 +63,23 @@ export default async function Resumen() {
         <Stat label="Publicados · borradores" value={`${pub.length} · ${borradores.length}`} hint={`${inv.categorias.length} categorías`} icon={<FileText size={18} />} tone="blue" />
         <Stat label="Radar IA (3 días)" value={radar.length} hint="temas con potencial para publicar" icon={<Radar size={18} />} tone="violet" />
       </div>
+
+      {calendario.length > 0 && (
+        <Card className="mt-6" title="Tu calendario editorial" subtitle="Lo siguiente que conviene publicar, por prioridad" action={<Link href="/estrategia" className="text-sm text-brand-600 hover:underline">Ver todo</Link>}>
+          <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {calendario.map((c, i) => {
+              const kw = c.detalle.match(/[Kk]eyword «([^»]+)»/)?.[1] ?? "";
+              return (
+                <li key={c.id} className="rounded-xl border border-[var(--line)] p-4">
+                  <p className="text-xs text-slate-500">{i + 1}. <Badge tone={c.prioridad === "alta" ? "rose" : "amber"}>{c.prioridad}</Badge></p>
+                  <p className="mt-1.5 text-sm font-medium text-slate-900">{c.titulo}</p>
+                  {kw && <Link href={`/radar?q=${encodeURIComponent(kw)}`} className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline">Buscar fuentes para «{kw}» →</Link>}
+                </li>
+              );
+            })}
+          </ol>
+        </Card>
+      )}
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2" title="Evolución de la salud SEO" subtitle="Una foto al día; sube a medida que se aplican las mejoras" action={<TrendingUp size={18} className="text-slate-400" />}>
