@@ -1,0 +1,10 @@
+node_modules
+.next
+.env*
+!.env.example
+_backups
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+n8n/*.build.json
+*.tmp.html
