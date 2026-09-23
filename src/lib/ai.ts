@@ -1,4 +1,5 @@
 import "server-only";
+import { openaiN8n } from "./gateway";
 
 const KEY = process.env.OPENAI_API_KEY ?? "";
 export const MODELO = process.env.OPENAI_MODEL ?? "gpt-5.5";
@@ -9,15 +10,34 @@ type Esquema = Record<string, unknown>;
 export const hoy = () =>
   new Date().toLocaleDateString("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "long", year: "numeric" });
 
-async function responses(body: Record<string, unknown>, timeoutMs = 240_000) {
-  const r = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error(`OpenAI ${r.status}: ${j?.error?.message ?? "error"}`);
+// Clave directa (más rápida); si falta, se queda sin saldo o la rechaza OpenAI,
+// se usa la credencial de OpenAI de n8n a través de la pasarela.
+async function porN8n(endpoint: "responses" | "images/generations", body: Record<string, unknown>, timeoutMs: number) {
+  const r = await openaiN8n(endpoint, body, timeoutMs);
+  return { ok: r.status >= 200 && r.status < 300, status: r.status, j: r.data as Record<string, any> };
+}
+
+async function llamar(endpoint: "responses" | "images/generations", body: Record<string, unknown>, timeoutMs: number) {
+  if (!KEY || process.env.OPENAI_VIA === "n8n") return porN8n(endpoint, body, timeoutMs);
+  for (let intento = 0; intento < 3; intento++) {
+    const r = await fetch(`https://api.openai.com/v1/${endpoint}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    const j = await r.json();
+    const sinSaldo = j?.error?.code === "insufficient_quota" || r.status === 401;
+    if (sinSaldo) return porN8n(endpoint, body, timeoutMs);
+    if (r.status === 429 || r.status >= 500) { await new Promise((s) => setTimeout(s, 4000 * (intento + 1))); continue; }
+    return { ok: r.ok, status: r.status, j };
+  }
+  return porN8n(endpoint, body, timeoutMs);
+}
+
+async function responses(body: Record<string, unknown>, timeoutMs = 280_000) {
+  const { ok, status, j } = await llamar("responses", body, timeoutMs);
+  if (!ok) throw new Error(`OpenAI ${status}: ${j?.error?.message ?? "error"}`);
   return j as { output?: { type: string; content?: { type: string; text?: string }[]; name?: string; arguments?: string; call_id?: string }[]; output_text?: string; status?: string };
 }
 
@@ -131,17 +151,11 @@ export async function altDeImagen(url: string, contexto: string) {
 
 // ---------------------------------------------------------------- imagen nueva (gpt-image-2, WebP)
 export async function generarImagen(prompt: string) {
-  const r = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const { ok, status, j } = await llamar("images/generations", {
       model: "gpt-image-2", size: "1536x1024", quality: "medium", output_format: "webp", output_compression: 82, n: 1,
       prompt: `${prompt} Photorealistic editorial photograph, documentary magazine style, natural light, 35mm lens, shallow depth of field. No text, no letters, no signs, no logos, no watermarks, no readable screens.`,
-    }),
-    signal: AbortSignal.timeout(240_000),
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error(`Imagen: ${j?.error?.message ?? r.status}`);
+  }, 280_000);
+  if (!ok) throw new Error(`Imagen: ${j?.error?.message ?? status}`);
   return j.data[0].b64_json as string;
 }
 

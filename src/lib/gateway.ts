@@ -70,3 +70,14 @@ export async function lanzarRadar() {
 
 export const esc = (s: unknown) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** OpenAI con la credencial de n8n (una sola cuenta de OpenAI para todo el sistema). */
+export async function openaiN8n(endpoint: "responses" | "images/generations", body: unknown, timeoutMs = 280_000) {
+  let ultimo: { status: number; data: unknown } = { status: 0, data: null };
+  for (let intento = 0; intento < 3; intento++) {
+    ultimo = await call<{ status: number; data: unknown }>("seo-pasarela", { action: "openai", endpoint, body }, timeoutMs);
+    if (ultimo.status !== 429 && ultimo.status < 500) return ultimo;
+    await new Promise((s) => setTimeout(s, 4000 * (intento + 1)));
+  }
+  return ultimo;
+}

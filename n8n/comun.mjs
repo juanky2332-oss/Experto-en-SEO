@@ -5,7 +5,11 @@ import { wp, gw } from './gw.mjs';
 export { wp, gw };
 export const SITE = 'https://transformaconia.com';
 export const sql = postgres(process.env.DATABASE_URL, { prepare: false, ssl: 'require', max: 4 });
-const KEY = process.env.OPENAI_API_KEY;
+// OpenAI siempre con la credencial de n8n (pasarela), la misma cuenta que el publicador.
+async function openai(endpoint, body) {
+  const r = await gw({ action: 'openai', endpoint, body });
+  return { ok: r.status >= 200 && r.status < 300, status: r.status, j: r.data || {} };
+}
 export const hoy = () => new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' });
 export const plano = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
 export const palabras = (h) => plano(h).split(' ').filter(Boolean).length;
@@ -25,14 +29,10 @@ export const registrar = (a) => sql`insert into seo.actions (origin, action, tar
 export async function ia({ modelo = 'gpt-5.5', esfuerzo = 'medium', sistema, usuario, esquema, nombre, max = 40000, web = false }) {
   let ultimo = '';
   for (let intento = 0; intento < 3; intento++) {
-    const r = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST', headers: { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: modelo, reasoning: { effort: esfuerzo }, max_output_tokens: max, instructions: sistema, input: usuario,
-        ...(web ? { tools: [{ type: 'web_search', search_context_size: 'medium', user_location: { type: 'approximate', country: 'ES' } }] } : {}),
-        text: { format: { type: 'json_schema', name: nombre, strict: true, schema: esquema } } }),
-    });
-    const j = await r.json();
-    if (r.ok) {
+    const { ok, j } = await openai('responses', { model: modelo, reasoning: { effort: esfuerzo }, max_output_tokens: max, instructions: sistema, input: usuario,
+      ...(web ? { tools: [{ type: 'web_search', search_context_size: 'medium', user_location: { type: 'approximate', country: 'ES' } }] } : {}),
+      text: { format: { type: 'json_schema', name: nombre, strict: true, schema: esquema } } });
+    if (ok) {
       let t = j.output_text || '';
       if (!t) for (const o of j.output || []) if (o.type === 'message') for (const c of o.content || []) if (c.type === 'output_text') t += c.text;
       if (t) return JSON.parse(t);
@@ -52,13 +52,15 @@ export async function enParalelo(lista, n, fn) {
 
 // ---------------------------------------------------------------- imágenes
 export async function generarImagen(prompt) {
-  const r = await fetch('https://api.openai.com/v1/images/generations', {
-    method: 'POST', headers: { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-image-2', size: '1536x1024', quality: 'medium', output_format: 'webp', output_compression: 82, n: 1,
-      prompt: `${prompt} Photorealistic editorial photograph, documentary magazine style, natural light, realistic skin and materials, 35mm lens, shallow depth of field. No text, no letters, no signs, no logos, no watermarks, no readable screens.` }),
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error('imagen: ' + (j.error?.message || r.status));
+  let res;
+  for (let i = 0; i < 3; i++) {
+    res = await openai('images/generations', { model: 'gpt-image-2', size: '1536x1024', quality: 'medium', output_format: 'webp', output_compression: 82, n: 1,
+      prompt: `${prompt} Photorealistic editorial photograph, documentary magazine style, natural light, realistic skin and materials, 35mm lens, shallow depth of field. No text, no letters, no signs, no logos, no watermarks, no readable screens.` });
+    if (res.ok) break;
+    await new Promise((s) => setTimeout(s, 6000 * (i + 1)));
+  }
+  const j = res.j;
+  if (!res.ok) throw new Error('imagen: ' + (j.error?.message || res.status));
   return j.data[0].b64_json;
 }
 

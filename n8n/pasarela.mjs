@@ -6,6 +6,7 @@
 //   { action:'wp', method, path, body? }          -> { status, total, totalPages, data }
 //   { action:'media', filename, mime, base64 }    -> { status, data }
 //   { action:"tg", text, buttons?:[{text,data}] (0-2) } -> { ok }
+//   { action:'openai', endpoint:'responses'|'images/generations', body } -> respuesta de OpenAI (credencial de n8n)
 import { Flow, CRED, CHAT_ID, WP, n8n } from './lib.mjs';
 
 const ID = process.argv[2] || null;
@@ -16,7 +17,7 @@ f.add('Webhook app', 'n8n-nodes-base.webhook', 2, {
 }, [0, 300], { webhookId: 'seo-pasarela', credentials: CRED.gateway });
 
 f.add('Que accion', 'n8n-nodes-base.switch', 3.2, {
-  rules: { values: ['wp', 'media', 'tg'].map((a) => ({
+  rules: { values: ['wp', 'media', 'tg', 'openai'].map((a) => ({
     conditions: { options: { caseSensitive: true, typeValidation: 'loose', version: 2 }, combinator: 'and',
       conditions: [{ leftValue: '={{ $json.body.action }}', rightValue: a, operator: { type: 'string', operation: 'equals' } }] },
     renameOutput: true, outputKey: a,
@@ -97,6 +98,15 @@ f.add('Responder TG', 'n8n-nodes-base.respondToWebhook', 1.1, {
   respondWith: 'json', responseBody: '={{ JSON.stringify({ ok: !$json.error, message_id: ($json.result || {}).message_id || null, error: $json.error ? String($json.error.message || $json.error) : null }) }}', options: {},
 }, [1100, 650]);
 
+f.add('OpenAI', 'n8n-nodes-base.httpRequest', 4.2, {
+  method: 'POST', url: '={{ "https://api.openai.com/v1/" + ($json.body.endpoint === "images/generations" ? "images/generations" : "responses") }}',
+  authentication: 'predefinedCredentialType', nodeCredentialType: 'openAiApi',
+  sendBody: true, specifyBody: 'json', jsonBody: '={{ JSON.stringify($json.body.body || {}) }}',
+  options: { timeout: 600000, response: { response: { fullResponse: true, neverError: true } } },
+}, [440, 1000], { credentials: CRED.openai });
+f.add('Responder OpenAI', 'n8n-nodes-base.respondToWebhook', 1.1, {
+  respondWith: 'json', responseBody: '={{ JSON.stringify({ status: $json.statusCode, data: $json.body }) }}', options: {},
+}, [660, 1000]);
 f.add('Accion desconocida', 'n8n-nodes-base.respondToWebhook', 1.1, {
   respondWith: 'json', responseBody: '={{ JSON.stringify({ error: "accion desconocida: " + $json.body.action }) }}', options: { responseCode: 400 },
 }, [440, 850]);
@@ -105,7 +115,9 @@ f.link('Webhook app', 'Que accion');
 f.link('Que accion', 'Lleva cuerpo', 0);
 f.link('Que accion', 'Base64 a archivo', 1);
 f.link('Que accion', 'Cuantos botones', 2);
-f.link('Que accion', 'Accion desconocida', 3);
+f.link('Que accion', 'OpenAI', 3);
+f.link('Que accion', 'Accion desconocida', 4);
+f.chain('OpenAI', 'Responder OpenAI');
 f.link('Lleva cuerpo', 'WP escribir', 0);
 f.link('Lleva cuerpo', 'WP leer', 1);
 f.link('WP escribir', 'Responder WP');
