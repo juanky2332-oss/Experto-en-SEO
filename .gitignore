@@ -8,3 +8,5 @@ _backups
 next-env.d.ts
 n8n/*.build.json
 *.tmp.html
+
+.vercel
