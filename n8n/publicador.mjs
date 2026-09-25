@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import { Flow, CRED, CHAT_ID, WP, APP_URL, n8n, code, OPENAI_HTTP, reqJs, checkExpr, PARSE_RESPONSES } from './lib.mjs';
 import { CATEGORIAS, BRIEF_SCHEMA, BRIEF_SISTEMA, INVESTIGACION_SCHEMA, ARTICULO_SCHEMA, REDACCION_SISTEMA, QC_JS } from './prompts.mjs';
+import { TIPOS_BASE, GUIA_INICIAL, guiaATexto } from '../src/lib/guia-base.ts';
 
 const ID = process.argv[2] || 'rzxO46Wfc2eJcD7x';
 const f = new Flow('Transformaconia - Publicador IA SEO v3');
@@ -19,6 +20,9 @@ const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</
 const decode = (s) => String(s || '').replace(/&#8217;|&#8216;/g, "'").replace(/&#8220;|&#8221;|&quot;/g, '"').replace(/&#8211;/g, '–').replace(/&#8212;/g, '—').replace(/&#8230;/g, '…').replace(/&amp;/g, '&').replace(/&#(\\d+);/g, (m, d) => String.fromCodePoint(+d)).replace(/<[^>]+>/g, '');
 const hoyMadrid = () => new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' });
 const anio = () => +new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/Madrid', year: 'numeric' });
+const TIPOS_BASE = ${JSON.stringify(TIPOS_BASE)};
+const GUIA_TEXTO_BASE = ${JSON.stringify(guiaATexto(GUIA_INICIAL))};
+const tipoDe = (guia, clave) => ((guia && guia.tipos) || TIPOS_BASE).find(t => t.clave === clave) || TIPOS_BASE.find(t => t.clave === clave) || TIPOS_BASE[0];
 `;
 
 // =====================================================================
@@ -134,14 +138,21 @@ f.add('Inventario blog', 'n8n-nodes-base.httpRequest', 4.2, {
   options: { timeout: 30000, response: { response: { fullResponse: true, neverError: true } } },
 }, X(8, 1));
 
+f.add('Leer guia', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
+  query: `select (select value->>'texto' from seo.settings where key='guia') as guia, (select tipo from seo.radar where id = nullif($1,'')::bigint) as tipo_radar`,
+  options: { queryReplacement: "={{ [ String($('Preparar lectura').first().json.radar_id || '') ] }}" } }, X(8.5, 0), { credentials: CRED.pg, alwaysOutputData: true, onError: 'continueRegularOutput' });
 f.add('Preparar brief', 'n8n-nodes-base.code', 2, code(`${UTIL}
 const d = $('Extraer contenido').first().json;
-const posts = Array.isArray($json.body) ? $json.body : [];
+const g = $('Leer guia').first().json || {};
+const body = $('Inventario blog').first().json.body;
+const posts = Array.isArray(body) ? body : [];
 const inventario = posts.map(p => '- [' + p.id + '] ' + decode(p.title && p.title.rendered)).join('\\n');
 const cats = ${JSON.stringify(Object.entries(CATEGORIAS).map(([k, v]) => `- ${k}: ${v}`).join('\n'))};
 const usuario = 'FECHA DE HOY: ' + hoyMadrid() + '\\n\\n' +
   'NOTICIA\\nTítulo: ' + d.title + '\\nFuente: ' + d.source + '\\nURL: ' + d.link + '\\n' +
   'Subtítulos originales: ' + JSON.stringify(d.h2_originales || []) + '\\n\\nTEXTO FUENTE:\\n' + String(d.content_markdown || '').slice(0, 14000) +
+  (g.tipo_radar ? '\\n\\nTIPO SUGERIDO POR EL RADAR: ' + g.tipo_radar + ' (cámbialo si otro saca más valor)' : '') +
+  '\\n\\nGUÍA EDITORIAL:\\n' + (g.guia || GUIA_TEXTO_BASE) +
   '\\n\\nCATEGORÍAS DEL BLOG:\\n' + cats +
   '\\n\\nARTÍCULOS QUE YA TIENE EL BLOG (para detectar canibalización):\\n' + inventario;
 const sistema = ${JSON.stringify(BRIEF_SISTEMA)};
@@ -163,7 +174,7 @@ let t = '📰 <b>' + esc(b.titular) + '</b>\\n' + '<i>' + esc(d.source) + '</i> 
   '<b>Por qué importa:</b> ' + esc(b.por_que_importa) + '\\n\\n' +
   '<b>Dato clave:</b> ' + esc(b.dato_clave) + '\\n\\n' +
   semaforo + ' <b>Interés ' + b.interes + '/100</b> — ' + (b.publicar ? 'recomiendo publicarla' : 'no recomiendo publicarla') + '. ' + esc(b.motivo) + '\\n' +
-  '🎯 ' + esc(b.angulo) + ' · ' + esc(b.vigencia) + ' · ' + esc(b.categoria) + '\\n' +
+  '🎯 ' + esc(tipoDe(null, b.tipo).nombre) + ' · ' + esc(b.angulo) + ' · ' + esc(b.vigencia) + ' · ' + esc(b.categoria) + '\\n' +
   '🔑 <code>' + esc(b.keyword_principal) + '</code> (' + esc(b.intencion) + ')\\n' +
   '❓ ' + b.preguntas.slice(0, 3).map(esc).join(' · ');
 if (b.canibaliza && b.canibaliza.post_id) t += '\\n\\n⚠️ <b>Ya tienes algo parecido:</b> ' + esc(b.canibaliza.titulo) + ' (#' + b.canibaliza.post_id + '). ' + esc(b.canibaliza.recomendacion);
@@ -196,7 +207,7 @@ f.link('Descargar noticia', 'Lector Jina', 1);
 f.link('Lector Jina', 'Extraer contenido');
 f.link('Extraer contenido', 'Inventario blog', 0);
 f.link('Extraer contenido', 'Aviso lectura fallida', 1);
-f.chain('Inventario blog', 'Preparar brief', 'Brief editorial', 'Parsear brief', 'Guardar brief', 'Enviar brief');
+f.chain('Inventario blog', 'Leer guia', 'Preparar brief', 'Brief editorial', 'Parsear brief', 'Guardar brief', 'Enviar brief');
 
 // =====================================================================
 // B) PUBLICAR: redactar, controlar calidad, imágenes y WordPress
@@ -206,14 +217,15 @@ f.add('Bloquear brief', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQue
   query: `update seo.briefs set status='generating', updated_at=now(), error=null
 where id=$1::uuid and (status in ('pending','failed','rejected') or (status='generating' and updated_at < now() - interval '20 minutes'))
 returning id, source_url, source_title, source_name, source_text, brief, origin, radar_id,
- (select value from seo.settings where key='publicacion') as ajustes`,
+ (select value from seo.settings where key='publicacion') as ajustes,
+ (select value from seo.settings where key='guia') as guia`,
   options: { queryReplacement: '={{ [ $json.brief_id ] }}' } }, X(3, Y), { credentials: CRED.pg, alwaysOutputData: true });
 f.add('Brief libre', 'n8n-nodes-base.if', 2.2, {
   conditions: { options: { caseSensitive: true, typeValidation: 'loose', version: 2 }, combinator: 'and',
     conditions: [{ leftValue: '={{ $json.id || "" }}', rightValue: '', operator: { type: 'string', operation: 'notEmpty', singleValue: true } }] }, options: {},
 }, X(4, Y));
 f.add('Aviso ya en marcha', 'n8n-nodes-base.telegram', 1.2, { chatId: CHAT_ID, text: 'Ese artículo ya se está redactando o ya está publicado. Si algo se quedó colgado, vuelve a pulsar dentro de 20 minutos.', additionalFields: HTML }, X(5, Y + 1), { credentials: tg });
-f.add('Aviso redactando', 'n8n-nodes-base.telegram', 1.2, { chatId: CHAT_ID, text: "=✍️ Redactando <b>{{ $json.brief.titular }}</b>\nInvestigo la actualidad, escribo, reviso el SEO y genero 3 fotos. Tardo unos 4-7 minutos; te aviso al terminar.", additionalFields: HTML }, X(5, Y - 1), { credentials: tg, onError: 'continueRegularOutput' });
+f.add('Aviso redactando', 'n8n-nodes-base.telegram', 1.2, { chatId: CHAT_ID, text: "=✍️ Redactando <b>{{ $json.brief.titular }}</b>\nInvestigo la actualidad, escribo, reviso el SEO y genero 3 imágenes. Tardo unos 4-7 minutos; te aviso al terminar.", additionalFields: HTML }, X(5, Y - 1), { credentials: tg, onError: 'continueRegularOutput' });
 
 f.add('Inventario enlaces', 'n8n-nodes-base.httpRequest', 4.2, {
   url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=id,title,link,excerpt,categories,date`,
@@ -250,9 +262,12 @@ const internos = puntuados.map(p => '- ' + p.t + ' → ' + p.link).join('\\n');
 const hechosFuente = b.hechos.map(h => '- ' + h.dato + ' (cita: "' + h.cita + '")').join('\\n');
 const hechosWeb = (inv.hechos || []).map(h => '- ' + h.dato + ' — ' + h.fuente + ' (' + h.url + ')').join('\\n');
 const urlsFuente = [r.source_url, ...(inv.hechos || []).map(h => h.url), ...citas.map(c => c.url)].filter(Boolean);
-const sistema = ${JSON.stringify(REDACCION_SISTEMA)}.split('{{HOY}}').join(hoyMadrid()).split('{{ANIO}}').join(String(anio()));
+const T = tipoDe(r.guia, b.tipo || 'actualidad');
+const bloqueTipo = '═══ TIPO DE ARTÍCULO: ' + T.nombre.toUpperCase() + ' ═══\\nObjetivo: ' + T.objetivo + '\\nExtensión: ' + T.extension + ' (mínimo ' + T.min_palabras + ' palabras)\\nEstructura recomendada (adáptala al tema; los H2 son preguntas o variantes de la keyword, no copies estos rótulos):\\n- ' + T.estructura.join('\\n- ') + '\\nESTILO VISUAL de las imágenes: ' + T.estilo_imagen;
+const sistema = ${JSON.stringify(REDACCION_SISTEMA)}.split('{{HOY}}').join(hoyMadrid()).split('{{ANIO}}').join(String(anio()))
+  .split('{{TIPO}}').join(bloqueTipo).split('{{GUIA}}').join((r.guia && r.guia.texto) || GUIA_TEXTO_BASE);
 const usuario = [
-  'BRIEF APROBADO', 'Titular: ' + b.titular, 'Ángulo: ' + b.angulo + ' · Vigencia: ' + b.vigencia + ' · Intención: ' + b.intencion,
+  'BRIEF APROBADO', 'Titular: ' + b.titular, 'Tipo: ' + T.nombre + ' · Ángulo: ' + b.angulo + ' · Vigencia: ' + b.vigencia + ' · Intención: ' + b.intencion,
   'Keyword principal: ' + b.keyword_principal, 'Keywords secundarias: ' + b.keywords_secundarias.join(', '),
   'Categoría sugerida: ' + b.categoria, 'Preguntas a responder: ' + b.preguntas.join(' | '),
   'Qué ha pasado: ' + b.que_ha_pasado, 'Por qué importa: ' + b.por_que_importa, 'Dato clave: ' + b.dato_clave,
@@ -275,7 +290,7 @@ const r = $('Bloquear brief').first().json;
 const prep = $('Preparar redaccion').first().json;
 const a = leerRespuesta($json);
 a.slug = String(a.slug || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 8).join('-').slice(0, 60).replace(/-$/, '');
-const ctx = { anio: anio(), vigencia: r.brief.vigencia, fuenteTexto: String(r.source_text || '') + JSON.stringify(prep.investigacion || {}),
+const ctx = { anio: anio(), vigencia: r.brief.vigencia, minPal: tipoDe(r.guia, r.brief.tipo || 'actualidad').min_palabras, fuenteTexto: String(r.source_text || '') + JSON.stringify(prep.investigacion || {}),
   urlsInternas: new Set((prep.urls_internas || []).map(u => u.replace(/\\/?$/, '/'))), hayInternos: (prep.urls_internas || []).length > 3 };
 const ev = evaluar(a, ctx);
 const minimo = +((r.ajustes || {}).score_minimo || 80);
@@ -300,13 +315,15 @@ f.add('Revisar articulo', 'n8n-nodes-base.httpRequest', 4.2,
   X(14, Y + 1), { credentials: CRED.openai, onError: 'continueRegularOutput' });
 f.add('Control calidad 2', 'n8n-nodes-base.code', 2, code(QC_NODE('revisada')), X(15, Y + 1), { onError: 'continueRegularOutput' });
 
-f.add('Articulo final', 'n8n-nodes-base.code', 2, code(`
+f.add('Articulo final', 'n8n-nodes-base.code', 2, code(`${UTIL}
 const q1 = $('Control calidad').first().json;
 let q = q1;
 try { const q2 = $('Control calidad 2').first().json; if (q2 && q2.articulo && q2.score >= q1.score) q = q2; } catch (e) {}
 const a = q.articulo;
 const cats = ($('Categorias').first().json.body || []);
-const cat = cats.find(c => c.slug === a.categoria) || cats.find(c => c.slug === 'sobre-la-ia') || cats[0] || { id: 1 };
+const rb = $('Bloquear brief').first().json;
+const T = tipoDe(rb.guia, rb.brief.tipo || 'actualidad');
+const cat = cats.find(c => c.slug === a.categoria) || cats.find(c => c.slug === T.categoria) || cats.find(c => c.slug === 'sobre-la-ia') || cats[0] || { id: 1 };
 const etiquetas = [...new Set((a.etiquetas || []).map(t => String(t).trim()).filter(t => t.length > 1 && t.length < 40))].slice(0, 4);
 return [{ json: { ...q, categoria_id: cat.id, categoria_nombre: cat.name, etiquetas } }];
 `), X(16, Y));
@@ -334,12 +351,13 @@ f.add('Crear etiqueta', 'n8n-nodes-base.httpRequest', 4.2, {
 }, X(4, Y2), { credentials: CRED.wp, onError: 'continueRegularOutput' });
 
 // ---------- imágenes ----------
-f.add('Prompts imagen', 'n8n-nodes-base.code', 2, code(`
+f.add('Prompts imagen', 'n8n-nodes-base.code', 2, code(`${UTIL}
 const f = $('Articulo final').first().json; const a = f.articulo;
-const estilo = ' Photorealistic editorial photograph, documentary magazine style, natural light, realistic skin and materials, subtle film grain, 35mm lens, shallow depth of field. No text, no letters, no signs, no logos, no watermarks, no readable screens.';
+const rb = $('Bloquear brief').first().json;
+const estilo = ' ' + tipoDe(rb.guia, rb.brief.tipo || 'actualidad').estilo_prompt;
 const roles = ['portada', 'seccion_1', 'seccion_2'];
 return roles.map((rol, i) => {
-  const im = (a.imagenes || []).find(x => x.rol === rol) || (a.imagenes || [])[i] || { prompt: 'Professionals in a Spanish small business office discussing ' + a.focus_keyword, alt: a.title, titulo: a.focus_keyword, pie: '' };
+  const im = (a.imagenes || []).find(x => x.rol === rol) || (a.imagenes || [])[i] || { prompt: 'A clear visual metaphor for ' + a.focus_keyword, alt: a.title, titulo: a.focus_keyword, pie: '' };
   return { json: { rol, prompt: String(im.prompt).slice(0, 3000) + estilo, alt: im.alt, titulo: im.titulo, pie: im.pie, filename: a.slug + '-' + (rol === 'portada' ? 'portada' : rol.replace('_', '-')) + '.webp' } };
 });
 `), X(6, Y2));
@@ -410,8 +428,9 @@ const faq = (a.faq || []).slice(0, 6);
 const faqHtml = faq.length ? '<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>' + faq.map(x => '<h3>' + esc(x.pregunta) + '</h3><p>' + esc(x.respuesta) + '</p>').join('') : '';
 const fuentes = (a.fuentes || []).filter(x => /^https?:\\/\\//.test(x.url)).slice(0, 8);
 const fuentesHtml = fuentes.length ? '<h2 id="fuentes">Fuentes</h2><ul class="tca-fuentes">' + fuentes.map(x => '<li><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.nombre) + '</a></li>').join('') + '</ul>' : '';
-const autor = '<aside class="tca-autor"><p><strong>Sobre el autor.</strong> Juan Carlos Ros es consultor y desarrollador de inteligencia artificial y automatización en Transformaconia, donde diseña agentes de IA y flujos automatizados para pymes españolas.</p><p><strong>¿Quieres aplicarlo en tu empresa?</strong> Cuéntanos tu caso en <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y te respondemos en menos de 24 horas con una propuesta concreta.</p></aside>';
-const estilos = '<style>.tca-esencial{background:#f4f7fb;border-left:4px solid #2563eb;border-radius:10px;padding:16px 20px;margin:0 0 24px}.tca-esencial ul{margin:6px 0 0 18px}.tca-indice{background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:14px 20px;margin:0 0 28px}.tca-indice ol{margin:6px 0 0 18px}.tca-figura{margin:32px 0}.tca-figura img{border-radius:12px;width:100%;height:auto}.tca-figura figcaption{font-size:.85em;color:#6b7280;text-align:center;margin-top:8px}.tca-autor{border-top:1px solid #e5e7eb;margin-top:40px;padding-top:20px;font-size:.95em}.entry-content table{width:100%;border-collapse:collapse;margin:24px 0}.entry-content th,.entry-content td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}.entry-content th{background:#f4f7fb}</style>';
+const T = tipoDe(r.guia, r.brief.tipo || 'actualidad');
+const autor = '<aside class="tca-autor"><p><strong>Sobre el autor.</strong> Juan Carlos Ros es consultor y desarrollador de inteligencia artificial y automatización en Transformaconia, donde diseña agentes de IA y flujos automatizados para empresas españolas.</p><p><strong>¿Quieres aplicarlo en tu empresa?</strong> ' + esc(T.cta) + ' Escríbenos a <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y te respondemos en menos de 24 horas.</p></aside>';
+const estilos = '<style>.tca-esencial{background:#f4f7fb;border-left:4px solid #2563eb;border-radius:10px;padding:16px 20px;margin:0 0 24px}.tca-esencial ul{margin:6px 0 0 18px}.tca-indice{background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:14px 20px;margin:0 0 28px}.tca-indice ol{margin:6px 0 0 18px}.tca-figura{margin:32px 0}.tca-figura img{border-radius:12px;width:100%;height:auto}.tca-figura figcaption{font-size:.85em;color:#6b7280;text-align:center;margin-top:8px}.tca-autor{border-top:1px solid #e5e7eb;margin-top:40px;padding-top:20px;font-size:.95em}.entry-content table{width:100%;border-collapse:collapse;margin:24px 0}.entry-content th,.entry-content td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}.entry-content th{background:#f4f7fb}.entry-content pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:.88em;line-height:1.55;margin:20px 0}.entry-content pre code{background:none;color:inherit;padding:0}.entry-content :not(pre)>code{background:#eef2ff;color:#1e3a8a;border-radius:5px;padding:1px 5px;font-size:.9em}</style>';
 const faqSchema = faq.length >= 2 ? '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(x => ({ '@type': 'Question', name: x.pregunta, acceptedAnswer: { '@type': 'Answer', text: x.respuesta } })) }) + '</script>' : '';
 
 const contenido = estilos + esencial + indice + html + faqHtml + fuentesHtml + autor + faqSchema;
@@ -458,7 +477,7 @@ const x = m.metricas || {};
 return (m.publicar ? '✅ <b>Publicado</b>' : '📝 <b>Guardado como borrador</b> (no llega al mínimo de calidad o el modo es borrador)') + '\\n\\n' +
  '<b>' + esc(m.articulo.title) + '</b>\\n' + esc(p.link) + '\\n\\n' +
  '📊 SEO ' + m.score + '/100 · ' + (x.palabras || 0) + ' palabras · ' + (x.h2 || 0) + ' H2 · ' + (x.internos || 0) + ' enlaces internos · ' + (x.externos || 0) + ' fuentes · ' + (x.faq || 0) + ' FAQ\\n' +
- '🖼 ' + m.imagenes + '/3 fotos WebP con alt · 📂 ' + esc(m.categoria) + '\\n🔑 <code>' + esc(m.articulo.focus_keyword) + '</code>\\n' +
+ '🖼 ' + m.imagenes + '/3 imágenes WebP con alt · 📂 ' + esc(m.categoria) + '\\n🔑 <code>' + esc(m.articulo.focus_keyword) + '</code>\\n' +
  '⚡ Rank Math configurado' + (m.publicar ? ' · IndexNow enviado (Bing, ChatGPT Search)' : '') +
  (m.issues.length ? '\\n\\n<b>Detalles a pulir:</b>\\n• ' + m.issues.slice(0, 5).map(esc).join('\\n• ') : ''); })() }}`,
   replyMarkup: 'inlineKeyboard',

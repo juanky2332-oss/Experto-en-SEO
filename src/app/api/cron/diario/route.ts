@@ -3,6 +3,7 @@ import { mismaClave } from "@/lib/sesion";
 import { inventario, guardarFoto } from "@/lib/seo/inventario";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
+import { recalcularProximos } from "@/lib/guia";
 
 export const maxDuration = 300;
 
@@ -26,5 +27,16 @@ export async function GET(req: NextRequest) {
         `\n${process.env.APP_URL ?? ""}`,
     );
   }
-  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length });
+  // los lunes la guía recalcula «qué publicar después» con lo publicado esa semana
+  let proximos = "";
+  if (lunes) {
+    try {
+      const r = await recalcularProximos("sistema");
+      proximos = r.diagnostico;
+      await telegram(`📘 <b>Plan editorial de la semana</b>\n${esc(r.diagnostico)}\n\n${r.guia.proximos.slice(0, 5).map((p, i) => `${i + 1}. ${esc(p.titulo)} — <code>${esc(p.keyword)}</code>`).join("\n")}\n\n${process.env.APP_URL ?? ""}/guia`);
+    } catch (e) {
+      console.error("proximos", e);
+    }
+  }
+  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, proximos });
 }

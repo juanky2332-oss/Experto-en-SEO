@@ -6,6 +6,7 @@ import { obtener, listar, medio, actualizarMedio, crearEtiqueta, olvidarCache, t
 import { subirMedio, publicador, lanzarRadar, telegram, esc } from "@/lib/gateway";
 import { sugerirMeta, mejorarContenido, altDeImagen, generarImagen, promptImagen, planEstrategico } from "@/lib/ai";
 import { inventario, guardarFoto } from "@/lib/seo/inventario";
+import { getGuia, guardarGuia, guardarRadarConfig, pedirCambioGuia, recalcularProximos, tipoDeCategoria, describirRadar, guiaATexto, type Guia, type RadarConfig } from "@/lib/guia";
 
 type Tipo = "post" | "page";
 export type Resultado<T = unknown> = { ok: true; data?: T; mensaje?: string } | { ok: false; error: string };
@@ -54,8 +55,10 @@ export async function mandarAPapelera(id: number, tipo: Tipo) {
 export async function deshacerAccion(accionId: number) {
   return seguro(async () => {
     const r = await deshacer(accionId, "app");
-    await telegram(`↩️ <b>Deshecho desde la app</b>: «${esc(r.title)}»`);
-    refrescar(r.id);
+    await telegram(`↩️ <b>Deshecho desde la app</b>: «${esc(r ? r.title : "ajuste de la guía o del radar")}»`);
+    refrescar(r?.id);
+    revalidatePath("/guia");
+    revalidatePath("/radar");
   }, "Cambio deshecho");
 }
 
@@ -113,8 +116,11 @@ export async function iaAlts(id: number, tipo: Tipo, contenidoActual?: string) {
 export async function iaNuevaPortada(id: number, tipo: Tipo) {
   return seguro(async () => {
     const e = await obtener(id, tipo);
-    const p = await promptImagen(e);
-    const b64 = await generarImagen(p.prompt);
+    const { categorias } = await import("@/lib/wp");
+    const [cats, guia] = await Promise.all([categorias(), getGuia()]);
+    const estilo = tipoDeCategoria(cats.find((c) => e.categories.includes(c.id))?.slug, guia);
+    const p = await promptImagen(e, estilo);
+    const b64 = await generarImagen(p.prompt, estilo);
     const m = await subirMedio(`${e.slug.slice(0, 60)}-portada-${Date.now().toString(36)}.webp`, "image/webp", b64);
     await actualizarMedio(m.id, { alt_text: p.alt, title: e.title.slice(0, 60) });
     await editar(id, { featured_media: m.id }, { origin: "app", tipo, motivo: "Nueva imagen destacada (gpt-image-2)" });
@@ -182,7 +188,9 @@ export async function generarPlan() {
     const inv = await inventario();
     const radar = await sql<{ title: string; score: number; keyword: string }[]>`
       select title, score, keyword from seo.radar where score is not null and created_at > now() - interval '7 days' order by score desc limit 15`;
+    const guia = await getGuia();
     const datos = [
+      `GUÍA EDITORIAL (el plan debe seguirla):\n${guiaATexto(guia)}`,
       `SALUD SEO MEDIA: ${inv.salud}/100 · ${inv.posts.filter((p) => p.status === "publish").length} publicados · ${inv.posts.filter((p) => p.status === "draft").length} borradores`,
       `CATEGORÍAS: ${inv.categorias.map((c) => `${c.name} (${c.count})`).join(", ")}`,
       "INVENTARIO (id | estado | fecha | categoría | score | palabras | keyword | título | problemas principales):",
@@ -305,4 +313,52 @@ export async function buscarTemaAccion(consulta: string) {
     revalidatePath("/radar");
     return r;
   });
+}
+
+// ---------------------------------------------------------------- radar automático
+export async function guardarRadar(cfg: Partial<RadarConfig>) {
+  return seguro(async () => {
+    const c = await guardarRadarConfig(cfg, { origin: "app" });
+    await telegram(`📡 <b>Radar actualizado desde la app</b>\n${esc(describirRadar(c))}`);
+    revalidatePath("/radar");
+    return c;
+  }, "Guardado. El radar usará esta configuración en su próxima pasada");
+}
+
+// ---------------------------------------------------------------- guía editorial
+export async function pedirCambioGuiaAccion(instruccion: string) {
+  return seguro(async () => {
+    const r = await pedirCambioGuia(instruccion, "app");
+    await telegram(`📘 <b>Guía editorial v${r.guia.version}</b>\n${esc(r.resumen)}`, [{ text: "↩️ Deshacer", data: `app:undo:${r.accion}` }]);
+    revalidatePath("/guia");
+    return r.resumen;
+  });
+}
+
+export async function recalcularProximosAccion() {
+  return seguro(async () => {
+    const r = await recalcularProximos("app");
+    revalidatePath("/guia");
+    return r.diagnostico;
+  }, "Plan de próximos artículos recalculado");
+}
+
+const CAMPOS_TEXTO = ["posicionamiento"] as const;
+const CAMPOS_LISTA = ["embudo", "ritmo", "reglas_seo", "reglas_ia", "voz", "no_publicar", "notas"] as const;
+export type CampoGuia = (typeof CAMPOS_TEXTO)[number] | (typeof CAMPOS_LISTA)[number];
+
+/** Edición manual de una sección de la guía (texto o lista, una línea por punto). */
+export async function guardarSeccionGuia(campo: CampoGuia, valor: string) {
+  return seguro(async () => {
+    const g = await getGuia();
+    const nueva: Guia = { ...g };
+    if ((CAMPOS_TEXTO as readonly string[]).includes(campo)) {
+      if (valor.trim().length < 10) throw new Error("Demasiado corto");
+      (nueva as Record<string, unknown>)[campo] = valor.trim();
+    } else if ((CAMPOS_LISTA as readonly string[]).includes(campo)) {
+      (nueva as Record<string, unknown>)[campo] = valor.split("\n").map((x) => x.replace(/^[-•*]\s*/, "").trim()).filter(Boolean);
+    } else throw new Error("Sección no editable");
+    await guardarGuia(nueva, { origin: "app", resumen: `sección «${campo}» editada a mano` });
+    revalidatePath("/guia");
+  }, "Guía guardada");
 }

@@ -72,6 +72,13 @@ export async function deshacer(accionId: number, origin: Origen) {
   if (!a) throw new Error("No encuentro esa acción");
   if (a.status === "cancelled") throw new Error("Esa acción ya estaba deshecha");
   if (!a.before) throw new Error("Esa acción no se puede deshacer");
+  if (a.target_type === "ajuste") {
+    const { restaurarAjuste } = await import("./guia");
+    await restaurarAjuste(a.target_id, a.before);
+    await sql`update seo.actions set status = 'cancelled' where id = ${accionId}`;
+    await registrar({ origin, action: "deshacer", target_type: "ajuste", target_id: a.target_id, summary: `Deshecho: ${a.summary}` });
+    return null;
+  }
   const tipo = a.target_type === "page" ? "page" : "post";
   const r = await actualizar(Number(a.target_id), a.before, tipo);
   await sql`update seo.actions set status = 'cancelled' where id = ${accionId}`;

@@ -3,6 +3,7 @@ import { sql } from "./db";
 import { listar } from "./wp";
 import { buscarTema, type IdeaTema } from "./ai";
 import { registrar, type Origen } from "./acciones";
+import { getGuia, guiaATexto } from "./guia";
 
 export type ItemTema = {
   id: number; titulo: string; url: string; fuente: string; fecha: string; resumen: string; por_que: string;
@@ -14,8 +15,8 @@ export type ResultadoBusqueda = { consulta: string; panorama: string; ideas: Ide
 export async function investigarTema(consulta: string, origin: Origen): Promise<ResultadoBusqueda> {
   const q = consulta.trim().slice(0, 200);
   if (q.length < 3) throw new Error("Escribe un tema un poco más concreto");
-  const blog = (await listar("post", "publish")).map((p) => p.title);
-  const r = await buscarTema(q, blog);
+  const [posts, guia] = await Promise.all([listar("post", "publish"), getGuia()]);
+  const r = await buscarTema(q, posts.map((p) => p.title), guiaATexto(guia));
   const hoy = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" });
   const validos = r.resultados.filter((x) => /^https?:\/\/[^\s]+\.[a-z]{2,}/i.test(x.url) && !/news\.google\.|google\.com\/search/i.test(x.url));
   const items: ItemTema[] = [];

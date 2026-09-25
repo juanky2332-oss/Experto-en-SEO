@@ -1,5 +1,6 @@
 import "server-only";
 import { openaiN8n } from "./gateway";
+import { TIPO_CLAVES, TIPOS_BASE, type Guia, type Propuesta, type TipoContenido } from "./guia-base";
 
 const KEY = process.env.OPENAI_API_KEY ?? "";
 export const MODELO = process.env.OPENAI_MODEL ?? "gpt-5.5";
@@ -71,7 +72,7 @@ const obj = (props: Record<string, Esquema>): Esquema => ({ type: "object", addi
 const str = (description?: string): Esquema => ({ type: "string", ...(description ? { description } : {}) });
 const arr = (items: Esquema, description?: string): Esquema => ({ type: "array", items, ...(description ? { description } : {}) });
 
-const VOZ = `Eres el estratega SEO y editor de Transformaconia (transformaconia.com), consultora española de IA y automatización para pymes. El autor firma como "Juan Carlos Ros, consultor y desarrollador de IA y automatización". Escribes en español de España, directo y sin relleno. Optimizas para Google (top 3) y para que ChatGPT, Perplexity, Gemini y los AI Overviews citen el contenido. Nunca inventas datos, cifras, versiones ni nombres: si no está en el texto que te doy, no existe. La fecha de hoy es ${hoy()}.`;
+const VOZ = `Eres el estratega SEO y editor de Transformaconia (transformaconia.com), consultora española de IA y automatización. El blog escribe para quien ya usa IA y quiere dominarla (novedades con impacto práctico, trucos, comandos, rutas, automatizaciones y agentes) y, en segundo plano, para el directivo que decide contratar. El autor firma como "Juan Carlos Ros, consultor y desarrollador de IA y automatización". Escribes en español de España, directo y sin relleno. Optimizas para Google (top 3) y para que ChatGPT, Perplexity, Gemini y los AI Overviews citen el contenido. Nunca inventas datos, cifras, versiones ni nombres: si no está en el texto que te doy, no existe. La fecha de hoy es ${hoy()}.`;
 
 // ---------------------------------------------------------------- meta, keyword, título
 export type SugerenciaMeta = { focus_keyword: string; keywords_secundarias: string[]; seo_title: string; meta_description: string; titulos: string[]; motivo: string };
@@ -150,20 +151,20 @@ export async function altDeImagen(url: string, contexto: string) {
 }
 
 // ---------------------------------------------------------------- imagen nueva (gpt-image-2, WebP)
-export async function generarImagen(prompt: string) {
+export async function generarImagen(prompt: string, tipo: TipoContenido = TIPOS_BASE[0]) {
   const { ok, status, j } = await llamar("images/generations", {
       model: "gpt-image-2", size: "1536x1024", quality: "medium", output_format: "webp", output_compression: 82, n: 1,
-      prompt: `${prompt} Photorealistic editorial photograph, documentary magazine style, natural light, 35mm lens, shallow depth of field. No text, no letters, no signs, no logos, no watermarks, no readable screens.`,
+      prompt: `${prompt} ${tipo.estilo_prompt}`,
   }, 280_000);
   if (!ok) throw new Error(`Imagen: ${j?.error?.message ?? status}`);
   return j.data[0].b64_json as string;
 }
 
-export async function promptImagen(e: { title: string; content: string }) {
+export async function promptImagen(e: { title: string; content: string }, tipo: TipoContenido = TIPOS_BASE[0]) {
   return json<{ prompt: string; alt: string }>({
     nombre: "prompt_imagen", modelo: MODELO_RAPIDO, esfuerzo: "low", maxTokens: 3000,
-    sistema: "Eres editor gráfico de una revista de negocio y tecnología.",
-    usuario: `Propón la foto de portada de este artículo. "prompt" EN INGLÉS: escena realista y concreta ligada al tema (sector, tarea u objeto real), personas en un entorno de trabajo español o europeo, luz natural. Prohibido: texto legible, logos, cerebros, circuitos, hologramas, robots humanoides (salvo que el artículo sea de robots), gente mirando una pantalla sin más. "alt" en español, 90-125 caracteres, describe la escena e incluye el tema.
+    sistema: "Eres editor gráfico de una revista de tecnología. Cada tipo de artículo tiene su estilo visual y tú decides QUÉ se ve.",
+    usuario: `Propón la imagen de portada de este artículo (tipo «${tipo.nombre}»; estilo visual: ${tipo.estilo_imagen} El estilo se añade solo). "prompt" EN INGLÉS: describe solo el contenido, una metáfora visual u objetos concretos que representen la idea del artículo. Evita lo trillado: nada de equipos reunidos en una oficina mirando un portátil, cerebros, circuitos, hologramas ni robots humanoides (salvo que el artículo sea de robots). Prohibido texto legible y logos. "alt" en español, 90-125 caracteres, describe literalmente lo que se ve y menciona el tema con naturalidad.
 TÍTULO: ${e.title}
 RESUMEN: ${e.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 2500)}`,
     esquema: obj({ prompt: str(), alt: str() }),
@@ -212,7 +213,7 @@ export type ResultadoTema = {
 export type IdeaTema = { titulo_articulo: string; keyword: string; angulo: string; por_que: string };
 export type Busqueda = { panorama: string; resultados: ResultadoTema[]; ideas: IdeaTema[] };
 
-export async function buscarTema(consulta: string, blog: string[]) {
+export async function buscarTema(consulta: string, blog: string[], guia = "") {
   return json<Busqueda>({
     nombre: "buscador_temas", web: true, esfuerzo: "low", maxTokens: 20000,
     sistema: `${VOZ}
@@ -221,8 +222,8 @@ Actúas como documentalista y editor SEO. Buscas en la web las noticias y public
 
 1. panorama: 3-5 frases con lo que está pasando ahora mismo con este tema (con fechas).
 2. resultados: 6-10 fuentes concretas (URL exacta de la noticia, anuncio oficial, documentación o estudio; nada de agregadores, foros ni páginas de categoría), de las últimas semanas si existen. Para cada una: titulo, url, fuente (medio), fecha (AAAA-MM-DD o "s/f"), resumen (2 frases en español), por_que (qué ángulo SEO ofrece), keyword (lo que se busca en Google España, minúsculas), interes (0-100: novedad + demanda de búsqueda + encaje con pymes españolas), intencion (Informacional/Comercial/Transaccional/Navegacional) y ya_cubierto (título del artículo del blog que ya trata lo mismo, o cadena vacía).
-3. ideas: 3-5 artículos que convendría escribir sobre este tema (titulo_articulo 45-65 caracteres, keyword, angulo, por_que), evitando lo que el blog ya cubre.
-
+3. ideas: 3-5 artículos que convendría escribir sobre este tema (titulo_articulo 45-65 caracteres, keyword, angulo = uno de los tipos de la guía: actualidad, truco, guia, herramienta, automatizacion o empresa, por_que), evitando lo que el blog ya cubre.
+${guia ? `\nGUÍA EDITORIAL:\n${guia}\n` : ""}
 ARTÍCULOS QUE YA TIENE EL BLOG:
 ${blog.map((t) => `- ${t}`).join("\n")}`,
     esquema: obj({
@@ -239,4 +240,60 @@ export async function agente(input: unknown[], herramientas: unknown[], sistema:
   const r = await responses({ model: MODELO_RAPIDO, reasoning: { effort: "low" }, max_output_tokens: 6000, instructions: sistema, input, tools: herramientas }, 90_000);
   const llamadas: LlamadaHerramienta[] = (r.output ?? []).filter((o) => o.type === "function_call").map((o) => ({ name: o.name!, arguments: o.arguments!, call_id: o.call_id! }));
   return { texto: textoDe(r), llamadas, output: r.output ?? [] };
+}
+
+// ---------------------------------------------------------------- guía editorial viva
+const ESQ_TIPO = obj({
+  clave: { type: "string", enum: TIPO_CLAVES }, nombre: str(), categoria: str(), objetivo: str(), estructura: arr(str()), extension: str(),
+  min_palabras: { type: "integer" }, cadencia: str(), cta: str(), estilo_imagen: str(), estilo_prompt: str("sufijo EN INGLÉS para el generador de imágenes; debe terminar prohibiendo texto y logos"),
+});
+const ESQ_PROPUESTA = obj({ titulo: str(), tipo: { type: "string", enum: TIPO_CLAVES }, keyword: str(), pilar: str(), por_que: str() });
+const PROPS_GUIA: Record<string, Esquema> = {
+  posicionamiento: str(),
+  audiencias: arr(obj({ nombre: str(), peso: str(), quien: str(), que_busca: str(), como_ganarla: str() })),
+  embudo: arr(str()), pilares: arr(obj({ nombre: str(), categoria: str(), descripcion: str(), keywords: arr(str()) })),
+  tipos: arr(ESQ_TIPO), ritmo: arr(str()), reglas_seo: arr(str()), reglas_ia: arr(str()), voz: arr(str()), no_publicar: arr(str()),
+  proximos: arr(ESQ_PROPUESTA), notas: arr(str()),
+};
+
+/** Aplica a la guía el cambio que pide el usuario. Devuelve la guía completa y qué ha cambiado. */
+export async function modificarGuia(g: Guia, instruccion: string, contexto: string) {
+  const resto: Partial<Guia> = { ...g };
+  delete resto.version;
+  delete resto.actualizada;
+  return json<Omit<Guia, "version" | "actualizada"> & { resumen_cambios: string }>({
+    nombre: "guia_editorial", esfuerzo: "medium", maxTokens: 30000,
+    sistema: `${VOZ}
+Mantienes la GUÍA EDITORIAL del blog: el documento que dice a quién escribimos, sobre qué, con qué tipos de artículo, qué estructura y estilo visual lleva cada tipo y qué no publicar. La IA del radar y la del redactor la leen literalmente, así que debe ser concreta y accionable.
+Reglas: aplica SOLO lo que se pide y lo que se deduzca directamente; conserva todo lo demás tal cual. Las 6 claves de tipo (${TIPO_CLAVES.join(", ")}) no se pueden quitar ni renombrar y su categoría debe ser un slug de WordPress existente. Si el cambio perjudica el SEO, aplícalo pero dilo en resumen_cambios. No inventes datos.`,
+    usuario: `CAMBIO PEDIDO: ${instruccion}
+
+CONTEXTO DEL BLOG:
+${contexto}
+
+GUÍA ACTUAL (JSON):
+${JSON.stringify(resto)}
+
+Devuelve la guía completa actualizada y en resumen_cambios una o dos frases con lo que has cambiado.`,
+    esquema: obj({ ...PROPS_GUIA, resumen_cambios: str() }),
+  });
+}
+
+/** Siguientes artículos recomendados según la guía, lo ya publicado y el radar. */
+export async function proximosArticulos(guiaTexto: string, datos: string) {
+  return json<{ proximos: Propuesta[]; diagnostico: string; notas: string[] }>({
+    nombre: "proximos_articulos", esfuerzo: "medium", maxTokens: 12000,
+    sistema: `${VOZ}
+Eres el jefe de redacción. Con la guía editorial, lo que ya está publicado (por tipo, pilar y fecha) y el radar de noticias, decides los próximos artículos para ganar autoridad temática y posiciones.`,
+    usuario: `GUÍA EDITORIAL:
+${guiaTexto}
+
+${datos}
+
+Devuelve:
+- proximos: 8-10 artículos en orden de prioridad, equilibrando los tipos según el ritmo de la guía y rellenando los pilares más flojos. titulo (H1 de 45-65 caracteres), tipo, keyword (lo que se teclea en Google España, en minúsculas), pilar (nombre exacto de un pilar), por_que (1 frase: el hueco, la tendencia o el dato del radar que lo justifica). Nada que el blog ya cubra; si conviene actualizar algo existente, no lo pongas aquí.
+- diagnostico: 2-3 frases sobre el equilibrio actual del contenido (qué tipo o pilar va corto o sobra).
+- notas: 0-3 aprendizajes nuevos para la guía (solo si los datos los justifican de verdad).`,
+    esquema: obj({ proximos: arr(ESQ_PROPUESTA), diagnostico: str(), notas: arr(str()) }),
+  });
 }

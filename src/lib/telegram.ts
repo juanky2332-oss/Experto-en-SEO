@@ -1,13 +1,14 @@
 import "server-only";
 import crypto from "node:crypto";
 import { sql } from "./db";
-import { telegram, esc, publicador, type Boton } from "./gateway";
+import { telegram, esc, publicador, lanzarRadar, type Boton } from "./gateway";
 import { obtener, listar, categorias, type Cambios } from "./wp";
 import { editar, enviarAPapelera, deshacer, limpiarContenido, registrar } from "./acciones";
 import { analizar } from "./seo/analizar";
 import { inventario, anioActual } from "./seo/inventario";
 import { agente, type LlamadaHerramienta } from "./ai";
 import { investigarTema } from "./temas";
+import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } from "./guia";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -74,7 +75,7 @@ async function comando(texto: string): Promise<Respuesta> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n/tema texto · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/estado":
       return estado();
     case "/articulos": {
@@ -103,10 +104,30 @@ async function comando(texto: string): Promise<Respuesta> {
       return pedirConfirmacion({ accion: "papelera", id }, `🗑 ¿Envío a la papelera «${esc(e.title)}»?\n(Se puede recuperar 30 días.)`);
     }
     case "/radar": {
+      const op = arg.trim().toLowerCase();
+      const cambios: Record<string, Parameters<typeof guardarRadarConfig>[0]> = {
+        on: { activo: true }, encender: { activo: true }, off: { activo: false }, apagar: { activo: false },
+        diario: { frecuencia: "diario", activo: true }, semanal: { frecuencia: "semanal", activo: true }, panel: { frecuencia: "panel", activo: true },
+      };
+      if (cambios[op]) {
+        const c = await guardarRadarConfig(cambios[op], { origin: "telegram" });
+        return { text: `📡 ${esc(describirRadar(c))}\n\nMás opciones (temas, tipos, hora): ${APP}/radar` };
+      }
+      if (op === "ahora") {
+        await lanzarRadar();
+        return { text: "📡 Radar en marcha: en 1-3 minutos te llega el resumen." };
+      }
+      if (op === "estado" || op === "config") return { text: `📡 ${esc(describirRadar(await getRadarConfig()))}\n\n/radar on · off · diario · semanal · panel · ahora` };
       const [d] = await sql<{ resumen_md: string; fecha: string }[]>`select resumen_md, to_char(fecha,'DD/MM') fecha from seo.digests order by fecha desc limit 1`;
-      if (!d) return { text: "Todavía no hay radar. Se ejecuta a las 8:30." };
+      if (!d) return { text: "Todavía no hay radar. Lánzalo con /radar ahora." };
       const txt = d.resumen_md.replace(/^# (.*)$/m, "<b>$1</b>").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\(\[fuente\]\((.+?)\)\)/g, '(<a href="$1">fuente</a>)');
       return { text: `🧠 Radar IA ${d.fecha}\n\n${txt}` };
+    }
+    case "/guia": {
+      if (arg.trim().length < 5) return { text: `📘 Guía editorial: ${APP}/guia\n\nPara cambiarla: /guia más trucos de Claude Code y menos noticias de financiación` };
+      await telegram("📘 Ajustando la guía editorial… (20-60 s)");
+      const r = await pedirCambioGuia(arg, "telegram");
+      return { text: `📘 <b>Guía editorial v${r.guia.version}</b>\n${esc(r.resumen)}\n\n${APP}/guia`, buttons: [{ text: "↩️ Deshacer", data: `app:undo:${r.accion}` }] };
     }
     case "/recomendaciones": {
       const l = await sql<{ titulo: string; prioridad: string; tipo: string; post_id: number | null }[]>`
@@ -157,7 +178,7 @@ async function boton(data: string): Promise<Respuesta | null> {
   switch (accion) {
     case "undo": {
       const r = await deshacer(id, "telegram");
-      return { text: `↩️ Deshecho. «${esc(r.title)}» vuelve a como estaba.` };
+      return { text: r ? `↩️ Deshecho. «${esc(r.title)}» vuelve a como estaba.` : "↩️ Deshecho. El ajuste vuelve a como estaba." };
     }
     case "auditar":
       return ficha(id);

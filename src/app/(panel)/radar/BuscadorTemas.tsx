@@ -7,7 +7,7 @@ import { BotonAccion } from "@/components/BotonAccion";
 import { buscarTemaAccion, prepararRadar } from "../acciones";
 import type { ResultadoBusqueda } from "@/lib/temas";
 
-const SUGERENCIAS = ["tendencias Claude", "agentes de IA para pymes", "novedades de ChatGPT", "Gemini para empresas", "automatización con n8n", "AI Act obligaciones pymes", "IA para atención al cliente"];
+const SUGERENCIAS = ["trucos de Claude Code", "servidores MCP útiles", "agentes con n8n", "novedades de la API de OpenAI", "Cursor vs Claude Code", "prompts de sistema avanzados", "IA en la empresa: casos reales", "AI Act obligaciones"];
 
 export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: ResultadoBusqueda[]; inicial?: string }) {
   const [q, setQ] = useState(inicial);
