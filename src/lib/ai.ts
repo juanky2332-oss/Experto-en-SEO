@@ -1,6 +1,6 @@
 import "server-only";
 import { openaiN8n } from "./gateway";
-import { TIPO_CLAVES, TIPOS_BASE, type Guia, type Propuesta, type TipoContenido } from "./guia-base";
+import { TIPO_CLAVES, TIPOS_BASE, ponerCajaAutor, type Guia, type Propuesta, type TipoContenido } from "./guia-base";
 
 const KEY = process.env.OPENAI_API_KEY ?? "";
 export const MODELO = process.env.OPENAI_MODEL ?? "gpt-5.5";
@@ -133,7 +133,7 @@ ${cuerpo.slice(0, 60000)}`,
   const schema = enFaq.length >= 2
     ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: enFaq.map((m) => ({ "@type": "Question", name: limpio(m[1]), acceptedAnswer: { "@type": "Answer", text: limpio(m[2]) } })) })}</script>`
     : "";
-  return { contenido: estilos + r.contenido_html + schema, cambios: r.resumen_cambios };
+  return { contenido: estilos + ponerCajaAutor(r.contenido_html) + schema, cambios: r.resumen_cambios };
 }
 
 // ---------------------------------------------------------------- alt text con visión

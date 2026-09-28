@@ -3,6 +3,7 @@
 // Todo cambio queda en seo.actions con su estado anterior (deshacer desde la app).
 import postgres from 'postgres';
 import { wp, gw } from './gw.mjs';
+import { cajaAutor, ponerCajaAutor } from '../src/lib/guia-base.ts';
 
 const sql = postgres(process.env.DATABASE_URL, { prepare: false, ssl: 'require', max: 4 });
 const KEY = process.env.OPENAI_API_KEY;
@@ -139,7 +140,7 @@ Reglas:
 - Datos, cifras, versiones y fechas SOLO si están en el texto actual, en los artículos fusionados o los has verificado hoy con la búsqueda web (y entonces cita la fuente con enlace <a href="..." target="_blank" rel="noopener">).
 - Enlaces internos: 3-6, SOLO de la lista que te doy, con anclas descriptivas.
 - Termina con <h2 id="preguntas-frecuentes">Preguntas frecuentes</h2> con 3-5 <h3> + <p> (40-70 palabras, respuesta directa en la primera frase) y después <h2 id="fuentes">Fuentes</h2> con una <ul> de enlaces.
-- Cierre final: <aside class="tca-autor"><p><strong>Sobre el autor.</strong> Juan Carlos Ros es consultor y desarrollador de inteligencia artificial y automatización en Transformaconia, donde diseña agentes de IA y flujos automatizados para pymes españolas.</p><p><strong>¿Quieres aplicarlo en tu empresa?</strong> Cuéntanos tu caso en <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y te respondemos en menos de 24 horas.</p></aside>
+- Cierre final: ${cajaAutor()}
 - Nunca uses: "en el mundo actual", "sin duda", "cabe destacar", "revolucionario", "disruptivo", "en conclusión".`,
     usuario: `INSTRUCCIÓN: ${item.ins}
 Título actual: ${p.title.raw} · Publicado: ${p.date.slice(0, 10)} · Keyword: ${kw}
@@ -151,7 +152,7 @@ ${extra.length ? `\nMATERIAL DE LOS ARTÍCULOS FUSIONADOS:\n${extra.join('\n\n')
 HTML ACTUAL:
 ${cuerpo.slice(0, 50000)}`,
   });
-  let html = r.contenido_html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
+  let html = ponerCajaAutor(r.contenido_html).replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
   const limpio = (s) => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
   const iFaq = html.search(/<h2[^>]*id=["']preguntas-frecuentes["']/i);
   const iFuentes = html.search(/<h2[^>]*id=["']fuentes["']/i);

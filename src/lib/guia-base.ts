@@ -291,3 +291,31 @@ export function guiaATexto(g: Guia): string {
 export function tipoDeCategoria(slug: string | undefined, g: Guia = GUIA_INICIAL): TipoContenido {
   return g.tipos.find((t) => t.categoria === slug) ?? g.tipos.find((t) => t.clave === "empresa")!;
 }
+
+/**
+ * Caja «Sobre el autor» + llamada a la acción del final de cada artículo.
+ * Sin <strong>: el CSS personalizado del tema fuerza `strong { color:#000 !important }`
+ * y sobre el fondo oscuro no se leía. Los colores viven en wordpress/estilo-editorial.php.
+ */
+export function cajaAutor(cta = ""): string {
+  // el CTA de algunos tipos acaba en «Escríbenos.» y se duplicaba con la frase del correo
+  const extra = cta.replace(/\s*Escr[ií]benos\.?\s*$/i, "").trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return '<aside class="tca-autor">'
+    + '<p class="tca-autor__etiqueta">Sobre el autor</p>'
+    + '<p class="tca-autor__bio">Juan Carlos Ros es consultor y desarrollador de inteligencia artificial y automatización en Transformaconia, donde diseña agentes de IA y flujos automatizados para empresas españolas.</p>'
+    + '<p class="tca-autor__titulo">¿Quieres aplicarlo en tu empresa?</p>'
+    + '<p class="tca-autor__cta">' + (extra ? extra + ' ' : '') + 'Escríbenos a <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y te respondemos en menos de 24 horas.</p>'
+    + '</aside>';
+}
+
+/** Sustituye la caja de autor (formato viejo o nuevo) por la actual, o la añade si falta. */
+export function ponerCajaAutor(html: string, cta = ""): string {
+  const re = /<aside class="tca-autor"[\s\S]*?<\/aside>/i;
+  const vieja = html.match(re)?.[0];
+  if (!vieja) return html;
+  if (!cta) { // conserva el CTA propio del tipo de artículo que ya tenía
+    const m = vieja.match(/¿Quieres aplicarlo en tu empresa\?\s*(?:<\/strong>|<\/p>\s*<p[^>]*>)([\s\S]*?)(?:Escríbenos a|Cuéntanos tu caso en)/i);
+    cta = (m?.[1] ?? "").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+  }
+  return html.replace(re, cajaAutor(cta));
+}

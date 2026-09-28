@@ -1,6 +1,7 @@
 // Funciones compartidas por los scripts de mantenimiento del sitio.
 import postgres from 'postgres';
 import { wp, gw } from './gw.mjs';
+import { cajaAutor, ponerCajaAutor } from '../src/lib/guia-base.ts';
 
 export { wp, gw };
 export const SITE = 'https://transformaconia.com';
@@ -103,7 +104,7 @@ Reglas:
 - Datos, cifras, versiones y fechas SOLO si están en el texto actual o los verificas hoy con la búsqueda web (y entonces cita la fuente con <a href="..." target="_blank" rel="noopener">).
 - Enlaces internos: 3-6, SOLO de la lista, con anclas descriptivas.
 - Termina con <h2 id="preguntas-frecuentes">Preguntas frecuentes</h2> (3-5 <h3> + <p> de 40-70 palabras) y <h2 id="fuentes">Fuentes</h2> con una <ul> de enlaces; después el bloque relacionados si existía y al final:
-<aside class="tca-autor"><p><strong>Sobre el autor.</strong> Juan Carlos Ros es consultor y desarrollador de inteligencia artificial y automatización en Transformaconia, donde diseña agentes de IA y flujos automatizados para pymes españolas.</p><p><strong>¿Quieres aplicarlo en tu empresa?</strong> Cuéntanos tu caso en <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y te respondemos en menos de 24 horas.</p></aside>
+${cajaAutor()}
 - Nunca uses: "en el mundo actual", "sin duda", "cabe destacar", "revolucionario", "disruptivo", "en conclusión".`,
     usuario: `INSTRUCCIÓN: ${instruccion}
 Título: ${p.title.raw} · Publicado: ${p.date.slice(0, 10)} · Keyword: ${kw}
@@ -114,7 +115,7 @@ ${enlaces.filter((e) => e.id !== p.id).map((e) => `- ${e.t} → ${e.link}`).join
 HTML ACTUAL:
 ${cuerpo.slice(0, 50000)}`,
   });
-  let html = r.contenido_html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
+  let html = ponerCajaAutor(r.contenido_html).replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
   const limpio = (s) => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
   const iFaq = html.search(/<h2[^>]*id=["']preguntas-frecuentes["']/i);
   const iFuentes = html.search(/<h2[^>]*id=["']fuentes["']/i);

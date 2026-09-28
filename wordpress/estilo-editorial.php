@@ -45,11 +45,18 @@ body.single-post .tca-relacionados > p:first-child { margin: 0 0 6px; text-trans
 body.single-post .tca-relacionados ul { margin: 0 0 0 18px; }
 body.single-post .tca-relacionados a { color: var(--tca-tinta); background-image: none; font-weight: 600; }
 body.single-post .tca-relacionados a:hover { color: var(--tca-azul); }
-body.single-post .tca-autor { display: block; background: linear-gradient(135deg, #0b0f19, #1c2a52); color: #e2e8f0; border-radius: 16px; padding: 22px 26px; margin: 36px 0 10px; font-size: .97em; }
-body.single-post .tca-autor p { margin: 0 0 8px; color: #e2e8f0; }
-body.single-post .tca-autor p:last-child { margin: 0; }
-body.single-post .tca-autor strong { color: #fff; }
-body.single-post .tca-autor a { color: #9db7ff; }
+/* Caja de autor + CTA. El CSS personalizado del tema fuerza `strong, b { color:#000 !important }`,
+   por eso aquí todos los colores van con !important (y vale también para la caja antigua con <strong>). */
+body.single-post .tca-autor { display: block; position: relative; overflow: hidden; background: radial-gradient(120% 140% at 100% 0%, rgba(173, 73, 225, .30) 0%, rgba(173, 73, 225, 0) 55%), linear-gradient(135deg, #0b1224 0%, #16234a 60%, #1e2f63 100%) !important; color: #dbe4f3 !important; border: 0 !important; border-radius: 18px; padding: 26px 30px 24px !important; margin: 44px 0 12px !important; font-size: .97em; line-height: 1.7; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); }
+body.single-post .tca-autor::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #2563eb, #ad49e1); }
+body.single-post .tca-autor p { margin: 0 0 10px !important; padding: 0 !important; color: #dbe4f3 !important; }
+body.single-post .tca-autor p:last-child { margin: 0 !important; }
+body.single-post .tca-autor .tca-autor__etiqueta { color: #c9b6f5 !important; text-transform: uppercase; letter-spacing: .09em; font-size: 12px !important; font-weight: 700 !important; margin-bottom: 6px !important; }
+body.single-post .tca-autor .tca-autor__titulo { color: #ffffff !important; font-size: 1.15em !important; font-weight: 700 !important; line-height: 1.35; margin: 18px 0 6px !important; padding-top: 16px !important; border-top: 1px solid rgba(255, 255, 255, .12); }
+body.single-post .tca-autor strong, body.single-post .tca-autor b { color: #ffffff !important; background: none !important; }
+body.single-post .tca-autor a, body.single-post .tca-autor a:visited { color: #ebd3f8 !important; font-weight: 700 !important; background-image: linear-gradient(currentColor, currentColor) !important; background-size: 100% 1px !important; }
+body.single-post .tca-autor a:hover, body.single-post .tca-autor a:focus { color: #ffffff !important; background-size: 100% 2px !important; }
+@media (max-width: 600px) { body.single-post .tca-autor { padding: 22px 20px 20px !important; } }
 /* Fuentes */
 body.single-post ul.tca-fuentes { font-size: .92em; }
 body.single-post ul.tca-fuentes a { color: var(--tca-gris); }
