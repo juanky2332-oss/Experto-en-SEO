@@ -1,8 +1,8 @@
 import "server-only";
 import postgres from "postgres";
 
-// Esquema "seo" dentro del proyecto Supabase ERP PRUEBA (aislado del ERP).
-// Pooler en modo transacción (puerto 6543) → sin sentencias preparadas.
+// Esquema "seo" en Postgres (Neon, creado con sql/seo.sql).
+// Sin sentencias preparadas por si DATABASE_URL apunta a un pooler en modo transacción.
 const g = globalThis as unknown as { __seoSql?: postgres.Sql };
 
 export const sql =

@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "./db";
 import { registrar, type Origen } from "./acciones";
+import { sincronizarHoraRadar } from "./n8n";
 import { GUIA_INICIAL, RADAR_DEFECTO, TIPO_CLAVES, guiaATexto, type Guia, type RadarConfig, type TipoClave } from "./guia-base";
 
 export * from "./guia-base";
@@ -68,7 +69,17 @@ export async function guardarRadarConfig(c: Partial<RadarConfig>, o: { origin: O
   await sql`insert into seo.settings (key, value) values ('radar', ${sql.json(nueva as never)})
     on conflict (key) do update set value = excluded.value, updated_at = now()`;
   await registrar({ origin: o.origin, action: "radar_config", target_type: "ajuste", target_id: "radar", summary: `Radar: ${describirRadar(nueva)}`, before: antes });
+  await moverHoraRadar(nueva.hora);
   return nueva;
+}
+
+/** n8n dispara el radar una vez al día a esta hora; si no se puede mover, queda en el historial. */
+async function moverHoraRadar(hora: number) {
+  try {
+    await sincronizarHoraRadar(hora);
+  } catch (e) {
+    await registrar({ origin: "sistema", action: "radar_hora", target_type: "ajuste", target_id: "radar", summary: `No pude cambiar la hora del radar en n8n a las ${hora}:00`, status: "failed", error: (e as Error).message });
+  }
 }
 
 /** Deshace un cambio de ajustes guardados (guía o radar). */
@@ -77,7 +88,9 @@ export async function restaurarAjuste(key: string, valor: unknown) {
     const g = valor as Guia;
     await sql`update seo.settings set value = ${sql.json({ ...g, texto: guiaATexto(g) } as never)}, updated_at = now() where key = 'guia'`;
   } else if (key === "radar") {
-    await sql`update seo.settings set value = ${sql.json(validarRadar(valor as RadarConfig) as never)}, updated_at = now() where key = 'radar'`;
+    const r = validarRadar(valor as RadarConfig);
+    await sql`update seo.settings set value = ${sql.json(r as never)}, updated_at = now() where key = 'radar'`;
+    await moverHoraRadar(r.hora);
   } else throw new Error("Ajuste desconocido");
 }
 

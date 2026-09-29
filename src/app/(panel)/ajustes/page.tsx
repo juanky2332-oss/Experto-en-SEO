@@ -48,7 +48,7 @@ export default async function Ajustes() {
         <Card title="Cómo está montado" subtitle="Para que sepas qué toca cada pieza">
           <ul className="space-y-2 text-sm text-slate-700">
             <li><b>WordPress</b> (transformaconia.com): se lee y edita a través de la <b>pasarela de n8n</b>, que guarda la contraseña de aplicación. La app nunca la ve.</li>
-            <li><b>n8n</b>: «Transformaconia - Publicador IA SEO v3», «RADAR IA DIARIO» (comprueba cada hora su configuración y trabaja a la hora que elijas en Radar IA) y «SEO PASARELA».</li>
+            <li><b>n8n</b>: «Transformaconia - Publicador IA SEO v3», «RADAR IA DIARIO» (se dispara una vez al día, a la hora que elijas en Radar IA) y «SEO PASARELA».</li>
             <li><b>Base de datos</b>: esquema <code>seo</code> en Supabase (proyecto ERP PRUEBA, separado de las tablas del ERP).</li>
             <li><b>IA</b>: gpt-5.5 para redactar y analizar, gpt-5.4-mini para el asistente y la visión, gpt-image-2 para las imágenes (WebP), con un estilo visual distinto por tipo de artículo (ver Guía editorial).</li>
             <li><b>Rank Math</b>: título SEO, meta, keyword, schema, sitemap e IndexNow. Snippets «Experto SEO» en Code Snippets.</li>

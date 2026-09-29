@@ -2,13 +2,14 @@
 // preferidos), descarta lo ya visto, un editor IA resume "qué está pasando",
 // clasifica cada noticia por tipo (actualidad, truco, guía…) y puntúa qué merece artículo.
 // Se configura desde la app (seo.settings 'radar'): interruptor, diario/semanal/solo panel,
-// hora, temas preferidos, temas a excluir y tipos que interesan. Comprueba la
-// configuración cada hora y solo trabaja a la hora elegida (una vez al día).
+// hora, temas preferidos, temas a excluir y tipos que interesan. n8n lo dispara una
+// sola vez al día a la hora elegida (la app mueve el cron al cambiarla: src/lib/n8n.ts).
 // Los avisos llevan botones "Preparar artículo" (prep:<id>) / "Descartar" (skip:<id>), que atiende el Publicador.
 import { Flow, CRED, CHAT_ID, WP, n8n, code, OPENAI_HTTP, reqJs, checkExpr, PARSE_RESPONSES } from './lib.mjs';
 import { CATEGORIAS } from './prompts.mjs';
 import { RADAR_DEFECTO, TIPOS_BASE, TIPO_CLAVES, GUIA_INICIAL, guiaATexto } from '../src/lib/guia-base.ts';
 import fs from 'node:fs';
+import postgres from 'postgres';
 
 const ID = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'fVpdqBxFqgVrRyLZ';
 const f = new Flow('RADAR IA DIARIO (Transformaconia)');
@@ -76,8 +77,20 @@ No inventes nada: usa solo lo que dicen los titulares y extractos.`;
 
 const DEF = JSON.stringify(RADAR_DEFECTO);
 
+// Hora del disparo diario: --hora=N, o la guardada en la base, o la de por defecto
+async function horaElegida() {
+  const arg = process.argv.find((a) => a.startsWith('--hora='));
+  if (arg) return +arg.slice(7);
+  if (!process.env.DATABASE_URL) return RADAR_DEFECTO.hora;
+  const sql = postgres(process.env.DATABASE_URL, { prepare: false, ssl: 'require', max: 1, connect_timeout: 10 });
+  try { const [r] = await sql`select value->>'hora' h from seo.settings where key = 'radar'`; return r?.h ? +r.h : RADAR_DEFECTO.hora; }
+  catch (e) { console.warn('No leo la hora de la base (' + e.message + '), uso', RADAR_DEFECTO.hora); return RADAR_DEFECTO.hora; }
+  finally { await sql.end(); }
+}
+const HORA = await horaElegida();
+
 // ---------- disparadores y configuración ----------
-f.add('Cada hora', 'n8n-nodes-base.scheduleTrigger', 1.2, { rule: { interval: [{ field: 'cronExpression', expression: '0 6-22 * * *' }] } }, X(0, 0));
+f.add('Una vez al dia', 'n8n-nodes-base.scheduleTrigger', 1.2, { rule: { interval: [{ field: 'cronExpression', expression: `0 ${HORA} * * *` }] } }, X(0, 0));
 f.add('Lanzar desde la app', 'n8n-nodes-base.webhook', 2, { httpMethod: 'POST', path: 'seo-radar', authentication: 'headerAuth', responseMode: 'onReceived', options: { responseData: '{"ok":true}' } }, X(0, 1), { webhookId: 'seo-radar', credentials: CRED.gateway });
 f.add('Leer config', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
   query: `select $1::text as origen,
@@ -92,11 +105,9 @@ const estado = r.estado || {};
 const manual = r.origen === 'manual';
 const ahora = new Date();
 const hoy = ahora.toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
-const hora = +ahora.toLocaleString('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false });
 const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].indexOf(ahora.toLocaleDateString('en-GB', { timeZone: 'Europe/Madrid', weekday: 'short' })) + 1;
 if (!manual) {
   if (!cfg.activo) return [];                      // interruptor apagado
-  if (hora !== +cfg.hora) return [];               // todavía no es la hora elegida
   if (estado.ultima_busqueda === hoy) return [];   // ya se hizo hoy
 }
 let aviso = 'ninguno';
@@ -316,7 +327,7 @@ f.add('Enviar candidata', 'n8n-nodes-base.telegram', 1.2, {
   additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true },
 }, X(26, 0.5), { credentials: CRED.telegram, onError: 'continueRegularOutput' });
 
-f.link('Cada hora', 'Leer config');
+f.link('Una vez al dia', 'Leer config');
 f.link('Lanzar desde la app', 'Leer config');
 f.chain('Leer config', 'Decidir', 'Marcar ejecucion', 'Fuentes', 'Leer RSS', 'Normalizar', 'Anthropic', 'Anthropic Engineering', 'Blog actual', 'Ya vistas', 'Preparar busqueda web', 'Buscar web');
 f.link('Buscar web', 'Buscar en la web', 0);
@@ -331,11 +342,11 @@ f.link('Toca avisar', 'Semana', 0);
 f.chain('Semana', 'Candidatas', 'Montar avisos', 'Enviar resumen', 'Separar propuestas', 'Enviar candidata');
 for (const n of f.nodes) if (['Marcar ejecucion', 'Fuentes', 'Anthropic', 'Anthropic Engineering', 'Blog actual', 'Ya vistas', 'Preparar busqueda web', 'Preparar editor'].includes(n.name)) n.executeOnce = true;
 
-// Los chequeos horarios que no tocan no se guardan (solo errores y ejecuciones reales vía --guardar)
+// Los disparos que no tocan (radar apagado o ya hecho hoy) no se guardan; --guardar para depurar
 const wf = f.json({ timezone: 'Europe/Madrid', saveDataErrorExecution: 'all', saveDataSuccessExecution: process.argv.includes('--guardar') ? 'all' : 'none', saveManualExecutions: true });
 checkExpr(wf);
 fs.writeFileSync(new URL('./radar.build.json', import.meta.url), JSON.stringify(wf, null, 1));
 if (process.argv.includes('--dry')) { console.log('dry run, nodos:', wf.nodes.length); process.exit(0); }
 const r = await n8n.upsert(wf, ID);
 await n8n.activate(r.id);
-console.log('RADAR ->', r.id, 'nodos:', wf.nodes.length, 'guardar éxitos:', wf.settings.saveDataSuccessExecution);
+console.log('RADAR ->', r.id, 'nodos:', wf.nodes.length, 'disparo diario:', HORA + ':00', 'guardar éxitos:', wf.settings.saveDataSuccessExecution);
