@@ -19,7 +19,7 @@ export const CRED = {
   telegram: { telegramApi: { id: 'pvhJbmNAGHfoJfpw', name: 'Pruebas n8n' } },
   wp: { httpBasicAuth: { id: 'axfNH3vHTVJVQpRH', name: 'publicar transformaconia.com' } },
   openai: { openAiApi: { id: 'PKO0JcWCfqExbo7X', name: 'Agente n8n prueba' } },
-  pg: { postgres: { id: 'KHmCHpGN6WZkuMZQ', name: 'SEO Transformaconia (Postgres esquema seo)' } },
+  pg: { postgres: { id: 'pVAWdhgaiubfehHQ', name: 'SEO Transformaconia (Postgres esquema seo)' } },
   gateway: { httpHeaderAuth: { id: 'r0oxvQOpLoBFtNXQ', name: 'SEO Pasarela (clave app Experto SEO)' } },
 };
 
