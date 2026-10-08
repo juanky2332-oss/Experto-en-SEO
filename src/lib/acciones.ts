@@ -98,14 +98,11 @@ export function limpiarContenido(html: string) {
     }
     return m;
   });
-  if (/Ros Bautista/.test(c)) {
-    c = c.replace(/Juan Carlos Ros Bautista/g, "Juan Carlos Ros");
-    cambios.push("firma del autor abreviada");
+  // sin nombres propios del equipo: se firma como «Transforma con IA»
+  if (/Juan Carlos/.test(c)) {
+    c = c.replace(/Juan Carlos Ros( Bautista)?/g, "Transforma con IA");
+    cambios.push("nombre propio sustituido por la marca");
   }
-  // enlaces a /contacto/ que no existe
-  const antes = c;
-  c = c.replace(/href=["']https?:\/\/transformaconia\.com\/(contacto|contactar|hablemos)\/?["']/gi, 'href="mailto:info@transformaconia.com"');
-  if (c !== antes) cambios.push("enlace de contacto roto → correo");
   return { contenido: c, cambios: [...new Set(cambios)] };
 }
 

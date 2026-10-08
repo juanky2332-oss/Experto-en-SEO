@@ -144,7 +144,7 @@ async function alts() {
 function limpiar(html) {
   let c = html; const cambios = [];
   c = c.replace(/\s*<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi, (m, j) => (/"@type"\s*:\s*"(Article|BreadcrumbList|NewsArticle)"/.test(j) && !/FAQPage/.test(j) ? (cambios.push('schema duplicado'), '') : m));
-  if (/Ros Bautista/.test(c)) { c = c.replace(/Juan Carlos Ros Bautista/g, 'Juan Carlos Ros'); cambios.push('firma abreviada'); }
+  if (/Juan Carlos/.test(c)) { c = c.replace(/Juan Carlos Ros( Bautista)?/g, 'Transforma con IA'); cambios.push('nombre propio sustituido por la marca'); }
   const a = c; c = c.replace(/href=["']https?:\/\/transformaconia\.com\/(contacto|contactar|hablemos)\/?["']/gi, 'href="mailto:info@transformaconia.com"'); if (a !== c) cambios.push('enlace de contacto roto');
   return { c, cambios: [...new Set(cambios)] };
 }

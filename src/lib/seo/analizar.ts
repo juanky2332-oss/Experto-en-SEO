@@ -123,7 +123,8 @@ export function analizar(e: EntradaAnalizable, ctx: Contexto): Analisis {
   // ---------- Estructura ----------
   const h2 = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)].map((m) => textoPlano(m[1]));
   const h3 = (html.match(/<h3[^>]*>/gi) ?? []).length;
-  if (/<h1[\s>]/i.test(html)) add("media", "h1_contenido", "H1 dentro del contenido", "WordPress ya pone el título como H1; dos H1 confunden la jerarquía.");
+  // las páginas con diseño propio (<!--tc-->) llevan su H1 a propósito: el tema no pinta el título
+  if (/<h1[\s>]/i.test(html) && !html.trimStart().startsWith("<!--tc-->")) add("media", "h1_contenido", "H1 dentro del contenido", "WordPress ya pone el título como H1; dos H1 confunden la jerarquía.");
   if (esPost && h2.length < 3) add("alta", "pocos_h2", `Solo ${h2.length} secciones H2`, "Estructura el artículo en 4-6 secciones con subtítulos que respondan preguntas.", "ia_actualizar");
   if (kw && h2.length && !h2.some((t) => contieneKeyword(t, kw))) add("baja", "kw_h2", "Ningún H2 contiene la keyword", undefined, "ia_actualizar");
   if (esPost && palabras < 600) add("critica", "contenido_pobre", `Contenido pobre: ${palabras} palabras`, "Google lo considera thin content. Amplía a 1.200+ o fusiónalo con otro artículo.", "ia_actualizar");
@@ -144,7 +145,6 @@ export function analizar(e: EntradaAnalizable, ctx: Contexto): Analisis {
     });
     if (rotos.length) add("alta", "enlaces_rotos", `${rotos.length} enlace(s) interno(s) roto(s) o a borradores`, rotos.slice(0, 4).join(" · "), "ia_enlaces");
   }
-  if (/href=["'][^"']*transformaconia\.com\/(contacto|contactar|hablemos)\/?["']/i.test(html)) add("alta", "enlace_contacto_404", "Enlace a una página de contacto que no existe", "Usa mailto:info@transformaconia.com.");
   if (esPost && externos.length === 0) add("baja", "sin_fuentes", "Sin enlaces a fuentes", "Citar la fuente original y documentación oficial refuerza E-E-A-T y las citas en IA.");
   if (esPost && ctx.entrantes && e.status === "publish" && (ctx.entrantes.get(e.id) ?? 0) === 0) add("media", "huerfano", "Artículo huérfano", "Ningún otro artículo le enlaza: Google lo rastrea menos y no recibe autoridad.");
 
@@ -161,7 +161,7 @@ export function analizar(e: EntradaAnalizable, ctx: Contexto): Analisis {
     add("media", "schema_duplicado", "Datos estructurados duplicados", "Rank Math ya genera Article y Breadcrumb; el bloque del contenido los duplica (y la miga apunta a /blog/, que es Contacto).", "quitar_schema_duplicado");
   const faq = /preguntas frecuentes/i.test(html) || ld.some((j) => /FAQPage/.test(j));
   if (esPost && !faq) add("baja", "sin_faq", "Sin preguntas frecuentes", "Un bloque FAQ con respuestas directas es lo que más citan ChatGPT, Perplexity y los AI Overviews.", "ia_faq");
-  if (/Ros Bautista/.test(html)) add("baja", "nombre_completo", "Aparece el nombre completo del autor", "Se acordó firmar como «Juan Carlos Ros».", "quitar_nombre_completo");
+  if (/Juan Carlos|Ros Bautista/.test(html)) add("alta", "nombre_completo", "Aparece el nombre de una persona del equipo", "Se firma como «Redacción Transforma con IA», sin nombres propios.", "quitar_nombre_completo");
   if (esPost && !/<ul|<ol|<table/i.test(html)) add("baja", "sin_listas", "Sin listas ni tablas", "Las listas y tablas se extraen mucho mejor en fragmentos destacados y respuestas de IA.", "ia_actualizar");
 
   // ---------- URL ----------
