@@ -362,3 +362,12 @@ export async function guardarSeccionGuia(campo: CampoGuia, valor: string) {
     revalidatePath("/guia");
   }, "Guía guardada");
 }
+
+// ---------------------------------------------------------------- pendientes fuera de la web
+export async function marcarPendiente(id: string, hecho: boolean) {
+  return seguro(async () => {
+    const { marcar } = await import("@/lib/pendientes");
+    await marcar(id, hecho);
+    revalidatePath("/");
+  });
+}

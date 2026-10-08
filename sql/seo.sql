@@ -123,3 +123,21 @@ create table if not exists seo.pending_confirmations (
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default now() + interval '1 hour'
 );
+
+-- Web: contactos del formulario y suscriptores del boletín semanal (doble confirmación)
+create table if not exists seo.contactos (
+  id bigserial primary key,
+  tipo text not null default 'contacto',
+  nombre text, empresa text, sector text, email text, mensaje text, origen text,
+  created_at timestamptz not null default now()
+);
+create table if not exists seo.suscriptores (
+  email text primary key,
+  token text not null,
+  confirmado boolean not null default false,
+  baja boolean not null default false,
+  origen text,
+  created_at timestamptz not null default now(),
+  confirmado_at timestamptz,
+  ultimo_envio timestamptz
+);

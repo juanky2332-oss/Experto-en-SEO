@@ -8,15 +8,15 @@ add_action( 'wp_head', function () {
 	}
 	?>
 <style id="experto-seo-editorial">
-body.single-post .content-inner { --tca-azul: #2554e8; --tca-tinta: #0f172a; --tca-gris: #64748b; --tca-linea: #e5e7eb; }
+body.single-post .content-inner { --tca-azul: #8a14d0; --tca-tinta: #0f172a; --tca-gris: #64748b; --tca-linea: #e5e7eb; }
 body.single-post .content-inner a { color: var(--tca-azul); text-decoration: none; background-image: linear-gradient(currentColor, currentColor); background-size: 100% 1px; background-position: 0 100%; background-repeat: no-repeat; padding-bottom: 1px; transition: color .15s, background-size .2s; }
-body.single-post .content-inner a:hover { color: #1c42c4; background-size: 100% 2px; }
+body.single-post .content-inner a:hover { color: #6d0fb0; background-size: 100% 2px; }
 body.single-post .content-inner a[href^="mailto:"] { font-weight: 600; }
 body.single-post .content-inner h2 { margin-top: 2.2em; margin-bottom: .6em; scroll-margin-top: 110px; }
 body.single-post .content-inner h3 { margin-top: 1.6em; margin-bottom: .45em; scroll-margin-top: 110px; }
 body.single-post .content-inner h2 a, body.single-post .content-inner h3 a { color: inherit; background-image: none; }
 /* Lo esencial */
-body.single-post .tca-esencial { background: #f5f8ff; border: 1px solid #dbe6fe; border-left: 4px solid var(--tca-azul); border-radius: 14px; padding: 18px 22px 8px; margin: 0 0 28px; }
+body.single-post .tca-esencial { background: #faf5ff; border: 1px solid #ecd8fb; border-left: 4px solid var(--tca-azul); border-radius: 14px; padding: 18px 22px 8px; margin: 0 0 28px; }
 body.single-post .tca-esencial .tca-esencial__titulo, body.single-post .tca-esencial > p:first-child { margin: 0 0 6px; text-transform: uppercase; letter-spacing: .06em; font-size: 13px; color: var(--tca-azul); }
 body.single-post .tca-esencial ul { margin: 0 0 10px 18px; }
 body.single-post .tca-esencial li { margin: 4px 0; }
@@ -32,7 +32,7 @@ body.single-post .content-inner blockquote { border-left: 4px solid var(--tca-az
 body.single-post .content-inner blockquote p { margin: 0; }
 /* Tablas */
 body.single-post .content-inner table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--tca-linea); border-radius: 12px; overflow: hidden; margin: 26px 0; font-size: .95em; }
-body.single-post .content-inner th { background: #f1f5ff; color: var(--tca-tinta); font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--tca-linea); }
+body.single-post .content-inner th { background: #f7efff; color: var(--tca-tinta); font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--tca-linea); }
 body.single-post .content-inner td { padding: 10px 12px; border-bottom: 1px solid var(--tca-linea); vertical-align: top; }
 body.single-post .content-inner tr:last-child td { border-bottom: 0; }
 /* Figuras */
@@ -47,9 +47,9 @@ body.single-post .tca-relacionados a { color: var(--tca-tinta); background-image
 body.single-post .tca-relacionados a:hover { color: var(--tca-azul); }
 /* Caja de autor + CTA. El CSS personalizado del tema fuerza `strong, b { color:#000 !important }`,
    por eso aquí todos los colores van con !important (y vale también para la caja antigua con <strong>). */
-body.single-post .tca-autor { display: block; position: relative; overflow: hidden; background: radial-gradient(120% 140% at 100% 0%, rgba(173, 73, 225, .30) 0%, rgba(173, 73, 225, 0) 55%), linear-gradient(135deg, #0b1224 0%, #16234a 60%, #1e2f63 100%) !important; color: #dbe4f3 !important; border: 0 !important; border-radius: 18px; padding: 26px 30px 24px !important; margin: 44px 0 12px !important; font-size: .97em; line-height: 1.7; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); }
-body.single-post .tca-autor::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #2563eb, #ad49e1); }
-body.single-post .tca-autor p { margin: 0 0 10px !important; padding: 0 !important; color: #dbe4f3 !important; }
+body.single-post .tca-autor { display: block; position: relative; overflow: hidden; background: radial-gradient(120% 140% at 100% 0%, rgba(173, 73, 225, .30) 0%, rgba(173, 73, 225, 0) 55%), linear-gradient(135deg, #0d0912 0%, #1d0d2b 60%, #2c0d45 100%) !important; color: #e6dcef !important; border: 0 !important; border-radius: 18px; padding: 26px 30px 24px !important; margin: 44px 0 12px !important; font-size: .97em; line-height: 1.7; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); }
+body.single-post .tca-autor::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #b020ff, #ad49e1); }
+body.single-post .tca-autor p { margin: 0 0 10px !important; padding: 0 !important; color: #e6dcef !important; }
 body.single-post .tca-autor p:last-child { margin: 0 !important; }
 body.single-post .tca-autor .tca-autor__etiqueta { color: #c9b6f5 !important; text-transform: uppercase; letter-spacing: .09em; font-size: 12px !important; font-weight: 700 !important; margin-bottom: 6px !important; }
 body.single-post .tca-autor .tca-autor__titulo { color: #ffffff !important; font-size: 1.15em !important; font-weight: 700 !important; line-height: 1.35; margin: 18px 0 6px !important; padding-top: 16px !important; border-top: 1px solid rgba(255, 255, 255, .12); }

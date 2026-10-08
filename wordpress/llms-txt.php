@@ -12,14 +12,25 @@ add_action( 'init', function () {
 	$lineas   = array();
 	$lineas[] = '# ' . $sitio;
 	$lineas[] = '';
-	$lineas[] = '> Transformaconia es una consultora española de inteligencia artificial y automatización para pymes. Diseña agentes de IA, chatbots y flujos automatizados (n8n) y publica análisis de actualidad sobre IA aplicada a la empresa. Contacto: info@transformaconia.com';
+	$lineas[] = '> Transforma con IA (transformaconia.com) es un blog de noticias de inteligencia artificial explicadas para empresas, actualizado casi a diario a partir de 21 fuentes, y un servicio de desarrollo con base en Murcia que trabaja en remoto para toda España: automatización de procesos, agentes y chatbots de IA, herramientas a medida y un programa de gestión (ERP) con IA, sobre todo para pymes industriales y de oficio. Es un equipo de compañeros de Murcia dedicados a la IA y la automatización. Contacto: info@transformaconia.com (diagnóstico inicial gratuito de 30 minutos).';
 	$lineas[] = '';
-	$lineas[] = '## Servicios y productos';
-	foreach ( get_pages( array( 'sort_column' => 'menu_order' ) ) as $pagina ) {
-		if ( in_array( $pagina->post_name, array( 'privacy-policy', 'blog-dark-all-posts', 'blog-dark-landing' ), true ) ) {
-			continue;
-		}
-		$lineas[] = '- [' . wp_strip_all_tags( $pagina->post_title ) . '](' . get_permalink( $pagina ) . ')';
+	$lineas[] = '## Soluciones y precios orientativos (+ IVA)';
+	$s = array(
+		array( 'Automatización de procesos con IA', '/automatizacion-procesos-ia/', 'pedidos, facturas, correos e informes automatizados con n8n e IA; desde 450 €' ),
+		array( 'Agentes y chatbots de IA', '/agentes-chatbots-ia/', 'asistentes con el catálogo, tarifas o manuales de la empresa en web, WhatsApp o Telegram; desde 900 €' ),
+		array( 'Herramientas a medida con IA', '/desarrollo-a-medida-ia/', 'aplicaciones web con IA conectadas a SAP, Excel o ERP; desde 2.500 €' ),
+		array( 'Programa de gestión (ERP) con IA', '/gestion/', 'facturas, albaranes firmados, cobros y gastos por foto en Telegram; 690 € de puesta en marcha y 69 €/mes' ),
+		array( 'IA para empresas industriales', '/sectores-industriales/', 'eléctricas, neumática, hidráulica, mecanizado, suministro industrial, mantenimiento, automatización y frío industrial' ),
+		array( 'Cómo trabajamos y precios', '/soluciones/', 'diagnóstico gratis, prototipo en 1-3 semanas, soporte mes a mes' ),
+		array( 'Casos reales', '/casos/', 'asistente técnico para un distribuidor industrial, programa de gestión con IA, búsqueda inteligente de artículos integrada con SAP, blog con agentes y prospección comercial' ),
+		array( 'Agencia de IA en Murcia', '/consultor-ia-murcia/', 'visitas presenciales en la Región de Murcia' ),
+		array( 'Quiénes somos', '/quienes-somos/', 'el equipo de Murcia que está detrás' ),
+		array( 'Noticias y páginas automáticas', '/contenido-automatico-ia/', 'blog y páginas que se publican solos con IA y revisión humana; desde 600 €' ),
+		array( 'Contacto', '/contacto/', 'formulario y correo info@transformaconia.com' ),
+		array( 'Boletín semanal gratuito', '/boletin/', 'las noticias de IA de la semana para empresas, cada lunes' ),
+	);
+	foreach ( $s as $x ) {
+		$lineas[] = '- [' . $x[0] . '](' . home_url( $x[1] ) . '): ' . $x[2];
 	}
 	$lineas[] = '';
 	$lineas[] = '## Temas del blog';

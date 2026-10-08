@@ -7,13 +7,15 @@ import { Card, PageHeader, Stat, ScoreRing, Badge, GRAVEDAD, tonoScore, fecha, E
 import { GraficaSalud } from "@/components/Grafica";
 import { BotonAccion } from "@/components/BotonAccion";
 import { reanalizar, prepararRadar } from "./acciones";
+import { getPendientes } from "@/lib/pendientes";
+import { Pendientes } from "@/components/Pendientes";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export default async function Resumen() {
   const inv = await inventario();
-  const [historial, radar, digest, acciones, fotoHoy, calendario] = await Promise.all([
+  const [historial, radar, digest, acciones, fotoHoy, calendario, pendientes] = await Promise.all([
     historialSalud(),
     sql<{ id: number; title: string; source: string; score: number; resumen: string; status: string; keyword: string }[]>`
       select id, title, source, score, resumen, status, keyword from seo.radar
@@ -22,6 +24,7 @@ export default async function Resumen() {
     sql<Accion[]>`select * from seo.actions order by created_at desc limit 8`,
     sql`select 1 from seo.score_history where post_id = 0 and fecha = current_date`,
     sql<{ id: number; titulo: string; prioridad: string; detalle: string }[]>`select id, titulo, prioridad, detalle from seo.recommendations where status = 'open' and tipo = 'publicar' order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id limit 5`,
+    getPendientes(),
   ]);
   if (!fotoHoy.length) await guardarFoto(inv); // primera visita del día: se guarda la foto para la gráfica
 
@@ -63,6 +66,12 @@ export default async function Resumen() {
         <Stat label="Publicados · borradores" value={`${pub.length} · ${borradores.length}`} hint={`${inv.categorias.length} categorías`} icon={<FileText size={18} />} tone="blue" />
         <Stat label="Radar IA (3 días)" value={radar.length} hint="temas con potencial para publicar" icon={<Radar size={18} />} tone="violet" />
       </div>
+
+      {pendientes.some((p) => !p.hecho) && (
+        <Card className="mt-6" title="Pendientes para que nos encuentren" subtitle={`${pendientes.filter((p) => !p.hecho).length} por hacer de ${pendientes.length}. Márcalas al terminarlas; el informe del lunes te recuerda las abiertas.`}>
+          <Pendientes lista={pendientes} />
+        </Card>
+      )}
 
       {calendario.length > 0 && (
         <Card className="mt-6" title="Tu calendario editorial" subtitle="Lo siguiente que conviene publicar, por prioridad" action={<Link href="/estrategia" className="text-sm text-brand-600 hover:underline">Ver todo</Link>}>

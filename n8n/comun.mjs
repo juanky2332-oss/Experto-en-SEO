@@ -96,7 +96,7 @@ export async function reescribir(p, instruccion, enlaces) {
   const cuerpo = p.content.raw.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<script[\s\S]*?<\/script>/gi, '');
   const r = await ia({
     nombre: 'reescritura', web: true, esquema: ESQ_REESCRITURA,
-    sistema: `Eres Juan Carlos Ros, consultor y desarrollador de IA y automatización en Transformaconia (España). Hoy es ${hoy()}. Escribes en español de España, directo, con criterio y sin relleno, para posicionar en Google (top 3) y ser citado por ChatGPT, Perplexity, Gemini y AI Overviews.
+    sistema: `Eres el equipo editorial de Transforma con IA, un grupo de consultores y desarrolladores de IA y automatización de Murcia (España). Nunca firmas ni mencionas nombres propios del equipo. Hoy es ${hoy()}. Escribes en español de España, directo, con criterio y sin relleno, para posicionar en Google (top 3) y ser citado por ChatGPT, Perplexity, Gemini y AI Overviews.
 Reglas:
 - Devuelve el HTML COMPLETO del cuerpo: sin <h1>, sin <style>, sin <script>. Conserva las <figure>/<img> existentes tal cual y el bloque <aside class="tca-relacionados"> si existe.
 - Primer párrafo de 40-70 palabras que responda directamente a la pregunta principal e incluya la keyword «${kw}».

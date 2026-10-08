@@ -4,6 +4,7 @@ import { inventario, guardarFoto } from "@/lib/seo/inventario";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { recalcularProximos } from "@/lib/guia";
+import { getPendientes } from "@/lib/pendientes";
 
 export const maxDuration = 300;
 
@@ -17,7 +18,9 @@ export async function GET(req: NextRequest) {
   await guardarFoto(inv);
   const caidas = inv.posts.filter((p) => p.status === "publish" && antes.has(p.id) && antes.get(p.id)! - p.analisis.score >= 10);
   const criticos = inv.posts.filter((p) => p.status === "publish" && p.analisis.problemas.some((x) => x.codigo === "enlaces_rotos" || x.codigo === "anio_erroneo"));
-  const lunes = new Date().toLocaleDateString("en-GB", { timeZone: "Europe/Madrid", weekday: "long" }) === "Monday";
+  // ?plan=1 fuerza el plan editorial semanal fuera del lunes (lo usa el despliegue para estrenar la guía)
+  const forzar = req.nextUrl.searchParams.get("plan") === "1";
+  const lunes = forzar || new Date().toLocaleDateString("en-GB", { timeZone: "Europe/Madrid", weekday: "long" }) === "Monday";
   if (caidas.length || lunes) {
     const delta = ayer ? inv.salud - ayer.score : 0;
     await telegram(

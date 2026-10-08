@@ -66,7 +66,7 @@ export const RADAR_DEFECTO: RadarConfig = {
 };
 
 const SIN_TEXTO = "No text, no letters, no numbers, no logos, no brand marks, no watermarks, no readable user interfaces.";
-const PALETA = "brand palette of cobalt blue (#2563eb), soft lavender (#EBD3F8), near-black and warm off-white";
+const PALETA = "brand palette of electric purple (#B020FF), soft lavender (#EBD3F8), near-black and warm off-white";
 
 export const TIPOS_BASE: TipoContenido[] = [
   {
@@ -229,11 +229,14 @@ export const GUIA_INICIAL: Guia = {
     { nombre: "Agentes de IA y MCP", categoria: "automatizacion", descripcion: "Diseño de agentes, Model Context Protocol, herramientas, memoria, multiagente y seguridad.", keywords: ["agentes de ia", "model context protocol", "servidor mcp", "crear agente ia", "multiagente"] },
     { nombre: "Modelos y novedades", categoria: "noticias-ia", descripcion: "Lanzamientos de OpenAI, Anthropic, Google y open source contados por su impacto práctico.", keywords: ["gpt-5.5", "claude opus", "gemini", "modelos open source", "comparativa modelos ia"] },
     { nombre: "Prompts y productividad avanzada", categoria: "trucos-y-consejos-ia", descripcion: "Prompts de sistema, proyectos, skills, GPTs y hábitos para sacar más a la IA en el día a día.", keywords: ["prompts avanzados", "prompt de sistema", "skills de claude", "proyectos claude", "gpts personalizados"] },
-    { nombre: "IA en la empresa", categoria: "sobre-la-ia", descripcion: "Implantación, casos por sector, retorno, costes y regulación.", keywords: ["implementar ia en empresas", "ia para pymes", "ai act", "casos de uso ia", "coste ia empresa"] },
+    { nombre: "IA en la empresa", categoria: "sobre-la-ia", descripcion: "Implantación, retorno, empleo y regulación.", keywords: ["implementar ia en empresas", "ia para pymes", "ai act", "casos de uso ia", "ia y empleo"] },
+    { nombre: "Cuánto cuesta y cómo empezar", categoria: "sobre-la-ia", descripcion: "Precios reales de chatbots, automatizaciones y herramientas con IA, por dónde empezar, ayudas (Kit Digital, Kit Consulting) y errores que evitar. Enlaza a /soluciones/ y al diagnóstico gratis.", keywords: ["cuánto cuesta un chatbot con ia", "precio automatizar procesos con ia", "cuánto cuesta implantar ia en una empresa", "kit consulting inteligencia artificial", "por dónde empezar con ia en la empresa"] },
+    { nombre: "IA por sectores", categoria: "sobre-la-ia", descripcion: "Qué puede hacer la IA en cada sector (industria, mantenimiento, instaladores, distribución, clínicas, despachos, comercio) con ejemplos concretos. Enlaza a /sectores-industriales/ y a /casos/.", keywords: ["ia para empresas industriales", "ia en mantenimiento industrial", "ia para clínicas", "ia para despachos de abogados", "ia para instaladores", "ia en distribución"] },
+    { nombre: "Herramientas de IA para el trabajo", categoria: "servicios-y-herramientas-de-ia", descripcion: "ChatGPT, Gemini en Workspace, Copilot en Office, NotebookLM y similares: qué hacen, cuánto cuestan y cómo sacarles partido en una empresa.", keywords: ["chatgpt para empresas", "gemini en google workspace", "copilot excel", "notebooklm empresa", "mejores herramientas de ia para empresas"] },
   ],
   tipos: TIPOS_BASE,
   ritmo: [
-    "Base de 3-4 artículos por semana: 1 truco, 1 guía o automatización (alternando), 1 herramienta o empresa (alternando) y actualidad solo cuando haya algo gordo.",
+    "Base de 4 artículos por semana para cubrir todo el abanico: 1 actualidad fuerte, 1 truco o consejo, 1 guía o herramienta (alternando) y 1 de empresa (alternando «cuánto cuesta y cómo empezar», «IA por sectores» y casos de automatización).",
     "Cada mes: un artículo pilar nuevo o una actualización fuerte de un pilar existente.",
     "Cada trimestre: revisar los 10 artículos con más tráfico y actualizar versiones, precios y fechas.",
   ],
@@ -241,7 +244,7 @@ export const GUIA_INICIAL: Guia = {
     "Una keyword principal por URL. Si ya hay un artículo sobre lo mismo, se actualiza en lugar de duplicarlo.",
     "Title ≤60 caracteres con la keyword al principio; meta description de 130-155; slug corto sin año.",
     "Respuesta directa en las primeras 60 palabras.",
-    "3-5 enlaces internos: siempre al pilar del cluster y a 2 relacionados; el pilar se actualiza para enlazar lo nuevo.",
+    "3-5 enlaces internos: siempre al pilar del cluster y a 2 relacionados; si encaja, 1 enlace a la solución de la web (/automatizacion-procesos-ia/, /agentes-chatbots-ia/, /desarrollo-a-medida-ia/, /gestion/, /contenido-automatico-ia/, /sectores-industriales/ o /casos/).",
     "La actualidad caduca: a los 30-60 días se actualiza o se enlaza desde un artículo evergreen.",
     "Cada dato con su fuente enlazada; versiones, precios y fechas exactos.",
     "Imágenes WebP 1536×1024 con alt descriptivo y natural (sin meter keywords a la fuerza).",
@@ -257,7 +260,7 @@ export const GUIA_INICIAL: Guia = {
   ],
   voz: [
     "Español de España, tuteo, directo y con criterio propio.",
-    "Primera persona solo cuando aporta experiencia real («en los flujos que montamos…»).",
+    "Primera persona del plural solo cuando aporta experiencia real («en los flujos que montamos…»). Nunca nombres propios del equipo: firma «Redacción Transforma con IA».",
     "Técnico sin ser críptico: se explica el porqué, no solo el cómo.",
     "Prohibidas las muletillas de IA («en el mundo actual», «sin duda», «revolucionario», «sumérgete»…).",
   ],
@@ -301,8 +304,8 @@ export function cajaAutor(cta = ""): string {
   // el CTA de algunos tipos acaba en «Escríbenos.» y se duplicaba con la frase del correo
   const extra = cta.replace(/\s*Escr[ií]benos\.?\s*$/i, "").trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return '<aside class="tca-autor">'
-    + '<p class="tca-autor__etiqueta">Sobre el autor</p>'
-    + '<p class="tca-autor__bio">Juan Carlos Ros es consultor y desarrollador de inteligencia artificial y automatización en Transformaconia, donde diseña agentes de IA y flujos automatizados para empresas españolas.</p>'
+    + '<p class="tca-autor__etiqueta">Quién escribe</p>'
+    + '<p class="tca-autor__bio">Transforma con IA es un equipo de consultores y desarrolladores de Murcia dedicado a la inteligencia artificial y la automatización. Seguimos la actualidad cada mañana y montamos agentes, automatizaciones y herramientas con IA para empresas de toda España.</p>'
     + '<p class="tca-autor__titulo">¿Quieres aplicarlo en tu empresa?</p>'
     + '<p class="tca-autor__cta">' + (extra ? extra + ' ' : '') + 'Escríbenos a <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y te respondemos en menos de 24 horas.</p>'
     + '</aside>';
