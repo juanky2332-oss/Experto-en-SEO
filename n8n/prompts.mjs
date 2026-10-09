@@ -9,6 +9,7 @@ export const CATEGORIAS = {
   'servicios-y-herramientas-de-ia': 'Herramientas de IA — análisis a fondo de una herramienta, app o modelo concreto y cómo usarlo.',
   'automatizacion': 'Automatización y agentes — n8n, agentes de IA, flujos, integraciones, IA agéntica aplicada a procesos.',
   'guias-ia': 'Guías prácticas — tutoriales paso a paso, cómo hacer algo concreto con IA.',
+  'ia-en-la-industria': 'IA en la industria — casos reales de empresas industriales (fabricación, metal, mecanizado, mantenimiento, distribución, logística, agroindustria) que aplican IA: qué hicieron, qué beneficios obtuvieron con cifras de la fuente y qué puede copiar una pyme.',
   'sobre-la-ia': 'IA en la empresa — estrategia, empleo, productividad, casos de uso en pymes, ética y regulación aplicada al negocio.',
 };
 const CAT_SLUGS = Object.keys(CATEGORIAS);

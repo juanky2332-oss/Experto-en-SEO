@@ -129,16 +129,23 @@ add_shortcode( 'tc_destacadas', function () {
 
 /* [tc_categoria slug="guias-ia" n=4 desde=0] fila de tarjetas de una categoría */
 add_shortcode( 'tc_categoria', function ( $a ) {
-	$a   = shortcode_atts( array( 'slug' => '', 'n' => 4, 'excluir_recientes' => 0 ), $a );
+	$a   = shortcode_atts( array( 'slug' => '', 'n' => 4, 'excluir_recientes' => 0, 'relleno' => 0 ), $a );
 	$cat = get_category_by_slug( $a['slug'] );
-	if ( ! $cat ) {
+	$ps  = array();
+	if ( $cat ) {
+		$args = array( 'numberposts' => (int) $a['n'], 'post_status' => 'publish', 'category' => $cat->term_id );
+		if ( $a['excluir_recientes'] ) {
+			$args['exclude'] = get_posts( array( 'numberposts' => 5, 'fields' => 'ids' ) );
+		}
+		$ps = get_posts( $args );
+	}
+	// relleno=1: si la categoría aún tiene pocos artículos, se completa con los más recientes
+	if ( $a['relleno'] && count( $ps ) < (int) $a['n'] ) {
+		$ps = array_merge( $ps, get_posts( array( 'numberposts' => (int) $a['n'] - count( $ps ), 'post_status' => 'publish', 'exclude' => wp_list_pluck( $ps, 'ID' ) ) ) );
+	}
+	if ( ! $ps ) {
 		return '';
 	}
-	$args = array( 'numberposts' => (int) $a['n'], 'post_status' => 'publish', 'category' => $cat->term_id );
-	if ( $a['excluir_recientes'] ) {
-		$args['exclude'] = get_posts( array( 'numberposts' => 5, 'fields' => 'ids' ) );
-	}
-	$ps = get_posts( $args );
 	$h  = '<div class="tc-fila">';
 	foreach ( $ps as $p ) {
 		$h .= tc_tarjeta( $p, '', 'medium_large', 18 );
@@ -149,6 +156,7 @@ add_shortcode( 'tc_categoria', function ( $a ) {
 /* ---------- 3. Sistema de diseño (todas las páginas) ---------- */
 add_action( 'wp_head', function () {
 	?>
+<script>document.documentElement.classList.add('tc-js')</script>
 <style id="tc-web">
 :root{--tc-bg:#08070b;--tc-bg2:#0f0d14;--tc-card:#14111b;--tc-line:rgba(255,255,255,.09);--tc-line2:rgba(255,255,255,.16);--tc-fg:#f4f0f8;--tc-muted:#a9a1b4;--tc-dim:#7d7588;--tc-m:#b020ff;--tc-m2:#d27bff;--tc-m3:#6d0fb0;--tc-glow:rgba(176,32,255,.35);--tc-ok:#4ade80;--tc-r:18px;--tc-ease:cubic-bezier(.2,.7,.2,1);--tc-display:"Poppins",system-ui,sans-serif;--tc-body:"Open Sans",system-ui,sans-serif}
 /* lienzo de las páginas de diseño propio */
@@ -493,10 +501,14 @@ body.tc-landing .tc .tc-lead .tc-lead__k{font-size:1.08em;display:block;margin-b
 .tc-facts a{color:var(--tc-fg)}.tc-facts a:hover{color:var(--tc-m2)}
 .tc-pagehead .tc-hero__grid{align-items:center}
 /* animación de entrada (solo si el navegador la soporta; el contenido es visible igualmente) */
-@supports (animation-timeline:view()){
-  .tc-reveal{animation:tc-in linear both;animation-timeline:view();animation-range:entry 0% entry 38%}
-  @keyframes tc-in{from{opacity:.001;transform:translateY(28px)}}
-}
+/* aparición al hacer scroll: solo si el JS está activo (html.tc-js); sin JS todo se ve igual */
+html.tc-js .tc-reveal{opacity:0;transform:translateY(26px) scale(.985);transition:opacity .8s var(--tc-ease),transform .8s var(--tc-ease);transition-delay:var(--tc-dl,0s)}
+html.tc-js .tc-reveal.is-in{opacity:1;transform:none}
+html.tc-js .tc-grid>.tc-reveal:nth-child(2),html.tc-js .tc-steps>.tc-reveal:nth-child(2){--tc-dl:.08s}
+html.tc-js .tc-grid>.tc-reveal:nth-child(3),html.tc-js .tc-steps>.tc-reveal:nth-child(3){--tc-dl:.16s}
+html.tc-js .tc-grid>.tc-reveal:nth-child(4){--tc-dl:.24s}html.tc-js .tc-grid>.tc-reveal:nth-child(5){--tc-dl:.12s}html.tc-js .tc-grid>.tc-reveal:nth-child(6){--tc-dl:.2s}
+html.tc-js .tc-grid>.tc-reveal:nth-child(n+7){--tc-dl:.28s}
+@media (prefers-reduced-motion:reduce){html.tc-js .tc-reveal{opacity:1!important;transform:none!important}}
 .tc-hero .tc-hero__copy>*{animation:tc-up .8s var(--tc-ease) both}
 .tc-hero .tc-hero__copy>*:nth-child(2){animation-delay:.06s}.tc-hero .tc-hero__copy>*:nth-child(3){animation-delay:.12s}.tc-hero .tc-hero__copy>*:nth-child(4){animation-delay:.18s}.tc-hero .tc-hero__copy>*:nth-child(5){animation-delay:.24s}
 .tc-hero__panel{animation:tc-up .9s .2s var(--tc-ease) both}
@@ -543,6 +555,171 @@ body.single-post .content-inner .tc-cta-post a.tc-cta-post__b{display:inline-blo
 body.single-post .content-inner .tc-cta-post a.tc-cta-post__b:hover{transform:translateY(-2px);color:#fff!important}
 body.single-post .tca-autor .tca-autor__titulo,body.single-post .tca-autor .tca-autor__cta{display:none!important}body.single-post .tca-autor .tca-autor__bio{margin-bottom:0!important}
 @media (max-width:640px){.tc-cta-post{grid-template-columns:minmax(0,1fr)}}
+
+/* ==== v4 · consultoría industrial: lenguaje de plano técnico ==== */
+.tc{--tc-amber:#ffb547;--tc-mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,monospace;counter-reset:tcsec}
+/* numeración de secciones como en un plano: 01, 02… */
+.tc-head{counter-increment:tcsec}
+.tc-head .tc-eyebrow::before{content:counter(tcsec,decimal-leading-zero);width:auto;height:auto;background:none;border:1px solid rgba(210,123,255,.45);border-radius:5px;padding:2px 6px;font-family:var(--tc-mono);font-size:11px;letter-spacing:.04em;color:var(--tc-m2)}
+.tc-eyebrow--plain::before{display:none!important}
+/* cabecera con rejilla de plano, cotas y retícula */
+.tc-ind .tc-hero::after{background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(var(--tc-line) 1px,transparent 1px),linear-gradient(90deg,var(--tc-line) 1px,transparent 1px);background-size:14px 14px,14px 14px,70px 70px,70px 70px;opacity:.5}
+.tc-hero--ind .tc-hero__grid{align-items:center}
+.tc-hero--ind .tc-hero__copy::before{content:"TC-IND · REV. 2026 · ESC. 1:1";position:absolute;top:-26px;left:0;font-family:var(--tc-mono);font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.22)}
+.tc-hero--ind .tc-hero__copy{position:relative}
+.tc .tc-proof{list-style:none;margin:0;padding:0}
+.tc-proof li{display:flex;gap:6px;align-items:baseline}
+.tc-proof li+li::before{content:"";width:1px;height:14px;background:var(--tc-line2);margin-right:16px;align-self:center}
+/* marcas de esquina tipo CAD en tarjetas */
+.tc-ind .tc-box::after{content:"";position:absolute;inset:8px;pointer-events:none;opacity:.35;transition:opacity .35s,inset .35s var(--tc-ease);--c:rgba(210,123,255,.7);background:linear-gradient(var(--c),var(--c)) 0 0/10px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1px 10px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/10px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1px 10px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/10px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1px 10px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/10px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1px 10px no-repeat}
+.tc-ind .tc-box:hover::after{opacity:1;inset:5px}
+/* franja de seguridad en las bandas de llamada */
+.tc-ind .tc-band::after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:repeating-linear-gradient(-45deg,var(--tc-amber) 0 10px,transparent 10px 20px);opacity:.55}
+/* regla con marcas en las secciones alternas */
+.tc-ind .tc-sec--alt::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 1px,transparent 1px 10px),repeating-linear-gradient(90deg,rgba(255,255,255,.2) 0 1px,transparent 1px 50px);background-size:auto 4px,auto 8px;background-repeat:repeat-x;opacity:.6}
+/* fichas técnicas (paneles de datos) */
+.tc-spec{border-style:solid;border-color:rgba(210,123,255,.22)}
+.tc-spec .tc-hero__panel-h span{font-family:var(--tc-mono);letter-spacing:.06em}
+.tc-spec .tc-facts>div{border-top-style:dashed}
+.tc .tc-spec .tc-facts dd{font-variant-numeric:tabular-nums}
+/* insignias */
+.tc-badge{display:inline-flex;align-items:center;gap:8px;justify-self:start;width:max-content;max-width:100%;padding:5px 12px;border-radius:7px;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.4);color:var(--tc-amber);font-family:var(--tc-mono);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.tc-badge::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--tc-amber)}
+.tc-box--star{border-color:rgba(255,181,71,.35);background:linear-gradient(170deg,rgba(255,181,71,.08),transparent 55%),var(--tc-card)}
+/* maqueta escritorio + móvil */
+.tc-device{position:relative;padding:0 0 34px 0;margin-right:clamp(0px,3vw,40px)}
+.tc-device__desk{transform:perspective(1600px) rotateY(-6deg) rotateX(2deg);transform-origin:left center;transition:transform .8s var(--tc-ease)}
+.tc-device:hover .tc-device__desk{transform:none}
+.tc-shot__bar span{margin-left:10px;font-family:var(--tc-mono);font-size:10.5px;color:var(--tc-dim);letter-spacing:.04em}
+.tc-device__phone{position:absolute;right:clamp(-24px,-2vw,0px);bottom:0;width:30%;max-width:190px;margin:0;border-radius:26px;padding:7px;background:#0b0a0f;border:1px solid var(--tc-line2);box-shadow:0 40px 80px -30px rgba(0,0,0,.95),0 0 0 1px rgba(176,32,255,.15);animation:tc-flota 6s ease-in-out infinite alternate}
+.tc-device__phone img{display:block;width:100%;aspect-ratio:9/17;object-fit:cover;object-position:top;border-radius:20px}
+.tc-device__phone--solo{position:relative;right:auto;bottom:auto;width:min(300px,80%);max-width:none;margin:0 auto}
+.tc-phoneonly{display:grid;place-items:center;padding:20px 0}
+@keyframes tc-flota{to{transform:translateY(-10px)}}
+.tc-device__chip{position:absolute;left:-18px;bottom:6px;display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:14px;background:rgba(15,12,20,.92);backdrop-filter:blur(8px);border:1px solid rgba(74,222,128,.35);box-shadow:0 20px 50px -20px rgba(0,0,0,.9);animation:tc-up .8s .9s var(--tc-ease) both}
+.tc-device__chip b{display:block;font-family:var(--tc-display);font-size:14px;color:var(--tc-fg)!important}
+.tc-device__chip small{display:block;font-family:var(--tc-mono);font-size:11.5px;color:var(--tc-dim)}
+.tc-device__ok{width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(74,222,128,.16);color:var(--tc-ok);font-weight:700}
+.tc-pagehead .tc-device{margin-top:10px}
+/* bloque del producto estrella */
+.tc-star{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(28px,5vw,64px);align-items:center;padding:clamp(24px,4vw,48px);border-radius:calc(var(--tc-r) + 8px);border:1px solid rgba(255,181,71,.25);background:radial-gradient(600px 300px at 100% 0%,rgba(176,32,255,.16),transparent 70%),linear-gradient(180deg,#120f18,#0c0a10);position:relative;overflow:hidden}
+.tc-star::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:repeating-linear-gradient(-45deg,var(--tc-amber) 0 8px,#0c0a10 8px 16px);opacity:.7}
+.tc-star__txt{display:grid;gap:20px;min-width:0}
+.tc-star__vis{min-width:0}
+.tc-mini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tc-mini>div{display:grid;grid-template-columns:auto 1fr;gap:0 12px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--tc-line)}
+.tc-mini .tc-ico{grid-row:span 2;width:38px;height:38px;border-radius:10px}.tc-mini .tc-ico svg{width:19px;height:19px}
+.tc-mini b{font-family:var(--tc-display);font-size:14.5px;color:var(--tc-fg)!important;line-height:1.3}
+.tc-mini small{font-size:12.5px;color:var(--tc-dim);line-height:1.4}
+.tc-oferta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px dashed rgba(255,181,71,.35);border-radius:12px;overflow:hidden}
+.tc-oferta>div{display:grid;gap:4px;padding:12px 14px;border-left:1px dashed rgba(255,181,71,.25)}
+.tc-oferta>div:first-child{border-left:0}
+.tc-oferta span{font-family:var(--tc-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tc-dim)}
+.tc-oferta b{font-family:var(--tc-display);font-size:17px;color:var(--tc-fg)!important;white-space:nowrap}
+.tc-oferta s{color:var(--tc-dim);font-weight:400;font-size:13px}
+.tc-shots>.tc-shot:nth-child(4){animation-delay:12s}
+.tc-shots[style*="--n:4"]>.tc-shot{animation-name:tc-fade4}
+@keyframes tc-fade4{0%{opacity:0;transform:translateY(8px)}5%,23%{opacity:1;transform:none}28%,100%{opacity:0}}
+/* línea de proceso animada */
+.tc-linea{margin:0;padding:clamp(20px,3vw,32px);border-radius:var(--tc-r);border:1px solid var(--tc-line2);background:linear-gradient(180deg,#110e16,#0b0a0f);position:relative;overflow:hidden}
+.tc-linea__top{display:flex;justify-content:space-between;gap:12px;font-family:var(--tc-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--tc-dim);margin-bottom:22px}
+.tc-linea__led{display:inline-flex;align-items:center;gap:8px;color:var(--tc-ok)}
+.tc-linea__led i{width:8px;height:8px;border-radius:50%;background:var(--tc-ok);animation:tc-pulse 2s infinite}
+.tc-linea__track{position:relative;height:10px;margin:0 8% 0;border-radius:6px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 14px,rgba(255,255,255,.02) 14px 22px);background-size:22px 100%;animation:tc-cinta 1s linear infinite}
+@keyframes tc-cinta{to{background-position:22px 0}}
+.tc-linea__pieza{position:absolute;top:50%;left:0;width:22px;height:22px;margin-top:-11px;border-radius:5px;background:linear-gradient(135deg,var(--tc-m2),var(--tc-m));box-shadow:0 0 22px var(--tc-glow);animation:tc-pieza 7s cubic-bezier(.6,0,.4,1) infinite}
+@keyframes tc-pieza{0%{left:0;opacity:0}5%{opacity:1}20%,25%{left:25%}45%,50%{left:50%}70%,75%{left:75%}92%{left:calc(100% - 22px);opacity:1}100%{left:calc(100% - 22px);opacity:0}}
+.tc .tc-linea__est{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:20px!important}
+.tc-linea__est li{display:grid;justify-items:center;text-align:center;gap:6px;padding:14px 8px;border-radius:14px;border:1px solid var(--tc-line);background:rgba(255,255,255,.02);animation:tc-estacion 7s infinite;animation-delay:calc(var(--i)*1.4s)}
+@keyframes tc-estacion{0%,14%{border-color:rgba(210,123,255,.6);background:rgba(176,32,255,.1)}22%,100%{border-color:var(--tc-line);background:rgba(255,255,255,.02)}}
+.tc-linea__est .tc-ico{width:42px;height:42px;border-radius:12px}
+.tc-linea__est b{font-family:var(--tc-display);font-size:14.5px;color:var(--tc-fg)!important;line-height:1.3}
+.tc-linea__est small{font-size:12.5px;color:var(--tc-dim);line-height:1.4}
+.tc-linea figcaption{margin-top:18px;font-size:13px;color:var(--tc-dim)}
+/* sectores */
+.tc-sect{gap:12px}
+.tc-sect__frase{font-family:var(--tc-display);font-size:16px!important;font-style:italic;color:var(--tc-fg)!important}
+.tc-sect .tc-link{margin-top:6px}
+.tc-sectorbig{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,3vw,40px);padding:clamp(22px,3vw,36px);border-radius:var(--tc-r);border:1px solid var(--tc-line);background:var(--tc-card);scroll-margin-top:110px}
+.tc-sectorbig__h{display:grid;gap:10px;justify-items:center;align-content:start}
+.tc-sectorbig__n{font-family:var(--tc-mono);font-size:28px;font-weight:700;color:rgba(255,255,255,.1)}
+.tc-sectorbig h2{font-size:clamp(24px,2.6vw,32px)}
+/* blog en portada */
+.tc-blogline{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px 32px;align-items:center;margin-top:28px;padding:20px 24px;border-radius:var(--tc-r);border:1px solid var(--tc-line);background:var(--tc-card)}
+@media (max-width:1100px){.tc-mini{grid-template-columns:minmax(0,1fr)}.tc-oferta{grid-template-columns:repeat(2,minmax(0,1fr))}.tc-oferta>div:nth-child(3){border-left:0}.tc-oferta>div:nth-child(n+3){border-top:1px dashed rgba(255,181,71,.25)}}
+@media (max-width:900px){.tc-star,.tc-blogline{grid-template-columns:minmax(0,1fr)}.tc .tc-linea__est{grid-template-columns:minmax(0,1fr)}.tc-linea__track{display:none}.tc-linea__est li{grid-template-columns:auto 1fr;justify-items:start;text-align:left;gap:2px 14px}.tc-linea__est .tc-ico{grid-row:span 2}.tc-device{margin-right:0}.tc-device__desk{transform:none}.tc-hero--ind .tc-hero__copy::before{display:none}}
+/* ==== v4 · ilustraciones animadas ==== */
+.tc-deco{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.tc-deco svg{position:absolute;fill:none;stroke:rgba(210,123,255,.22);stroke-width:1}
+.tc-deco__gear{animation:tc-gira 60s linear infinite}
+.tc-deco__gear--1{width:clamp(220px,26vw,380px);right:-70px;top:-60px}
+.tc-deco__gear--2{width:clamp(130px,15vw,220px);right:clamp(150px,21vw,300px);top:clamp(110px,13vw,200px);animation-direction:reverse;animation-duration:40s;stroke:rgba(255,181,71,.18)}
+@keyframes tc-gira{to{transform:rotate(360deg)}}
+.tc-deco__cota{width:clamp(200px,24vw,320px);left:3%;bottom:16px;stroke:rgba(255,181,71,.35)!important;stroke-dasharray:400;stroke-dashoffset:400;animation:tc-traza 9s ease-in-out infinite}
+.tc-deco__cota text{fill:rgba(255,181,71,.5);stroke:none;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.06em;animation:tc-parpadea 9s ease-in-out infinite}
+@keyframes tc-traza{0%{stroke-dashoffset:400}35%,75%{stroke-dashoffset:0}100%{stroke-dashoffset:-400}}
+@keyframes tc-parpadea{0%,30%{opacity:0}40%,72%{opacity:1}85%,100%{opacity:0}}
+.tc-deco__arc{width:clamp(260px,30vw,460px);left:-140px;top:-120px;stroke-dasharray:6 10;animation:tc-gira 120s linear infinite reverse;opacity:.7}
+.tc-deco__spark{width:var(--s);height:var(--s);fill:#f0d2ff!important;stroke:none!important;filter:drop-shadow(0 0 6px rgba(210,123,255,.9));opacity:0;animation:tc-brilla 4.5s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes tc-brilla{0%,100%{opacity:0;transform:scale(.3) rotate(0)}45%{opacity:.95;transform:scale(1) rotate(45deg)}60%{opacity:.6}}
+.tc-deco--b .tc-deco__gear--2,.tc-deco--b .tc-deco__arc{display:none}
+.tc-deco--b .tc-deco__gear--1{width:clamp(180px,20vw,300px);right:-60px;top:auto;bottom:-90px}
+.tc-deco--b .tc-deco__cota{left:auto;right:4%;bottom:auto;top:28px}
+/* brillo que recorre las piezas destacadas */
+.tc-box--star,.tc-star,.tc-stats,.tc-oferta{position:relative}
+.tc-box--star>.tc-ico::after,.tc-badge::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.35) 50%,transparent 65%);transform:translateX(-120%);animation:tc-barrido 5s ease-in-out infinite}
+.tc-badge,.tc-box--star>.tc-ico{position:relative;overflow:hidden}
+@keyframes tc-barrido{0%,60%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
+.tc-star::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:conic-gradient(from var(--tc-ang,0deg),transparent 0 70%,rgba(255,181,71,.7) 80%,rgba(210,123,255,.8) 88%,transparent 95%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tc-borde 8s linear infinite;pointer-events:none}
+@property --tc-ang{syntax:"<angle>";initial-value:0deg;inherits:false}
+@keyframes tc-borde{to{--tc-ang:360deg}}
+/* iconos: flotan un poco al aparecer y brillan al pasar */
+html.tc-js .tc-reveal.is-in .tc-ico{animation:tc-pop .7s var(--tc-ease) both;animation-delay:calc(var(--tc-dl,0s) + .15s)}
+@keyframes tc-pop{from{transform:scale(.6) rotate(-12deg);opacity:0}}
+.tc-box:hover .tc-ico,.tc-sector:hover .tc-ico{box-shadow:inset 0 0 0 1px rgba(210,123,255,.6),0 0 24px -4px var(--tc-glow);transform:translateY(-2px)}
+.tc-ico{transition:box-shadow .35s,transform .35s var(--tc-ease)}
+/* titulares: subrayado que se dibuja al aparecer */
+.tc-head h2{position:relative;padding-bottom:12px}
+.tc-head h2::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:72px;border-radius:2px;background:linear-gradient(90deg,var(--tc-m),var(--tc-amber));transform-origin:left;transform:scaleX(0);transition:transform 1s .25s var(--tc-ease)}
+html:not(.tc-js) .tc-head h2::after,.tc-head.is-in h2::after{transform:scaleX(1)}
+/* cifras con brillo suave */
+.tc-stats b{background:linear-gradient(100deg,#fff 20%,var(--tc-m2) 50%,#fff 80%);background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent!important;animation:tc-shine 7s linear infinite}
+/* bloque «¿Te gusta esta web?» antes del pie */
+.tc-webband{position:relative;z-index:5;background:#060509;border-top:1px solid var(--tc-line);font-family:var(--tc-body);overflow:hidden}
+.tc-webband__in{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px 36px;align-items:center;padding-block:34px}
+.tc-webband h3{margin:0 0 6px!important;font-family:var(--tc-display);font-size:clamp(19px,2vw,24px)!important;color:var(--tc-fg)!important;letter-spacing:-.01em}
+.tc-webband p{margin:0!important;color:var(--tc-muted)!important;font-size:15.5px;line-height:1.55;max-width:70ch}
+.tc-webband a.tc-webband__b{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:11px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--tc-line2);color:#fff!important;font-family:var(--tc-display);font-weight:600;font-size:15px;white-space:nowrap;transition:background .25s,box-shadow .25s,transform .25s}
+.tc-webband a.tc-webband__b:hover{background:rgba(176,32,255,.18);box-shadow:inset 0 0 0 1px var(--tc-m2);transform:translateY(-2px)}
+.tc-webmini{width:132px;border-radius:10px;border:1px solid var(--tc-line2);background:#0f0c14;overflow:hidden;box-shadow:0 20px 40px -20px rgba(176,32,255,.5);animation:tc-flota 5s ease-in-out infinite alternate}
+.tc-webmini__bar{display:flex;gap:4px;padding:6px 8px;background:#1b1722}.tc-webmini__bar i{width:5px;height:5px;border-radius:50%;background:#3a3344}
+.tc-webmini__body{display:grid;gap:6px;padding:10px}
+.tc-webmini__body span{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.08) 0%,rgba(210,123,255,.45) 50%,rgba(255,255,255,.08) 100%);background-size:200% 100%;animation:tc-carga 2.4s linear infinite}
+.tc-webmini__body span:nth-child(1){width:70%;height:9px;background-color:rgba(176,32,255,.4)}.tc-webmini__body span:nth-child(2){animation-delay:.2s}.tc-webmini__body span:nth-child(3){width:80%;animation-delay:.4s}.tc-webmini__body span:nth-child(4){width:40%;height:12px;border-radius:4px;animation-delay:.6s}
+@keyframes tc-carga{to{background-position:-200% 0}}
+@media (max-width:760px){.tc-webband__in{grid-template-columns:minmax(0,1fr)}.tc-webmini{display:none}}
+@media (max-width:620px){.tc-deco__gear--2,.tc-deco__arc,.tc-deco__cota{display:none}.tc-deco__gear--1{opacity:.6}}
+/* etiquetas que podían ensanchar la columna en el móvil */
+.tc-live,.tc-badge{width:auto!important;max-width:100%;justify-self:start;white-space:normal;line-height:1.35}
+.tc-hero__copy,.tc-star__txt,.tc-star__vis,.tc-hero__grid>*{min-width:0}
+/* primera vista esquemática: tres líneas de servicio */
+.tc-pilares{display:grid;gap:10px;margin:0!important;padding:0!important;list-style:none!important}
+.tc .tc-pilares li,.tc .tc-proof li{list-style:none!important;margin:0!important;padding:0!important}.tc .tc-pilares li::before,.tc .tc-pilares li::marker{content:none!important;display:none!important}
+.tc-pilares a{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 16px;border-radius:14px;border:1px solid var(--tc-line);background:linear-gradient(90deg,rgba(255,255,255,.035),rgba(255,255,255,.01));transition:border-color .3s,background .3s,transform .3s var(--tc-ease)}
+.tc-pilares a:hover{border-color:rgba(210,123,255,.5);background:rgba(176,32,255,.08);transform:translateX(4px)}
+.tc-pilares__n{font-family:var(--tc-mono);font-size:12px;color:var(--tc-amber)}
+.tc-pilares .tc-ico{width:40px;height:40px;border-radius:11px}.tc-pilares .tc-ico svg{width:20px;height:20px}
+.tc-pilares b{display:block;font-family:var(--tc-display);font-size:16px;color:var(--tc-fg)!important;line-height:1.25}
+.tc-pilares small{display:block;font-size:13.5px;color:var(--tc-muted);line-height:1.4;margin-top:2px}
+.tc-pilares__a{color:var(--tc-m2);transition:transform .3s var(--tc-ease)}.tc-pilares__a svg{width:18px;height:18px}
+.tc-pilares a:hover .tc-pilares__a{transform:translateX(4px)}
+.tc-pilares li:first-child a{border-color:rgba(255,181,71,.35);background:linear-gradient(90deg,rgba(255,181,71,.08),rgba(255,255,255,.01))}
+.tc-pilares li:first-child .tc-pilares__tag{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:5px;font-family:var(--tc-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,181,71,.15);color:var(--tc-amber);vertical-align:2px}
+.tc-hero--ind .tc-lead{font-size:clamp(17px,1.4vw,19px)}
+.tc-hero--ind .tc-hero__grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+@media (max-width:900px){.tc-hero--ind .tc-hero__grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:620px){.tc-pilares a{grid-template-columns:auto minmax(0,1fr) auto;padding:12px}.tc-pilares__n{display:none}.tc-star{padding:20px 16px}.tc-star::before{width:3px}.tc-oferta b{font-size:15px;white-space:normal}.tc-mini>div{padding:10px}.tc-h1-home{font-size:34px!important}}
+@media (max-width:620px){.tc-sectorbig{grid-template-columns:minmax(0,1fr)}.tc-sectorbig__h{justify-items:start;grid-auto-flow:column;justify-content:start;align-items:center}.tc-device__chip{left:0;right:auto;bottom:-6px}.tc-device__phone{width:34%}.tc-proof li+li::before{display:none}}
 </style>
 	<?php
 }, 20 );
@@ -552,6 +729,10 @@ add_action( 'wp_footer', function () {
 	?>
 <script id="tc-web-js">
 (function(){
+  // aparición al hacer scroll
+  var rv=document.querySelectorAll('.tc-reveal');
+  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:.08});rv.forEach(function(el){io.observe(el);});}
+  else rv.forEach(function(el){el.classList.add('is-in');});
   document.addEventListener('pointermove',function(e){var b=e.target.closest&&e.target.closest('.tc-box');if(!b)return;var r=b.getBoundingClientRect();b.style.setProperty('--mx',(e.clientX-r.left)+'px');b.style.setProperty('--my',(e.clientY-r.top)+'px');},{passive:true});
   var URL='https://paneln8n.transformaconia.com/webhook/web-transformaconia';
   document.addEventListener('submit',function(e){
@@ -582,45 +763,58 @@ add_action( 'get_footer', function () {
 	$u    = function ( $s ) {
 		return esc_url( home_url( $s ) );
 	};
+	if ( ! is_page( array( 'contacto', 'diseno-web' ) ) ) :
+		?>
+<aside class="tc-webband" aria-label="Diseño web">
+ <div class="tc-wrap tc-webband__in">
+  <div class="tc-webmini" aria-hidden="true"><div class="tc-webmini__bar"><i></i><i></i><i></i></div><div class="tc-webmini__body"><span></span><span></span><span></span><span></span></div></div>
+  <div><h3>¿Te gusta la web que estás viendo?</h3><p>También diseñamos webs para empresas: rápidas, animadas y pensadas para que te encuentren en Google y te escriban. Cuéntanos tus objetivos y requisitos y te pasamos un presupuesto adaptado.</p></div>
+  <a class="tc-webband__b" href="<?php echo $u( '/diseno-web/' ); ?>">Quiero una web así →</a>
+ </div>
+</aside>
+		<?php
+	endif;
 	?>
 <footer class="tc-footer" role="contentinfo">
  <div class="tc-wrap">
   <div class="tc-footer__top">
    <div class="tc-footer__brand">
     <a href="<?php echo $u( '/' ); ?>"><img src="<?php echo esc_url( $logo ); ?>" alt="Transforma con IA" width="220" height="35" loading="lazy"></a>
-    <p>Noticias de inteligencia artificial explicadas para empresas y una agencia de IA que las pone a trabajar: automatizaciones, asistentes y herramientas a medida.</p>
+    <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. ERP para el metal, asistentes técnicos, gestión documental y automatizaciones a medida.</p>
     <a class="tc-footer__mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a>
-    <p>Equipo en Murcia · Trabajamos en remoto en toda España</p>
+    <p>Murcia · En persona en la Región de Murcia y en remoto en toda España</p>
    </div>
-   <div><h4>Leer</h4><ul>
-    <li><a href="<?php echo $u( '/blog/' ); ?>">Todas las noticias</a></li>
-    <li><a href="<?php echo $u( '/category/noticias-ia/' ); ?>">Noticias de IA</a></li>
-    <li><a href="<?php echo $u( '/category/guias-ia/' ); ?>">Guías prácticas</a></li>
-    <li><a href="<?php echo $u( '/category/servicios-y-herramientas-de-ia/' ); ?>">Herramientas de IA</a></li>
-    <li><a href="<?php echo $u( '/category/automatizacion/' ); ?>">Automatización y agentes</a></li>
-    <li><a href="<?php echo $u( '/category/sobre-la-ia/' ); ?>">IA en la empresa</a></li>
-    <li><a href="<?php echo $u( '/boletin/' ); ?>">Boletín semanal</a></li>
+   <div><h4>Industria</h4><ul>
+    <li><a href="<?php echo $u( '/industria/' ); ?>">IA para la industria</a></li>
+    <li><a href="<?php echo $u( '/industria/#metal' ); ?>">Metal y mecanizado</a></li>
+    <li><a href="<?php echo $u( '/distribucion-industrial/' ); ?>">Distribución industrial</a></li>
+    <li><a href="<?php echo $u( '/industria/#mantenimiento' ); ?>">Mantenimiento industrial</a></li>
+    <li><a href="<?php echo $u( '/industria/#instaladoras' ); ?>">Instaladoras</a></li>
+    <li><a href="<?php echo $u( '/otros-sectores/' ); ?>">Otros sectores</a></li>
+    <li><a href="<?php echo $u( '/consultor-ia-murcia/' ); ?>">Consultoría de IA en Murcia</a></li>
    </ul></div>
    <div><h4>Soluciones</h4><ul>
+    <li><a href="<?php echo $u( '/erp-metal/' ); ?>">ERP para el metal</a></li>
     <li><a href="<?php echo $u( '/automatizacion-procesos-ia/' ); ?>">Automatización de procesos</a></li>
-    <li><a href="<?php echo $u( '/agentes-chatbots-ia/' ); ?>">Agentes y chatbots de IA</a></li>
-    <li><a href="<?php echo $u( '/desarrollo-a-medida-ia/' ); ?>">Herramientas a medida</a></li>
-    <li><a href="<?php echo $u( '/gestion/' ); ?>">Programa de gestión con IA</a></li>
-    <li><a href="<?php echo $u( '/contenido-automatico-ia/' ); ?>">Noticias y páginas automáticas</a></li>
-    <li><a href="<?php echo $u( '/sectores-industriales/' ); ?>">IA para la industria</a></li>
+    <li><a href="<?php echo $u( '/agentes-chatbots-ia/' ); ?>">Asistentes técnicos y chatbots</a></li>
+    <li><a href="<?php echo $u( '/gestion-documental-ia/' ); ?>">Gestión documental con IA</a></li>
+    <li><a href="<?php echo $u( '/desarrollo-a-medida-ia/' ); ?>">Herramientas a medida y SAP</a></li>
+    <li><a href="<?php echo $u( '/contenido-automatico-ia/' ); ?>">Contenido automático</a></li>
+    <li><a href="<?php echo $u( '/diseno-web/' ); ?>">Diseño web</a></li>
+    <li><a href="<?php echo $u( '/soluciones/' ); ?>">Cómo trabajamos y precios</a></li>
    </ul></div>
    <div><h4>Transforma con IA</h4><ul>
     <li><a href="<?php echo $u( '/casos/' ); ?>">Casos de éxito</a></li>
-    <li><a href="<?php echo $u( '/soluciones/' ); ?>">Cómo trabajamos y precios</a></li>
     <li><a href="<?php echo $u( '/quienes-somos/' ); ?>">Quiénes somos</a></li>
-    <li><a href="<?php echo $u( '/consultor-ia-murcia/' ); ?>">Agencia de IA en Murcia</a></li>
-    <li><a href="<?php echo $u( '/contacto/' ); ?>">Contacto</a></li>
+    <li><a href="<?php echo $u( '/blog/' ); ?>">Blog</a></li>
+    <li><a href="<?php echo $u( '/category/ia-en-la-industria/' ); ?>">IA en la industria</a></li>
+    <li><a href="<?php echo $u( '/contacto/' ); ?>">Diagnóstico gratis</a></li>
     <li><a href="<?php echo $u( '/privacidad/' ); ?>">Privacidad</a></li>
    </ul></div>
   </div>
   <div class="tc-footer__bottom">
    <span>© <?php echo esc_html( gmdate( 'Y' ) ); ?> Transforma con IA</span>
-   <span>Noticias revisadas cada mañana · Hecho en Murcia</span>
+   <span>Consultoría de IA y automatización industrial · Hecho en Murcia</span>
   </div>
  </div>
 </footer>
@@ -632,7 +826,7 @@ add_filter( 'the_content', function ( $c ) {
 	if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $c;
 	}
-	$cta = '<div class="tc-cta-post"><div><p class="tc-cta-post__t">¿Te gustaría aplicar esto en tu empresa?</p><p>Cuéntanos qué tarea os quita más tiempo y te decimos, sin compromiso, qué se puede automatizar y cuánto costaría.</p></div><a class="tc-cta-post__b" href="' . esc_url( home_url( '/contacto/' ) ) . '">Diagnóstico gratis →</a></div>';
+	$cta = '<div class="tc-cta-post"><div><p class="tc-cta-post__t">¿Quieres aplicar esto en tu empresa?</p><p>Somos una consultoría de IA y automatización especializada en la industria. Cuéntanos qué tarea os quita más horas y te decimos, sin compromiso, qué se puede automatizar y cuánto costaría.</p></div><a class="tc-cta-post__b" href="' . esc_url( home_url( '/contacto/' ) ) . '">Diagnóstico gratis →</a></div>';
 	if ( false !== strpos( $c, '<aside class="tca-autor"' ) ) {
 		return str_replace( '<aside class="tca-autor"', $cta . '<aside class="tca-autor"', $c );
 	}
@@ -691,20 +885,20 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 		'logo'        => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-logo-v2.png',
 		'image'       => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png',
 		'email'       => 'info@transformaconia.com',
-		'description' => 'Medio de noticias de inteligencia artificial para empresas y agencia de IA y automatización con base en Murcia: automatizaciones, agentes de IA, chatbots, herramientas a medida y contenido automático para pymes e industria de toda España.',
+		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para talleres del metal, asistentes técnicos de catálogo, gestión documental con IA, automatizaciones e integración con SAP para empresas de toda España.',
 		'address'     => array( '@type' => 'PostalAddress', 'addressLocality' => 'Murcia', 'addressRegion' => 'Región de Murcia', 'addressCountry' => 'ES' ),
 		'areaServed'  => array( '@type' => 'Country', 'name' => 'España' ),
 		'priceRange'  => '€€',
-		'knowsAbout'  => array( 'Inteligencia artificial', 'Automatización de procesos', 'Agentes de IA', 'Chatbots', 'n8n', 'OpenAI', 'Claude', 'ERP' ),
+		'knowsAbout'  => array( 'Automatización de procesos industriales', 'Inteligencia artificial', 'ERP para el metal', 'Talleres de mecanizado', 'Distribución industrial', 'Gestión documental', 'SAP', 'Asistentes de IA', 'n8n' ),
 		'hasOfferCatalog' => array(
 			'@type'           => 'OfferCatalog',
-			'name'            => 'Soluciones de IA para empresas',
-			'itemListElement' => array(
-				array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
-				array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Agentes y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 900, 'priceCurrency' => 'EUR' ) ),
-				array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Herramientas a medida con IA', 'url' => home_url( '/desarrollo-a-medida-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 2500, 'priceCurrency' => 'EUR' ) ),
-				array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Programa de gestión (ERP) con IA', 'url' => home_url( '/gestion/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 690, 'priceCurrency' => 'EUR' ) ),
-				array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Noticias y páginas automáticas con IA', 'url' => home_url( '/contenido-automatico-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 600, 'priceCurrency' => 'EUR' ) ),
+			'name'            => 'Soluciones de IA y automatización para la industria',
+				'itemListElement' => array(
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para talleres del metal con IA', 'url' => home_url( '/erp-metal/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 690, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Asistentes técnicos y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 900, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Gestión documental con IA', 'url' => home_url( '/gestion-documental-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Herramientas a medida con IA e integración con SAP', 'url' => home_url( '/desarrollo-a-medida-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 2500, 'priceCurrency' => 'EUR' ) ),
 			),
 		),
 	);
@@ -795,9 +989,9 @@ add_action( 'template_redirect', function () {
 	$pag    = max( 1, (int) get_query_var( 'paged' ) );
 	$obj    = get_queried_object();
 	$blog   = home_url( '/blog/' );
-	$eb     = 'Noticias';
-	$h1     = 'Noticias de inteligencia artificial para empresas';
-	$lead   = 'Todo lo que publicamos: actualidad, guías prácticas, herramientas y casos de IA aplicada a la empresa, revisado cada mañana.';
+	$eb     = 'Blog';
+	$h1     = 'Blog: IA en la industria y actualidad de la inteligencia artificial';
+	$lead   = 'Casos reales de empresas industriales que aplican IA, actualidad, guías prácticas y herramientas, revisado cada mañana por nuestro equipo.';
 	$crumb  = '<span>Noticias</span>';
 	$activa = 0;
 	if ( is_category() ) {
@@ -834,7 +1028,7 @@ add_action( 'template_redirect', function () {
 		echo '<p class="tc-lead">' . esc_html( $lead ) . '</p>';
 	}
 	echo '<form class="tc-inline tc-buscar" role="search" action="' . esc_url( home_url( '/' ) ) . '"><input type="search" name="s" value="' . esc_attr( get_search_query() ) . '" placeholder="Buscar en el blog…" aria-label="Buscar en el blog"><button class="tc-btn tc-btn--ghost" type="submit">Buscar</button></form>';
-	echo '</div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>Lo mejor, cada lunes</span></div><p style="margin:4px 0 16px">El boletín semanal con las noticias de IA que importan a una empresa. Cinco minutos de lectura, gratis.</p><a class="tc-btn" href="' . esc_url( home_url( '/boletin/' ) ) . '">Suscribirme</a></aside></div></header>';
+	echo '</div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>Consultoría de IA para la industria</span></div><p style="margin:4px 0 16px">Lo que contamos aquí, lo implantamos en empresas: ERP para el metal, asistentes técnicos y automatizaciones. Diagnóstico de 30 minutos, gratis.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico</a></aside></div></header>';
 	echo '<nav class="tc-wrap tc-filtros" aria-label="Categorías"><a class="' . ( is_home() ? 'is-on' : '' ) . '" href="' . esc_url( $blog ) . '">Todo</a>';
 	foreach ( get_categories( array( 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC' ) ) as $c ) {
 		echo '<a class="' . ( $activa === $c->term_id ? 'is-on' : '' ) . '" href="' . esc_url( get_category_link( $c ) ) . '">' . esc_html( $c->name ) . '</a>';
@@ -859,7 +1053,7 @@ add_action( 'template_redirect', function () {
 		echo '<p class="tc-lead">Todavía no hay artículos aquí.</p>';
 	}
 	echo '</div></section>';
-	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-band"><div><h2>¿Quieres aplicar la IA en tu empresa?</h2><p>Cuéntanos qué tarea os quita más tiempo y en 30 minutos sabrás qué se puede automatizar y cuánto costaría.</p></div><div class="tc-btns"><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pide tu diagnóstico gratis</a></div></div></div></section>';
+	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-band"><div><h2>¿Quieres aplicar la IA en tu empresa?</h2><p>Somos una consultoría de automatización especializada en la industria. Cuéntanos qué tarea os quita más tiempo y en 30 minutos sabrás qué se puede automatizar y cuánto costaría.</p></div><div class="tc-btns"><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pide tu diagnóstico gratis</a></div></div></div></section>';
 	echo '</div>';
 	get_footer();
 	exit;

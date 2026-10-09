@@ -214,7 +214,7 @@ const HERRAMIENTAS = [
   { type: "function", name: "cambiar_articulo", description: "Cambia campos de un artículo (solo los que no sean cadena vacía). Queda en el historial y se puede deshacer.", strict: true,
     parameters: { type: "object", additionalProperties: false, required: ["id", "titulo", "titulo_seo", "meta_description", "keyword", "extracto", "categoria_slug", "motivo"],
       properties: { id: { type: "integer" }, titulo: { type: "string" }, titulo_seo: { type: "string" }, meta_description: { type: "string" }, keyword: { type: "string" }, extracto: { type: "string" },
-        categoria_slug: { type: "string", description: "noticias-ia | servicios-y-herramientas-de-ia | automatizacion | guias-ia | sobre-la-ia | vacío" }, motivo: { type: "string" } } } },
+        categoria_slug: { type: "string", description: "noticias-ia | servicios-y-herramientas-de-ia | automatizacion | guias-ia | sobre-la-ia | ia-en-la-industria | trucos-y-consejos-ia | vacío" }, motivo: { type: "string" } } } },
   { type: "function", name: "cambiar_estado", description: "Publica o pasa a borrador un artículo.", strict: true,
     parameters: { type: "object", additionalProperties: false, required: ["id", "estado"], properties: { id: { type: "integer" }, estado: { type: "string", enum: ["publish", "draft"] } } } },
   { type: "function", name: "pedir_borrado", description: "Pide confirmación para enviar un artículo a la papelera (nunca borra sin que el usuario pulse el botón).", strict: true,

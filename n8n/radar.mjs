@@ -35,6 +35,12 @@ export const FUENTES = [
   ['n8n', 'https://blog.n8n.io/rss/'],
   ['Cursor', 'https://cursor.com/changelog/rss.xml'],
   ['GitHub Copilot', 'https://github.blog/changelog/label/copilot/feed/'],
+  // IA en la industria (casos reales de empresas industriales)
+  ['Manufacturing Dive', 'https://www.manufacturingdive.com/feeds/news/'],
+  ['The Robot Report', 'https://www.therobotreport.com/feed/'],
+  ['IIoT World', 'https://www.iiot-world.com/feed/'],
+  ['Interempresas', 'https://www.interempresas.net/rss/'],
+  ['Expansión · Industria', 'https://www.expansion.com/rss/empresas/industria.xml'],
 ];
 
 const TIPOS_TXT = TIPOS_BASE.map((t) => `- ${t.clave}: ${t.nombre} — ${t.objetivo}`).join('\n');
@@ -71,6 +77,7 @@ Una misma noticia puede rendir más como truco o guía que como noticia (p. ej. 
 
 Puntúa alto (75-100): lanzamientos o cambios relevantes de OpenAI, Anthropic, Google, Microsoft, Meta, Mistral, DeepSeek y similares; funciones nuevas de Claude Code, Codex, Cursor, n8n, MCP y agentes que se pueden usar ya; técnicas y configuraciones que un usuario avanzado puede copiar; regulación con efecto práctico (AI Act); estudios con datos sólidos sobre productividad.
 Puntúa bajo (<50): rondas de financiación sin producto, papers muy académicos, opiniones, rumores, contenido para principiantes, noticias solo relevantes para EE. UU., versiones menores sin nada aprovechable (solo correcciones de errores).
+IA EN LA INDUSTRIA (prioridad del negocio: somos una consultoría de automatización e IA para la industria): puntúa 75-100 los casos reales de empresas industriales —sobre todo españolas o europeas— que han aplicado IA o automatización con resultados concretos (fabricación, metal y mecanizado, mantenimiento predictivo, visión artificial y calidad, logística y almacén, distribución industrial, agroindustria). Tipo «empresa», categoría ia-en-la-industria. Las noticias industriales que no tengan nada que ver con IA o automatización puntúan por debajo de 30.
 Si varias noticias cuentan lo mismo, quédate con la mejor fuente y agrúpalas.
 ANTICANIBALIZACIÓN: si el blog ya tiene un artículo sobre el mismo producto o el mismo anuncio (aunque el enfoque cambie un poco), puntúa por debajo de 50 y dilo en el motivo («ya cubierto en: …»); solo puntúa alto si hay un hecho nuevo importante que justifique actualizar ese artículo.
 No inventes nada: usa solo lo que dicen los titulares y extractos.`;

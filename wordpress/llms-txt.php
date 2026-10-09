@@ -12,22 +12,24 @@ add_action( 'init', function () {
 	$lineas   = array();
 	$lineas[] = '# ' . $sitio;
 	$lineas[] = '';
-	$lineas[] = '> Transforma con IA (transformaconia.com) es un blog de noticias de inteligencia artificial explicadas para empresas, actualizado casi a diario a partir de 21 fuentes, y un servicio de desarrollo con base en Murcia que trabaja en remoto para toda España: automatización de procesos, agentes y chatbots de IA, herramientas a medida y un programa de gestión (ERP) con IA, sobre todo para pymes industriales y de oficio. Es un equipo de compañeros de Murcia dedicados a la IA y la automatización. Contacto: info@transformaconia.com (diagnóstico inicial gratuito de 30 minutos).';
+	$lineas[] = '> Transforma con IA (transformaconia.com) es una consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia (visitas presenciales en la Región de Murcia) y trabajo en remoto en toda España. Su producto estrella es un ERP para talleres del metal y mecanizado, implantado en varias empresas. También implanta asistentes técnicos de catálogo para distribuidores industriales, gestión documental con IA, automatizaciones conectadas al ERP e integraciones con SAP, y atiende otros sectores (clínicas, asesorías, despachos, comercio, educación). Tiene un blog con casos de IA en la industria y actualidad de la IA. Contacto: info@transformaconia.com (diagnóstico inicial gratuito de 30 minutos).';
 	$lineas[] = '';
 	$lineas[] = '## Soluciones y precios orientativos (+ IVA)';
 	$s = array(
-		array( 'Automatización de procesos con IA', '/automatizacion-procesos-ia/', 'pedidos, facturas, correos e informes automatizados con n8n e IA; desde 450 €' ),
-		array( 'Agentes y chatbots de IA', '/agentes-chatbots-ia/', 'asistentes con el catálogo, tarifas o manuales de la empresa en web, WhatsApp o Telegram; desde 900 €' ),
-		array( 'Herramientas a medida con IA', '/desarrollo-a-medida-ia/', 'aplicaciones web con IA conectadas a SAP, Excel o ERP; desde 2.500 €' ),
-		array( 'Programa de gestión (ERP) con IA', '/gestion/', 'facturas, albaranes firmados, cobros y gastos por foto en Telegram; 690 € de puesta en marcha y 69 €/mes' ),
-		array( 'IA para empresas industriales', '/sectores-industriales/', 'eléctricas, neumática, hidráulica, mecanizado, suministro industrial, mantenimiento, automatización y frío industrial' ),
-		array( 'Cómo trabajamos y precios', '/soluciones/', 'diagnóstico gratis, prototipo en 1-3 semanas, soporte mes a mes' ),
-		array( 'Casos reales', '/casos/', 'asistente técnico para un distribuidor industrial, programa de gestión con IA, búsqueda inteligente de artículos integrada con SAP, blog con agentes y prospección comercial' ),
-		array( 'Agencia de IA en Murcia', '/consultor-ia-murcia/', 'visitas presenciales en la Región de Murcia' ),
-		array( 'Quiénes somos', '/quienes-somos/', 'el equipo de Murcia que está detrás' ),
-		array( 'Noticias y páginas automáticas', '/contenido-automatico-ia/', 'blog y páginas que se publican solos con IA y revisión humana; desde 600 €' ),
+		array( 'ERP para el metal', '/erp-metal/', 'programa de gestión para talleres de mecanizado y calderería: calculadora de mecanizado con precio del metal al día, presupuestos, albaranes firmados en el móvil, facturas, cobros, gastos por foto y paquete para la asesoría; 690 € de puesta en marcha (oferta) y 69 €/mes, sin permanencia' ),
+		array( 'Automatización de procesos con IA', '/automatizacion-procesos-ia/', 'pedidos del correo al ERP, órdenes de trabajo, facturas e informes automatizados con n8n e IA; desde 450 €' ),
+		array( 'Asistentes técnicos y chatbots de IA', '/agentes-chatbots-ia/', 'asistentes con el catálogo, fichas, stock o manuales de la empresa; desde 900 €' ),
+		array( 'Asistente técnico para distribución industrial', '/distribucion-industrial/', 'referencias, equivalencias entre marcas, fichas técnicas y stock para rodamientos, transmisión, neumática, hidráulica y suministro industrial' ),
+		array( 'Gestión documental con IA', '/gestion-documental-ia/', 'lectura automática de facturas, albaranes, tickets y certificados y registro en el ERP; desde 450 €' ),
+		array( 'Herramientas a medida e integración con SAP', '/desarrollo-a-medida-ia/', 'aplicaciones web con IA conectadas a SAP, ERP o Excel; desde 2.500 €' ),
+		array( 'IA para la industria', '/industria/', 'metal y mecanizado, distribución industrial, mantenimiento, instaladoras, integradores y fabricación' ),
+		array( 'Otros sectores', '/otros-sectores/', 'clínicas, asesorías, despachos, comercio y educación' ),
+		array( 'Diseño web', '/diseno-web/', 'webs para empresas, rápidas y pensadas para Google; presupuesto a medida' ),
+		array( 'Casos reales', '/casos/', 'ERP para el metal, asistente técnico en tienda industrial, búsqueda inteligente sobre SAP, gestión documental, asistentes para asesorías y clínicas' ),
+		array( 'Cómo trabajamos y precios', '/soluciones/', 'diagnóstico gratis, piloto con datos reales en 1-3 semanas, soporte mes a mes' ),
+		array( 'Consultoría de IA en Murcia', '/consultor-ia-murcia/', 'visitas presenciales en la Región de Murcia' ),
+		array( 'Quiénes somos', '/quienes-somos/', 'equipo de Murcia con años de experiencia en la industria' ),
 		array( 'Contacto', '/contacto/', 'formulario y correo info@transformaconia.com' ),
-		array( 'Boletín semanal gratuito', '/boletin/', 'las noticias de IA de la semana para empresas, cada lunes' ),
 	);
 	foreach ( $s as $x ) {
 		$lineas[] = '- [' . $x[0] . '](' . home_url( $x[1] ) . '): ' . $x[2];
