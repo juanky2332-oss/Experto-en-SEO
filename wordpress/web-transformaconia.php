@@ -6,6 +6,11 @@
  * Fuente: wordpress/web-transformaconia.php (repo Experto en SEO). Desplegar con node n8n/web-snippet.mjs
  */
 
+/* Enlace de la demo del programa (cambiar solo aquí cuando exista demo.transformaconia.com; en n8n/web-paginas.mjs vive DEMO_URL) */
+if ( ! defined( 'TC_DEMO_URL' ) ) {
+	define( 'TC_DEMO_URL', 'https://transformaconia-gestion.vercel.app/' );
+}
+
 /* ---------- 0. Verificación de Google Search Console (archivo HTML; no borrar nunca) ---------- */
 add_action( 'init', function () {
 	$ruta = strtok( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '', '?' );
@@ -180,7 +185,7 @@ add_shortcode( 'tc_calculadora', function () {
 	$i = 'tc-calc' . $n;
 	ob_start();
 	?>
-<div class="tc-calc tc-box" id="<?php echo esc_attr( $i ); ?>" data-puesta="690" data-cuota="69" data-gratis="3" role="group" aria-labelledby="<?php echo esc_attr( $i ); ?>-t">
+<div class="tc-calc tc-box" id="<?php echo esc_attr( $i ); ?>" data-puesta="690" data-cuota="69" data-gratis="3" data-pagos="2" role="group" aria-labelledby="<?php echo esc_attr( $i ); ?>-t">
 	<div><h3 id="<?php echo esc_attr( $i ); ?>-t">¿Cuánto te cuesta el papeleo?</h3><p class="tc-calc__sub">Presupuestos, albaranes y facturas a mano. Pon tus cifras y mira el orden de magnitud: es un cálculo orientativo, no una promesa de ahorro.</p></div>
 	<div class="tc-calc__grid">
 		<div class="tc-field"><label for="<?php echo esc_attr( $i ); ?>-p">Personas en oficina</label><input id="<?php echo esc_attr( $i ); ?>-p" type="number" inputmode="numeric" min="1" max="50" step="1" value="2"></div>
@@ -191,7 +196,7 @@ add_shortcode( 'tc_calculadora', function () {
 	<div class="tc-calc__out" role="status" aria-live="polite">
 		<div class="tc-calc__big"><span data-o="anual">–</span> € <small>al año en papeleo</small></div>
 		<p class="tc-calc__rec" data-o="rec"></p>
-		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. Con la puesta en marcha de 690 € y el mantenimiento orientativo de 69 €/mes desde el cuarto mes.</p>
+		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. Con la puesta en marcha de 690 € (345 € al empezar y 345 € a los 3 meses) y el mantenimiento orientativo de 69 €/mes desde el cuarto mes. Los usuarios extra no entran en esta cuenta.</p>
 	</div>
 	<div class="tc-btns"><button type="button" class="tc-btn" data-o="ir">Quiero ver esto con mis números</button></div>
 </div>
@@ -206,12 +211,13 @@ add_shortcode( 'tc_calculadora', function () {
     function calc(){
       var p=num(P,1,50,2), h=num(H,0.5,40,8), co=num(C,5,150,20), pc=num(R,10,60,30)/100;
       var anual=p*h*52*co, ahorro=anual*pc/12, meses=null;
-      if(3*ahorro>=puesta&&gratis>=3) meses=Math.ceil(puesta/ahorro);
-      else if(ahorro>cuota){meses=gratis+Math.ceil((puesta-gratis*ahorro)/(ahorro-cuota));}
+      // coste acumulado al mes m: 345 € al empezar, otros 345 € a los 3 meses y la cuota desde el mes 4; se busca el mes desde el que lo ahorrado supera siempre lo pagado
+      var ultimo=0;for(var m=1;m<=60;m++){var gastado=puesta/2+(m>=3?puesta/2:0)+cuota*Math.max(0,m-gratis);if(ahorro*m<gastado)ultimo=m;}
+      if(ultimo<60)meses=ultimo+1;
       RV.textContent=Math.round(pc*100)+' %';
       q('[data-o=anual]').textContent=eur(anual);
       q('[data-o=rec]').textContent=meses&&meses<=60
-        ? 'Si recortaras un '+Math.round(pc*100)+' % ese tiempo (unos '+eur(ahorro)+' € al mes de tiempo liberado), recuperarías la puesta en marcha en unos '+meses+(meses===1?' mes.':' meses.')
+        ? 'Si recortaras un '+Math.round(pc*100)+' % ese tiempo (unos '+eur(ahorro)+' € al mes de tiempo liberado), recuperarías lo invertido en '+meses+(meses===1?' mes.':' meses.')
         : 'Con estas cifras y un recorte del '+Math.round(pc*100)+' % la inversión tardaría más de cinco años en compensarse: quizá no sea tu caso, y te lo diremos con franqueza en el diagnóstico.';
       r={p:p,h:h,co:co,pc:Math.round(pc*100),anual:anual,meses:meses};
     }
@@ -528,13 +534,30 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 	if ( is_page( 'erp-industria' ) ) {
 		$data['TcErp'] = array(
 			'@type'               => 'SoftwareApplication',
-			'name'                => 'TransformaConIA Gestión: ERP para la industria',
+			'name'                => 'TransformaConIA Gestión',
+			'alternateName'       => 'TransformaConIA Gestión: ERP para la industria',
 			'applicationCategory' => 'BusinessApplication',
-			'operatingSystem'     => 'Web, Android, iOS',
+			'operatingSystem'     => 'Web',
 			'url'                 => home_url( '/erp-industria/' ),
-			'description'         => 'Programa de gestión con IA para talleres industriales: calculadora de costes y margen, presupuestos, albaranes firmados en el móvil, facturas, cobros, gastos por foto y paquete trimestral para la asesoría.',
+			'description'         => 'Programa de gestión (ERP) con IA para talleres industriales: calculadora de costes y margen, presupuestos, albaranes firmados en el móvil, facturas, cobros, gastos por foto y paquete trimestral para la asesoría.',
+			'screenshot'          => array(
+				'@type'       => 'ImageObject',
+				'url'         => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
+				'caption'     => 'Calculadora de costes de TransformaConIA Gestión con el margen aplicado (datos de ejemplo)',
+				'contentUrl'  => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
+			),
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
-			'offers'              => array( '@type' => 'Offer', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha (precio orientativo, sin IVA) y mantenimiento orientativo de 69 €/mes' ),
+			'offers'              => array(
+				array( '@type' => 'Offer', 'name' => 'Puesta en marcha', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha en dos pagos: 345 € al empezar y 345 € a los 3 meses. Sin IVA.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array(
+					'@type'              => 'Offer',
+					'name'               => 'Mantenimiento mensual',
+					'priceCurrency'      => 'EUR',
+					'description'        => '69 €/mes de mantenimiento, los 3 primeros meses gratis. Usuario extra: 15 €/mes desde el primer mes. Sin permanencia (30 días de aviso). Sin IVA.',
+					'priceSpecification' => array( '@type' => 'UnitPriceSpecification', 'price' => 69, 'priceCurrency' => 'EUR', 'billingDuration' => 1, 'unitCode' => 'MON' ),
+					'url'                => home_url( '/erp-industria/#precio' ),
+				),
+			),
 			'provider'            => array( '@id' => home_url( '/#person' ) ),
 		);
 	}
@@ -781,7 +804,7 @@ add_action( 'wp_head', function () {
 /* móvil: fuera las animaciones infinitas que no van por la tarjeta gráfica (sombras, fondos, bordes, trazos).
  * Salient lee la posición de la página en cada fotograma y con ellas recalculaba estilos sin parar (~20 ms por fotograma). */
 @media (max-width:768px){
-.tc-live i,.tc-dot,.tc-linea__led i,.tc-shine,.tc-ruta::before,.tc-stats b,.tc-linea__track,.tc-linea__pieza,.tc-linea__est li,.tc-deco__cota,.tc-star::after,.tc-webmini__body span{animation:none!important}
+.tc-live i,.tc-dot,.tc-linea__led i,.tc-shine,.tc-ruta::before,.tc-stats b,.tc-linea__track,.tc-linea__pieza,.tc-linea__est li,.tc-deco__cota,.tc-star::after{animation:none!important}
 }
 /* tablas de los artículos: se desplazan de lado en el móvil en vez de salirse de la pantalla */
 @media (max-width:768px){
@@ -814,7 +837,8 @@ add_action( 'wp_footer', function () {
 		return;
 	}
 	?>
-<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>" tabindex="-1">Pide tu diagnóstico gratis <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<?php $tc_erp = is_page( 'erp-industria' ); ?>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Pide la demo con tus precios' : 'Pide tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
 <script id="tc-sticky-js">
 (function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
   var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};
