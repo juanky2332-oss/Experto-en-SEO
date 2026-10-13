@@ -12,7 +12,7 @@ add_action( 'init', function () {
 	$lineas   = array();
 	$lineas[] = '# ' . $sitio;
 	$lineas[] = '';
-	$lineas[] = '> Transforma con IA (transformaconia.com) es una consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia (visitas presenciales en la Región de Murcia) y trabajo en remoto en toda España. Su producto estrella es un ERP para la industria, nacido en talleres de mecanizado e implantado en varias empresas, que sirve también para calderería, carpintería metálica, reparación de maquinaria e hidráulica y se combina con otros sectores por módulos. También implanta asistentes técnicos de catálogo para distribuidores industriales, gestión documental con IA, automatizaciones conectadas al ERP (directamente si tiene API; si no, se valora cómo adaptarlo) y mejoras sobre SAP o cualquier otro programa, y atiende otros sectores (clínicas, asesorías, despachos, comercio, educación). Tiene un blog con casos de IA en la industria y actualidad de la IA. Contacto: info@transformaconia.com (diagnóstico inicial gratuito de 30 minutos).';
+	$lineas[] = '> Transforma con IA (transformaconia.com) es una consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia (visitas presenciales en la Región de Murcia) y trabajo en remoto en toda España. Su ERP para la industria, TransformaConIA Gestión, nació en talleres de mecanizado y sirve también para calderería, carpintería metálica, reparación de maquinaria e hidráulica y se combina con otros sectores por módulos. También implanta asistentes técnicos de catálogo para distribuidores industriales, gestión documental con IA, automatizaciones conectadas al ERP (directamente si tiene API; si no, se valora cómo adaptarlo) y mejoras sobre SAP o cualquier otro programa, y atiende otros sectores (clínicas, asesorías, despachos, comercio, educación). Tiene un blog con casos de IA en la industria y actualidad de la IA. Contacto: info@transformaconia.com (diagnóstico inicial gratuito de 30 minutos).';
 	$lineas[] = '';
 	$lineas[] = '## Soluciones y precios orientativos (+ IVA)';
 	$s = array(
@@ -25,7 +25,7 @@ add_action( 'init', function () {
 		array( 'IA para la industria', '/industria/', 'talleres industriales, distribución industrial, mantenimiento, instaladoras, integradores y fabricación' ),
 		array( 'Otros sectores', '/otros-sectores/', 'clínicas, asesorías, despachos, comercio y educación' ),
 		array( 'Diseño web', '/diseno-web/', 'webs para empresas, rápidas y pensadas para Google; presupuesto a medida' ),
-		array( 'Casos reales', '/casos/', 'ERP para la industria, asistente técnico en tienda industrial, búsqueda inteligente sobre SAP, gestión documental, asistentes para asesorías y clínicas' ),
+		array( 'Casos', '/casos/', 'ERP para la industria, asistente técnico en tienda industrial, gestión documental, un ejemplo de búsqueda inteligente sobre SAP, asistentes para asesorías y clínicas' ),
 		array( 'Cómo trabajamos y precios', '/soluciones/', 'diagnóstico gratis, piloto con datos reales en 1-3 semanas, soporte mes a mes' ),
 		array( 'Consultoría de IA en Murcia', '/consultor-ia-murcia/', 'visitas presenciales en la Región de Murcia' ),
 		array( 'Quiénes somos', '/quienes-somos/', 'equipo de Murcia con años de experiencia en la industria' ),

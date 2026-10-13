@@ -166,7 +166,10 @@ create table if not exists seo.visitas (
 );
 create index if not exists visitas_fecha on seo.visitas (created_at);
 
--- Web: reservas del diagnóstico gratuito (30 min) en el calendario. ip_hash = hash con sal diaria, nunca la IP.
+-- Web: reservas del diagnóstico gratuito (30 min) en el calendario.
+-- ip_hash = HMAC-SHA256 de la IP con una sal aleatoria DIARIA que vive solo en seo.settings ('sal_ip'); nunca la IP.
+-- La sal se regenera al cambiar el día y la del día anterior se borra, así que la huella deja de poder recalcularse
+-- (ni por fuerza bruta) y además el flujo web-visitas la pone a null a las 48 h.
 create table if not exists seo.reservas (
   id bigserial primary key,
   created_at timestamptz not null default now(),
@@ -181,9 +184,62 @@ create unique index if not exists reservas_hueco_unico on seo.reservas (hueco) w
 create index if not exists reservas_email_fecha on seo.reservas (email, created_at);
 create index if not exists reservas_ip_fecha on seo.reservas (ip_hash, created_at);
 
--- Límite de eventos por minuto del webhook de visitas: huella de IP con sal diaria, se borra a los 10 minutos (nunca se guarda en seo.visitas)
+-- Límite de eventos por minuto del webhook de visitas: huella de IP (HMAC con la sal diaria), se borra a los 10 minutos (nunca se guarda en seo.visitas)
 create table if not exists seo.visitas_limite (
   huella text not null,
   created_at timestamptz not null default now()
 );
 create index if not exists visitas_limite_h on seo.visitas_limite (huella, created_at);
+
+-- Huella de IP (2026-10-13): HMAC-SHA256 con sal aleatoria diaria (día de Madrid), guardada solo aquí, nunca en el repo.
+-- seo.settings 'sal_ip' = {fecha, sal}; se regenera sola cuando cambia la fecha y la limpieza de madrugada borra la del día anterior.
+-- Sin la sal vieja, las huellas antiguas ya no se pueden revertir ni comparar.
+create extension if not exists pgcrypto;
+create or replace function seo.huella(ip text, ambito text) returns text language plpgsql set search_path = seo, public, pg_temp as $$
+declare f text := to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM-DD'); s text;
+begin
+  if coalesce(ip, '') = '' then return null; end if;
+  -- se lee primero; solo se escribe cuando falta la sal del día (no se toca settings en cada visita)
+  select value->>'sal' into s from seo.settings where key = 'sal_ip' and value->>'fecha' = f;
+  if s is null then
+    insert into seo.settings (key, value) values ('sal_ip', jsonb_build_object('fecha', f, 'sal', encode(gen_random_bytes(32), 'hex')))
+      on conflict (key) do update set value = excluded.value, updated_at = now() where seo.settings.value->>'fecha' is distinct from f;
+    select value->>'sal' into s from seo.settings where key = 'sal_ip';
+  end if;
+  return encode(hmac(convert_to(ambito || '|' || ip, 'UTF8'), convert_to(s, 'UTF8'), 'sha256'), 'hex');
+end $$;
+
+-- Límites diarios ATÓMICOS (respuestas automáticas, reservas, altas de boletín). La clave lleva una huella con la sal del día,
+-- nunca el correo ni la IP en claro; las filas de días anteriores las borra la limpieza de madrugada de web-visitas.
+create table if not exists seo.limite_auto (
+  clave text primary key,
+  dia date not null,
+  n int not null
+);
+-- Devuelve true y cuenta 1 si aún no se ha llegado al tope de hoy; false (sin contar) si ya se alcanzó. Seguro ante peticiones simultáneas.
+create or replace function seo.limite(p_clave text, p_tope int) returns boolean language plpgsql set search_path = seo, public, pg_temp as $$
+declare d date := (now() at time zone 'Europe/Madrid')::date; r int;
+begin
+  insert into seo.limite_auto as l (clave, dia, n) values (p_clave, d, 1)
+  on conflict (clave) do update set n = case when l.dia = excluded.dia then l.n + 1 else 1 end, dia = excluded.dia
+    where l.dia <> excluded.dia or l.n < p_tope
+  returning n into r;
+  return r is not null;
+end $$;
+
+-- Cierra el acceso por la API pública de Supabase/PostgREST si existieran esos roles (no falla si no existen)
+do $$ begin
+  revoke all on seo.settings from public;
+  revoke all on seo.limite_auto from public;
+  if exists (select 1 from pg_roles where rolname = 'anon') then revoke all on seo.settings, seo.limite_auto from anon; end if;
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then revoke all on seo.settings, seo.limite_auto from authenticated; end if;
+end $$;
+
+-- Contactos: huella de IP (a null a las 48 h) y si se envió la respuesta automática (límite 3/día por correo, 10/día por IP)
+alter table seo.contactos add column if not exists ip_hash text;
+alter table seo.contactos add column if not exists auto_resp boolean not null default false;
+create index if not exists contactos_email_fecha on seo.contactos (email, created_at);
+create index if not exists contactos_ip_fecha on seo.contactos (ip_hash, created_at);
+alter table seo.contactos add column if not exists email_norm text;   -- correo sin +etiqueta (y sin puntos en gmail), para los límites
+create index if not exists contactos_email_norm on seo.contactos (email_norm, created_at);
+alter table seo.suscriptores add column if not exists confirm_enviada_en timestamptz;   -- última confirmación enviada (máx. 1 cada 24 h)

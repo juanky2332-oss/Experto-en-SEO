@@ -1,8 +1,10 @@
 // Páginas locales de transformaconia.com (Cartagena, Molina de Segura, Lorca, Alcantarilla, Elche, Albacete).
-// Uso: node n8n/web-locales.mjs [slug-corto ...]   (sin argumentos crea/actualiza todas COMO BORRADOR; nunca publica)
+// Uso: node n8n/web-locales.mjs [slug-corto ...]   (sin argumentos: crea/actualiza como BORRADOR las que no existan; en las ya publicadas solo cambia el bloque de enlaces entre ciudades y el foco de Rank Math)
 // Murcia ya existe como /consultor-ia-murcia/ (no se duplica; se enlaza). No toca web-paginas.mjs ni el snippet.
 // Casos de ejemplo SIEMPRE ficticios y marcados. Precios orientativos. Sin nombrar herramientas internas.
+import fs from 'node:fs';
 import { wp } from './gw.mjs';
+const BK = '_backups/web-2026-10-13-t1/locales/';
 
 const H = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
@@ -44,7 +46,7 @@ const C = {};
 
 C.cartagena = {
   nombre: 'Cartagena', region: 'Región de Murcia', presencial: true,
-  seo: ['ERP y automatización para industria en Cartagena', 'ERP para talleres y automatización con IA para empresas industriales de Cartagena: Los Camachos, Cabezo Beaza y el entorno del puerto. Diagnóstico gratis.', 'erp taller Cartagena'],
+  seo: ['ERP y automatización para industria en Cartagena', 'ERP para talleres y automatización con IA para empresas industriales de Cartagena: Los Camachos, Cabezo Beaza y el entorno del puerto. Diagnóstico gratis.', 'automatización industria Cartagena'],
   h1: 'ERP y automatización con IA para la industria de Cartagena',
   lead: 'Ayudamos a talleres, empresas de mantenimiento y proveedores industriales de Cartagena a quitarse el papeleo de encima: partes, albaranes, presupuestos y facturas que se hacen casi solos.',
   datos: [['Visita en tu empresa', 'Sí, en Cartagena y comarca'], ['Zonas habituales', 'Los Camachos · Cabezo Beaza · Escombreras'], ['Después de la visita', 'Remoto y ágil'], ['Primer paso', 'Diagnóstico gratis']],
@@ -78,7 +80,7 @@ C.molina = {
 
 C.lorca = {
   nombre: 'Lorca', region: 'Región de Murcia', presencial: true,
-  seo: ['IA y ERP para empresas industriales de Lorca', 'ERP para talleres, automatización e IA para empresas de Lorca: Saprelorca, La Hoya, sector cárnico y agroindustrial. Visita y diagnóstico gratis.', 'automatización empresas Lorca'],
+  seo: ['IA y ERP para empresas industriales de Lorca', 'ERP para talleres, automatización e IA para empresas de Lorca: Saprelorca, La Hoya, sector cárnico y agroindustrial. Visita y diagnóstico gratis.', 'automatización industria Lorca'],
   h1: 'IA y ERP para las empresas industriales de Lorca',
   lead: 'Industria cárnica, talleres agrícolas y empresas de servicios en Saprelorca y alrededores: automatizamos el papeleo y damos a tu equipo herramientas que de verdad se usan.',
   datos: [['Visita en tu empresa', 'Sí, concertada con antelación'], ['Zona principal', 'Saprelorca · La Hoya'], ['Sector fuerte', 'Cárnico, agroindustria y maquinaria'], ['Primer paso', 'Diagnóstico gratis']],
@@ -155,13 +157,19 @@ const ficha = (slug, c) => {
   }).replace(/</g, '\\u003c');
 };
 
+// Bloque de enlaces entre las páginas locales (id fijo: en las páginas ya publicadas solo se actualiza este bloque)
+const enlaces = (slug) => {
+  const otras = Object.keys(L).filter((k) => k !== slug);
+  const lista = otras.map((k) => '<a class="tc-link" href="' + L[k][1] + '">automatización industrial en ' + L[k][0] + '</a>').join(', ');
+  return '<section class="tc-sec tc-sec--tight" id="otras-ciudades"><div class="tc-wrap"><div class="tc-prose tc-reveal"><h3>Dónde más trabajamos</h3><p>Volver a <a class="tc-link" href="/consultor-ia-murcia/">consultoría de IA en Murcia y toda la región</a>. También tenemos página para ' + lista + ', y trabajamos en toda España en remoto. Conoce <a class="tc-link" href="/erp-industria/">el ERP para la industria</a> o <a class="tc-link" href="/contacto/">escríbenos</a>.</p></div></div></section>';
+};
 const html = (slug, c) => page(`${pagehead(`<a href="/consultor-ia-murcia/">Región de Murcia</a><span aria-hidden="true">/</span><span>${c.nombre}</span>`, `Industria en ${c.nombre}`, c.h1, c.lead,
     btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/erp-industria/', 'Ver el ERP para la industria', true), facts(`Trabajamos en ${c.nombre}`, c.datos))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow(`La industria de ${c.nombre}`)}<h2>Qué vemos en las empresas de ${c.nombre}</h2>${c.intro.map((p) => `<p>${p}</p>`).join('')}</div><div class="tc-box tc-reveal"><h3>${c.poligonosTitulo}</h3>${list(c.poligonos)}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Sectores', `Dónde más ayudamos en ${c.nombre}`)}<div class="tc-grid tc-reveal" style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${c.sectores.map(([t, d]) => `<div class="tc-box"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
 <section class="tc-sec"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow('Cómo trabajamos')}<h2>${c.presencial ? `Presencial en ${c.nombre} y remoto para el resto` : `Remoto, con visitas cuando haga falta`}</h2>${list(c.como)}<p>El ERP es <b>TransformaConIA Gestión</b>, nuestro programa de gestión para la industria. <a class="tc-link" href="/erp-industria/">Ver cómo funciona</a>.</p></div><div class="tc-box tc-reveal"><span class="tc-eyebrow">Ejemplo ficticio</span><h3>${c.caso.titulo}</h3><p><i>Caso inventado para ilustrar; no es un cliente real.</i></p><p><b>Situación.</b> ${c.caso.situacion}</p><p><b>Qué hacemos.</b> ${c.caso.hacemos}</p><p><b>Resultado.</b> ${c.caso.resultado}</p></div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', `IA y automatización en ${c.nombre}`)}${faq(c.faqs)}</div></section>
-<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-prose tc-reveal"><p>También trabajamos en <a class="tc-link" href="/consultor-ia-murcia/">Murcia y toda la región</a>, ${c.cerca.map((k) => `<a class="tc-link" href="${L[k][1]}">${L[k][0]}</a>`).join(', ')} y en toda España en remoto. Conoce <a class="tc-link" href="/erp-industria/">el ERP para la industria</a> o <a class="tc-link" href="/contacto/">escríbenos</a>.</p></div></div></section>
+${enlaces(slug)}
 ${band(`¿Tienes una empresa en ${c.nombre}?`, 'Cuéntanos cómo trabajas y te decimos, sin compromiso, qué automatizaríamos primero y a qué precio orientativo.')}
 <script type="application/ld+json">${ficha(slug, c)}</script>`);
 
@@ -180,7 +188,19 @@ for (const [k, c] of Object.entries(C)) {
   if (dry) { console.log(slug, c.seo[0].length, c.seo[1].length, content.length); continue; }
   const f = await wp('GET', `/wp/v2/pages?slug=${slug}&status=publish,draft,pending,private&_fields=id,status`);
   const ex = f.data?.[0];
-  if (ex?.status === 'publish') { console.log(slug, 'YA PUBLICADA (id ' + ex.id + '), no se toca'); continue; }
+  if (ex?.status === 'publish') {
+    // Página ya publicada: copia del contenido y cambio SOLO del bloque de enlaces + foco de Rank Math
+    const old = (await wp('GET', '/wp/v2/pages/' + ex.id + '?context=edit&_fields=id,content')).data?.content?.raw || '';
+    fs.mkdirSync(BK, { recursive: true });
+    if (!fs.existsSync(BK + 'page-' + ex.id + '.html')) fs.writeFileSync(BK + 'page-' + ex.id + '.html', old);
+    const bloque = enlaces(k);
+    const re = /<section class="tc-sec tc-sec--tight"(?: id="otras-ciudades")?><div class="tc-wrap"><div class="tc-prose tc-reveal">(?:<h3>Dónde más trabajamos<\/h3>)?<p>(?:También trabajamos en|Volver a)[\s\S]*?<\/section>/;
+    if (!re.test(old)) { console.log(slug, 'NO se encuentra el bloque de enlaces; sin cambios'); continue; }
+    const nuevo = old.replace(re, () => bloque);
+    const r2 = await wp('POST', '/wp/v2/pages/' + ex.id, { content: nuevo, meta: { rank_math_focus_keyword: c.seo[2] } });
+    console.log(slug, 'actualizada solo bloque de enlaces + foco:', r2.status, r2.data?.link);
+    continue;
+  }
   const body = { title: `Automatización e IA para la industria en ${c.nombre}`, slug, status: 'draft', content, template: '', comment_status: 'closed', author: 2, meta: { rank_math_title: c.seo[0], rank_math_description: c.seo[1], rank_math_focus_keyword: c.seo[2] } };
   const r = ex ? await wp('POST', `/wp/v2/pages/${ex.id}`, body) : await wp('POST', '/wp/v2/pages', body);
   console.log(slug, r.status, r.data?.id, r.data?.status, `https://transformaconia.com/?page_id=${r.data?.id}&preview=true`);

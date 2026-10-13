@@ -10,3 +10,7 @@ n8n/*.build.json
 *.tmp.html
 
 .vercel
+
+# Scripts de usar y tirar (los ya versionados siguen versionados)
+n8n/_*.mjs
+n8n/_t4/

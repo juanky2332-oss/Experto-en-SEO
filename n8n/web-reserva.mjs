@@ -120,11 +120,20 @@ const t = (v, n) => String(v == null ? '' : v).trim().slice(0, n || 200);
 const d = {
   nombre: t(b.nombre, 120), empresa: t(b.empresa, 160), email: t(b.email, 160).toLowerCase(), telefono: t(b.telefono, 30),
   modalidad: t(b.modalidad, 30), localidad: t(b.localidad, 120), hueco: t(b.hueco, 40), origen: t(b.origen, 300),
-  ip: t(String(h['x-forwarded-for'] || h['x-real-ip'] || '').split(',')[0], 64),
+  ip: '',
 };
-const origen = String(h.origin || '');
-const spam = !!t(b.web) || (origen && !/^https:\\/\\/(www\\.)?transformaconia\\.com$/.test(origen));
-const emailOk = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(d.email);
+// IP real: el ÚLTIMO valor de x-forwarded-for (lo añade el proxy; el primero lo controla el cliente) o x-real-ip
+const xff = String(h['x-forwarded-for'] || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+d.ip = t(xff.length ? xff[xff.length - 1] : h['x-real-ip'], 64);
+// solo desde nuestra propia web: sin Origin ni Referer válidos se rechaza (antes el Origin era opcional)
+const propio = /^https:\\/\\/(www\\.)?transformaconia\\.com(\\/|$)/i;
+const origenMal = !propio.test(String(h.origin || '')) && !propio.test(String(h.referer || ''));
+const honeypot = !!t(b.web);
+const spam = honeypot || origenMal;
+const emailOk = /^[^\\s@,;<>"']+@[^\\s@,;<>"']+\\.[^\\s@,;<>"']{2,}$/.test(d.email);
+// correo normalizado para los límites: sin +etiqueta en todos los dominios y sin puntos en gmail
+const normEmail = e => { const p = e.split('@'); if (p.length !== 2) return e; let l = p[0].split('+')[0]; let dom = p[1]; if (dom === 'gmail.com' || dom === 'googlemail.com') { l = l.replace(/\\./g, ''); dom = 'gmail.com'; } return (l || p[0]) + '@' + dom; };
+const email_norm = emailOk ? normEmail(d.email) : d.email;
 const videollamada = d.modalidad === 'videollamada';
 const presencial = d.modalidad === 'en tu empresa';
 let error = '';
@@ -139,22 +148,22 @@ else if (!hueco_ok(d.hueco)) error = 'Ese hueco ya no está disponible. Elige ot
 const valido = !spam && !error;
 d.hueco = valido ? new Date(d.hueco).toISOString() : d.hueco;
 if (!presencial) d.localidad = '';
-const codigo = spam ? 200 : 422;
-return [{ json: { ...d, valido, codigo, cuerpo: spam ? { ok: true } : { ok: false, error } } }];
+const codigo = honeypot ? 200 : origenMal ? 403 : 422;
+return [{ json: { ...d, email_norm, valido, codigo, cuerpo: honeypot ? { ok: true } : { ok: false, error: origenMal ? 'Origen no permitido.' : error } } }];
 `), X(1, 2));
 f.add('¿Válida?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'v', leftValue: '={{ $json.valido }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(2, 2));
 respond('Responder descartada', X(3, 3.4));
-// máximo 2 reservas al día por correo o por IP (la IP solo se guarda como huella con sal)
+// máximo 2 reservas al día por correo normalizado o por IP, con contador atómico seo.limite() (la IP solo se guarda como HMAC con sal diaria, seo.huella(); se borra a las 48 h)
 f.add('Límite', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: `select count(*)::int as n from seo.reservas
-where estado = 'confirmada' and created_at > now() - interval '1 day'
-  and (lower(email) = $1 or ($2::text <> '' and ip_hash = encode(sha256(convert_to('tc-reserva|' || $2::text, 'UTF8')), 'hex')))`,
-  options: { queryReplacement: "={{ [ $json.email, $json.ip ] }}" } }, X(3, 2), { credentials: CRED.pg });
-f.add('¿Cupo?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'c', leftValue: '={{ $json.n }}', rightValue: 2, operator: { type: 'number', operation: 'lt' } }], combinator: 'and' }, options: {} }, X(4, 2));
+  query: `with e as (select seo.limite('r:email:' || coalesce(seo.huella($1::text, 'email'), 'x'), 2) as ok),
+i as (select case when $2::text = '' then true else seo.limite('r:ip:' || seo.huella($2::text, 'reserva'), 2) end as ok)
+select (e.ok and i.ok) as ok from e, i`,
+  options: { queryReplacement: "={{ [ $json.email_norm, $json.ip ] }}" } }, X(3, 2), { credentials: CRED.pg });
+f.add('¿Cupo?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'c', leftValue: '={{ $json.ok }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(4, 2));
 f.add('Mensaje cupo', 'n8n-nodes-base.code', 2, code(`return [{ json: { codigo: 429, cuerpo: { ok: false, error: 'Ya hay dos reservas hechas hoy desde este correo o conexión. Si necesitas cambiar algo, escríbenos a info@transformaconia.com.' } } }];`), X(5, 3.4));
 f.add('Reservar fila', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
   query: `insert into seo.reservas (nombre, empresa, email, telefono, modalidad, localidad, hueco, ip_hash, origen)
-values ($1, $2, $3, $4, $5, $6, $7::timestamptz, case when $8::text = '' then null else encode(sha256(convert_to('tc-reserva|' || $8::text, 'UTF8')), 'hex') end, $9)
+values ($1, $2, $3, $4, $5, $6, $7::timestamptz, seo.huella($8::text, 'reserva'), $9)
 on conflict (hueco) where estado = 'confirmada' do nothing
 returning id`,
   options: { queryReplacement: "={{ [ $('Validar').first().json.nombre, $('Validar').first().json.empresa, $('Validar').first().json.email, $('Validar').first().json.telefono, $('Validar').first().json.modalidad, $('Validar').first().json.localidad, $('Validar').first().json.hueco, $('Validar').first().json.ip, $('Validar').first().json.origen ] }}" } }, X(5, 2), { credentials: CRED.pg, alwaysOutputData: true });
@@ -203,7 +212,7 @@ f.add('Anular fila', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery'
 f.add('Mensaje error', 'n8n-nodes-base.code', 2, code(`const r = $input.first().json; return [{ json: { codigo: r.codigo, cuerpo: { ok: false, error: r.error, refrescar: r.codigo === 409 } } }];`), X(15, 3.4));
 f.add('Guardar evento', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
   query: `update seo.reservas set evento_id = $2, meet = $3 where id = $1 returning id`,
-  options: { queryReplacement: "={{ [ $('Reservar fila').first().json.id, $json.eventoId, $json.meet ] }}" } }, X(14, 2), { credentials: CRED.pg });
+  options: { queryReplacement: "={{ [ $('Reservar fila').first().json.id, $json.eventoId, $json.meet ] }}" } }, X(14, 2), { credentials: CRED.pg, onError: 'continueRegularOutput' });
 f.add('Preparar avisos', 'n8n-nodes-base.code', 2, code(TZ_JS + `
 const v = $('Validar').first().json;
 const ev = $('Evento listo').first().json;
@@ -220,11 +229,12 @@ const donde_html = video
   ? (ev.meet ? '<p><b>Cómo:</b> videollamada. Entra con este enlace a la hora indicada:</p>' + boton(ev.meet, 'Entrar a la videollamada') : '<p><b>Cómo:</b> videollamada. Te enviaremos el enlace antes de la cita.</p>')
   : '<p><b>Cómo:</b> iremos a tu empresa (' + esc(v.localidad) + '). Te llamaremos antes para confirmar la dirección y la hora exacta.</p>';
 const html = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1b1520;line-height:1.55"><h2 style="color:#8a14d0;margin-bottom:6px">Tu diagnóstico gratuito está reservado</h2><p>Hola ' + esc(v.nombre) + ', gracias por reservar. Estos son los datos:</p><table style="border-collapse:collapse;font-size:15px"><tr><td style="padding:6px 14px 6px 0;color:#666">Cuándo</td><td><b>' + esc(fecha) + '</b></td></tr><tr><td style="padding:6px 14px 6px 0;color:#666">Duración</td><td>30 minutos</td></tr><tr><td style="padding:6px 14px 6px 0;color:#666">Modalidad</td><td>' + (video ? 'Videollamada' : 'En tu empresa (' + esc(v.localidad) + ')') + '</td></tr></table>' + donde_html + '<p>Para sacarle el máximo partido, piensa en la tarea que más horas le quita a tu equipo: es de lo que hablaremos. No hace falta que prepares nada más.</p><p><a href="' + cal + '" style="color:#8a14d0">Añadir a mi calendario</a></p><p style="font-size:13px;color:#666">Si no puedes en ese horario, responde a este correo y lo cambiamos sin problema.</p><p>Un saludo,<br>El equipo de Transforma con IA<br><a href="https://transformaconia.com" style="color:#8a14d0">transformaconia.com</a></p></div>';
-const telegram = '📅 Nueva reserva de diagnóstico\\n\\n👤 ' + v.nombre + (v.empresa ? ' · ' + v.empresa : '') + '\\n✉️ ' + v.email + (v.telefono ? '\\n📞 ' + v.telefono : '') + '\\n🗓 ' + fecha + '\\n' + (video ? '🎥 Videollamada' + (ev.meet ? ': ' + ev.meet : '') : '📍 En su empresa: ' + v.localidad) + '\\n\\nYa está en tu calendario.';
+const e2 = v => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');   // el aviso va en HTML: se escapa lo que escribe el usuario
+const telegram = '📅 Nueva reserva de diagnóstico\\n\\n👤 ' + e2(v.nombre) + (e2(v.empresa) ? ' · ' + e2(v.empresa) : '') + '\\n✉️ ' + e2(v.email) + (e2(v.telefono) ? '\\n📞 ' + e2(v.telefono) : '') + '\\n🗓 ' + fecha + '\\n' + (video ? '🎥 Videollamada' + (e2(ev.meet) ? ': ' + e2(ev.meet) : '') : '📍 En su empresa: ' + e2(v.localidad)) + '\\n\\nYa está en tu calendario.';
 return [{ json: { html, telegram, asunto: 'Reservado: tu diagnóstico gratuito, ' + e.dia + ' a las ' + e.hora, email: v.email, cuerpo: { ok: true, fecha, modalidad: v.modalidad, meet: video ? ev.meet : '' }, codigo: 200 } }];
 `), X(15, 2));
 f.add('Correo al cliente', 'n8n-nodes-base.gmail', 2.1, { sendTo: "={{ $('Preparar avisos').first().json.email }}", subject: "={{ $('Preparar avisos').first().json.asunto }}", message: "={{ $('Preparar avisos').first().json.html }}", options: { appendAttribution: false, senderName: 'Transforma con IA', replyTo: 'info@transformaconia.com' } }, X(16, 2), { credentials: GMAIL, onError: 'continueRegularOutput' });
-f.add('Telegram reserva', 'n8n-nodes-base.telegram', 1.2, { chatId: '8765904', text: "={{ $('Preparar avisos').first().json.telegram }}", additionalFields: { appendAttribution: false } }, X(17, 2), { credentials: TG, onError: 'continueRegularOutput' });
+f.add('Telegram reserva', 'n8n-nodes-base.telegram', 1.2, { chatId: '8765904', text: "={{ $('Preparar avisos').first().json.telegram }}", additionalFields: { appendAttribution: false, parse_mode: 'HTML' } }, X(17, 2), { credentials: TG, onError: 'continueRegularOutput' });
 f.add('Confirmar reserva', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'json', responseBody: "={{ JSON.stringify($('Preparar avisos').first().json.cuerpo) }}", options: { responseCode: 200, ...HDR } }, X(18, 2));
 
 f.chain('Reservar', 'Validar', '¿Válida?');

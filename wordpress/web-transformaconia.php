@@ -140,7 +140,7 @@ add_shortcode( 'tc_destacadas', function () {
 
 /* [tc_categoria slug="guias-ia" n=4 desde=0] fila de tarjetas de una categoría */
 add_shortcode( 'tc_categoria', function ( $a ) {
-	$a   = shortcode_atts( array( 'slug' => '', 'n' => 4, 'excluir_recientes' => 0, 'relleno' => 0 ), $a );
+	$a   = shortcode_atts( array( 'slug' => '', 'n' => 4, 'excluir_recientes' => 0, 'relleno' => 0, 'relleno_ids' => '' ), $a );
 	$cat = get_category_by_slug( $a['slug'] );
 	$ps  = array();
 	if ( $cat ) {
@@ -153,6 +153,13 @@ add_shortcode( 'tc_categoria', function ( $a ) {
 	// relleno=1: si la categoría aún tiene pocos artículos, se completa con los más recientes
 	if ( $a['relleno'] && count( $ps ) < (int) $a['n'] ) {
 		$ps = array_merge( $ps, get_posts( array( 'numberposts' => (int) $a['n'] - count( $ps ), 'post_status' => 'publish', 'exclude' => wp_list_pluck( $ps, 'ID' ) ) ) );
+	}
+	// relleno_ids="1,2,3": si faltan artículos, se completa solo con esos (industriales/de gestión), nunca con los más recientes
+	if ( $a['relleno_ids'] && count( $ps ) < (int) $a['n'] ) {
+		$ids = array_diff( array_map( 'intval', explode( ',', $a['relleno_ids'] ) ), wp_list_pluck( $ps, 'ID' ) );
+		if ( $ids ) {
+			$ps = array_merge( $ps, get_posts( array( 'post__in' => $ids, 'orderby' => 'post__in', 'numberposts' => (int) $a['n'] - count( $ps ), 'post_status' => 'publish' ) ) );
+		}
 	}
 	if ( ! $ps ) {
 		return '';
@@ -329,13 +336,12 @@ add_action( 'get_footer', function () {
 	$u    = function ( $s ) {
 		return esc_url( home_url( $s ) );
 	};
-	if ( ! is_page( array( 'contacto', 'diseno-web' ) ) ) :
+	if ( is_singular( 'post' ) ) :
 		?>
-<aside class="tc-webband" aria-label="Diseño web">
+<aside class="tc-webband tc-webband--erp" aria-label="Diagnóstico gratuito">
  <div class="tc-wrap tc-webband__in">
-  <div class="tc-webmini" aria-hidden="true"><div class="tc-webmini__bar"><i></i><i></i><i></i></div><div class="tc-webmini__body"><span></span><span></span><span></span><span></span></div></div>
-  <div><h3>¿Te gusta la web que estás viendo?</h3><p>También diseñamos webs para empresas: rápidas, animadas y pensadas para que te encuentren en Google y te escriban. Cuéntanos tus objetivos y requisitos y te pasamos un presupuesto adaptado.</p></div>
-  <a class="tc-webband__b" href="<?php echo $u( '/diseno-web/' ); ?>">Quiero una web así →</a>
+  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Te enseñamos en 30 minutos qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, TransformaConIA Gestión.</p>
+  <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/contacto/#reserva' ); ?>">Reservar diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
  </div>
 </aside>
 		<?php
@@ -370,7 +376,7 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/soluciones/' ); ?>">Cómo trabajamos y precios</a></li>
    </ul></div>
    <div><h4>Transforma con IA</h4><ul>
-    <li><a href="<?php echo $u( '/casos/' ); ?>">Casos de éxito</a></li>
+    <li><a href="<?php echo $u( '/casos/' ); ?>">Casos</a></li>
     <li><a href="<?php echo $u( '/quienes-somos/' ); ?>">Quiénes somos</a></li>
     <li><a href="<?php echo $u( '/blog/' ); ?>">Blog</a></li>
     <li><a href="<?php echo $u( '/category/ia-en-la-industria/' ); ?>">IA en la industria</a></li>
@@ -378,6 +384,15 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/privacidad/' ); ?>">Privacidad</a></li>
    </ul></div>
   </div>
+  <nav class="tc-footer__loc" aria-label="Dónde trabajamos"><span>Dónde trabajamos</span>
+   <a href="<?php echo $u( '/consultor-ia-murcia/#donde-trabajamos' ); ?>">Murcia</a>
+   <a href="<?php echo $u( '/automatizacion-industria-cartagena/' ); ?>">Cartagena</a>
+   <a href="<?php echo $u( '/automatizacion-industria-molina-de-segura/' ); ?>">Molina de Segura</a>
+   <a href="<?php echo $u( '/automatizacion-industria-lorca/' ); ?>">Lorca</a>
+   <a href="<?php echo $u( '/automatizacion-industria-alcantarilla/' ); ?>">Alcantarilla</a>
+   <a href="<?php echo $u( '/automatizacion-industria-elche/' ); ?>">Elche</a>
+   <a href="<?php echo $u( '/automatizacion-industria-albacete/' ); ?>">Albacete</a>
+  </nav>
   <div class="tc-footer__bottom">
    <span>© <?php echo esc_html( gmdate( 'Y' ) ); ?> Transforma con IA</span>
    <span>Consultoría de IA y automatización industrial · Hecho en Murcia</span>
@@ -521,6 +536,18 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
 			'offers'              => array( '@type' => 'Offer', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha (precio orientativo, sin IVA) y mantenimiento orientativo de 69 €/mes' ),
 			'provider'            => array( '@id' => home_url( '/#person' ) ),
+		);
+	}
+	// Quiénes somos: la persona detrás de la consultoría (mismo nombre y cargo que en el texto de la página)
+	if ( is_page( 'quienes-somos' ) ) {
+		$data['TcPersona'] = array(
+			'@type'    => 'Person',
+			'@id'      => home_url( '/quienes-somos/#juan-carlos-ros' ),
+			'name'     => 'Juan Carlos Ros',
+			'jobTitle' => 'Consultor y desarrollador de IA',
+			'url'      => home_url( '/quienes-somos/' ),
+			'worksFor' => array( '@id' => home_url( '/#organization' ) ),
+			'knowsAbout' => array( 'Inteligencia artificial', 'Automatización de procesos', 'Integración con ERP', 'Desarrollo de aplicaciones web' ),
 		);
 	}
 	// FAQ declaradas en la propia página (<script type="application/json" class="tc-faq-data">)
@@ -820,7 +847,7 @@ add_action( 'template_redirect', function () {
 		'/industria/'     => 'IA para la industria',
 		'/erp-industria/' => 'ERP para la industria',
 		'/soluciones/'    => 'Soluciones y precios',
-		'/casos/'         => 'Casos de éxito',
+		'/casos/'         => 'Casos',
 		'/blog/'          => 'Blog',
 	);
 	get_header();
