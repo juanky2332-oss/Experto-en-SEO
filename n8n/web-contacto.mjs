@@ -35,6 +35,8 @@ const origenMal = !propio.test(String(h0.origin || '')) && !propio.test(String(h
 const xff = String(h0['x-forwarded-for'] || '').split(',').map(x => x.trim()).filter(Boolean);
 const ip = (xff.length ? xff[xff.length - 1] : String(h0['x-real-ip'] || '').trim()).slice(0, 64);
 const spam = !!t(b.web);
+// pruebas: correo de la propia empresa o nombre que empieza por PRUEBA (no cuentan en el embudo ni generan evento de conversión)
+const es_prueba = d.email === 'info@transformaconia.com' || /^prueba/i.test(d.nombre);
 const acepta = d.tipo !== 'contacto' || t(b.acepto, 5) === 'si';
 const valido = !origenMal && !spam && emailOk && acepta && (d.tipo === 'boletin' || (d.tipo === 'medida' && d.mensaje.length > 3) || (d.nombre.length > 1 && d.mensaje.length > 5));
 // los bots (campo trampa relleno) reciben «ok» y se descartan; a una persona se le dice qué corregir
@@ -62,7 +64,7 @@ const cuerpoCliente = [
   '<p style="font-size:12px;color:#777;margin-top:22px">Recibes este correo porque has rellenado el formulario de contacto de transformaconia.com. Si no has sido tú, ignóralo y no volverás a saber de nosotros.</p>',
   '</div>'].join('');
 const respuesta = JSON.stringify(spam && !origenMal ? { ok: true } : { ok: false, error });
-return [{ json: { ...d, email_norm, ip, origen_mal: origenMal, utm, valido, spam, error, respuesta, html, texto, responder: d.tipo === 'contacto', cuerpoCliente, asunto: medida ? 'Boletín a medida: ' + d.email : 'Contacto web: ' + (d.empresa || d.nombre) } }];
+return [{ json: { ...d, email_norm, es_prueba, ip, origen_mal: origenMal, utm, valido, spam, error, respuesta, html, texto, responder: d.tipo === 'contacto', cuerpoCliente, asunto: medida ? 'Boletín a medida: ' + d.email : 'Contacto web: ' + (d.empresa || d.nombre) } }];
 `), X(1, 1));
 f.add('¿Válido?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'v', leftValue: '={{ $json.valido }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(2, 1));
 f.add('¿Boletín?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'b', leftValue: '={{ $json.tipo }}', rightValue: 'boletin', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, options: {} }, X(3, 0.5));
@@ -71,12 +73,13 @@ f.add('¿Boletín?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSens
 f.add('Guardar contacto', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
   // Siempre se guarda el contacto. La respuesta automática (auto_resp) solo si el contador atómico seo.limite() lo permite: 3/día por correo normalizado (alias +x y puntos de gmail cuentan igual) y 10/día por huella de IP.
   query: `with hh as (select seo.huella($13::text, 'contacto') as h),
+ev as (insert into seo.visitas (evento, ruta, etiqueta, ref, disp) select 'conversion', '/evento/contacto-enviado', left(coalesce($8::text, ''), 120), left(coalesce($9::text, ''), 100), null where $1::text = 'contacto' and not $15::boolean returning 1),
 lim as (select case when $1::text <> 'contacto' then false else seo.limite('c:email:' || coalesce(seo.huella($14::text, 'email'), 'x'), 3) end as e,
                 case when $1::text <> 'contacto' then false when (select h from hh) is null then true else seo.limite('c:ip:' || (select h from hh), 10) end as i)
-insert into seo.contactos (tipo, nombre, empresa, sector, email, mensaje, origen, entrada, procedencia, utm_source, utm_medium, utm_campaign, token, ip_hash, auto_resp, email_norm)
-select $1::text, $2, $3, $4, $5::text, $6, $7, $8, $9, $10, $11, $12, replace(gen_random_uuid()::text, '-', ''), (select h from hh), coalesce((select e and i from lim), false), $14::text
+insert into seo.contactos (tipo, nombre, empresa, sector, email, mensaje, origen, entrada, procedencia, utm_source, utm_medium, utm_campaign, token, ip_hash, auto_resp, email_norm, es_prueba)
+select $1::text, $2, $3, $4, $5::text, $6, $7, $8, $9, $10, $11, $12, replace(gen_random_uuid()::text, '-', ''), (select h from hh), coalesce((select e and i from lim), false), $14::text, $15::boolean
 returning id, auto_resp`,
-  options: { queryReplacement: "={{ [ $json.tipo, $json.nombre, $json.empresa, $json.sector, $json.email, $json.mensaje, $json.origen, $json.entrada, $json.procedencia, $json.utm_source, $json.utm_medium, $json.utm_campaign, $json.ip, $json.email_norm ] }}" } }, X(4, 1), { credentials: CRED.pg, onError: 'continueRegularOutput' });
+  options: { queryReplacement: "={{ [ $json.tipo, $json.nombre, $json.empresa, $json.sector, $json.email, $json.mensaje, $json.origen, $json.entrada, $json.procedencia, $json.utm_source, $json.utm_medium, $json.utm_campaign, $json.ip, $json.email_norm, $json.es_prueba ] }}" } }, X(4, 1), { credentials: CRED.pg, onError: 'continueRegularOutput' });
 // Botones de UN TOQUE (2026-10-13): callback_data wc:<id>:<estado>. Los recoge el MULTIAGENTE (uIr6eehJA1h2l3tP,
 // nodo «Es contacto web?»), que actualiza seo.contactos, contesta y edita el mensaje. El enlace web-contacto-estado
 // se mantiene solo para los avisos viejos que llevaban botón-enlace.

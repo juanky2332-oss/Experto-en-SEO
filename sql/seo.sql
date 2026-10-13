@@ -243,3 +243,15 @@ create index if not exists contactos_ip_fecha on seo.contactos (ip_hash, created
 alter table seo.contactos add column if not exists email_norm text;   -- correo sin +etiqueta (y sin puntos en gmail), para los límites
 create index if not exists contactos_email_norm on seo.contactos (email_norm, created_at);
 alter table seo.suscriptores add column if not exists confirm_enviada_en timestamptz;   -- última confirmación enviada (máx. 1 cada 24 h)
+
+-- Tanda 5 (2026-10-13): pruebas fuera de los recuentos y conversiones medibles.
+-- es_prueba = true si el correo es info@transformaconia.com o el nombre empieza por «PRUEBA» (lo rellenan los flujos web-contacto y web-reserva).
+-- Los eventos de conversión se guardan en seo.visitas con evento = 'conversion' y ruta '/evento/contacto-enviado' o '/evento/reserva-hecha'
+-- (etiqueta = página de entrada, ref = procedencia; sin datos personales y nunca para pruebas).
+alter table seo.contactos add column if not exists es_prueba boolean not null default false;
+alter table seo.reservas add column if not exists es_prueba boolean not null default false;
+alter table seo.reservas add column if not exists entrada text;
+alter table seo.reservas add column if not exists procedencia text;
+update seo.contactos set es_prueba = true where not es_prueba and (lower(email) = 'info@transformaconia.com' or nombre ilike 'prueba%');
+update seo.reservas set es_prueba = true where not es_prueba and (lower(email) = 'info@transformaconia.com' or nombre ilike 'prueba%');
+create index if not exists visitas_evento_fecha on seo.visitas (evento, created_at);

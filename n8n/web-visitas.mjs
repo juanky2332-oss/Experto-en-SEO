@@ -23,7 +23,8 @@ const t = (v, n) => String(v ?? '').replace(/[\\u0000-\\u001f\\u007f]/g, ' ').tr
 // solo eventos que vienen de nuestra propia web
 const propio = /^https:\\/\\/(www\\.)?transformaconia\\.com(\\/|$)/i;
 if (!propio.test(String(h.origin || '')) && !propio.test(String(h.referer || ''))) return [];
-const evento = ['visita', 'clic', 'contacto'].includes(b.e) ? b.e : '';
+// 'contacto' del navegador ya no se acepta: los formularios y reservas se registran en el servidor (/evento/contacto-enviado y /evento/reserva-hecha)
+const evento = ['visita', 'clic'].includes(b.e) ? b.e : '';
 const ruta = t(b.r, 200).replace(/[?#].*$/, '');
 const bot = /bot|crawl|spider|slurp|preview|headless|lighthouse|pagespeed|facebookexternalhit|whatsapp/i.test(ua);
 if (!evento || !/^\\/[a-z0-9\\-\\/]*$/i.test(ruta) || bot) return [];

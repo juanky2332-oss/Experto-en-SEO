@@ -120,6 +120,7 @@ const t = (v, n) => String(v == null ? '' : v).trim().slice(0, n || 200);
 const d = {
   nombre: t(b.nombre, 120), empresa: t(b.empresa, 160), email: t(b.email, 160).toLowerCase(), telefono: t(b.telefono, 30),
   modalidad: t(b.modalidad, 30), localidad: t(b.localidad, 120), hueco: t(b.hueco, 40), origen: t(b.origen, 300),
+  entrada: t(b.entrada, 200), procedencia: t(b.procedencia, 120).toLowerCase(),
   ip: '',
 };
 // IP real: el ÚLTIMO valor de x-forwarded-for (lo añade el proxy; el primero lo controla el cliente) o x-real-ip
@@ -146,10 +147,12 @@ else if (d.telefono && !/^[0-9+()\\s.-]{6,30}$/.test(d.telefono)) error = 'Revis
 else if (t(b.acepto, 5) !== 'si') error = 'Marca la casilla de la política de privacidad para poder reservar.';
 else if (!hueco_ok(d.hueco)) error = 'Ese hueco ya no está disponible. Elige otro, por favor.';
 const valido = !spam && !error;
+// pruebas: correo de la propia empresa o nombre que empieza por PRUEBA (no cuentan en el embudo ni generan evento de conversión)
+const es_prueba = d.email === 'info@transformaconia.com' || /^prueba/i.test(d.nombre);
 d.hueco = valido ? new Date(d.hueco).toISOString() : d.hueco;
 if (!presencial) d.localidad = '';
 const codigo = honeypot ? 200 : origenMal ? 403 : 422;
-return [{ json: { ...d, email_norm, valido, codigo, cuerpo: honeypot ? { ok: true } : { ok: false, error: origenMal ? 'Origen no permitido.' : error } } }];
+return [{ json: { ...d, email_norm, es_prueba, valido, codigo, cuerpo: honeypot ? { ok: true } : { ok: false, error: origenMal ? 'Origen no permitido.' : error } } }];
 `), X(1, 2));
 f.add('¿Válida?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'v', leftValue: '={{ $json.valido }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(2, 2));
 respond('Responder descartada', X(3, 3.4));
@@ -162,11 +165,11 @@ select (e.ok and i.ok) as ok from e, i`,
 f.add('¿Cupo?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'c', leftValue: '={{ $json.ok }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(4, 2));
 f.add('Mensaje cupo', 'n8n-nodes-base.code', 2, code(`return [{ json: { codigo: 429, cuerpo: { ok: false, error: 'Ya hay dos reservas hechas hoy desde este correo o conexión. Si necesitas cambiar algo, escríbenos a info@transformaconia.com.' } } }];`), X(5, 3.4));
 f.add('Reservar fila', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: `insert into seo.reservas (nombre, empresa, email, telefono, modalidad, localidad, hueco, ip_hash, origen)
-values ($1, $2, $3, $4, $5, $6, $7::timestamptz, seo.huella($8::text, 'reserva'), $9)
+  query: `insert into seo.reservas (nombre, empresa, email, telefono, modalidad, localidad, hueco, ip_hash, origen, entrada, procedencia, es_prueba)
+values ($1, $2, $3, $4, $5, $6, $7::timestamptz, seo.huella($8::text, 'reserva'), $9, $10, $11, $12::boolean)
 on conflict (hueco) where estado = 'confirmada' do nothing
 returning id`,
-  options: { queryReplacement: "={{ [ $('Validar').first().json.nombre, $('Validar').first().json.empresa, $('Validar').first().json.email, $('Validar').first().json.telefono, $('Validar').first().json.modalidad, $('Validar').first().json.localidad, $('Validar').first().json.hueco, $('Validar').first().json.ip, $('Validar').first().json.origen ] }}" } }, X(5, 2), { credentials: CRED.pg, alwaysOutputData: true });
+  options: { queryReplacement: "={{ [ $('Validar').first().json.nombre, $('Validar').first().json.empresa, $('Validar').first().json.email, $('Validar').first().json.telefono, $('Validar').first().json.modalidad, $('Validar').first().json.localidad, $('Validar').first().json.hueco, $('Validar').first().json.ip, $('Validar').first().json.origen, $('Validar').first().json.entrada, $('Validar').first().json.procedencia, $('Validar').first().json.es_prueba ] }}" } }, X(5, 2), { credentials: CRED.pg, alwaysOutputData: true });
 f.add('¿Hueco libre en BD?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'i', leftValue: '={{ $json.id }}', rightValue: '', operator: { type: 'string', operation: 'exists', singleValue: true } }], combinator: 'and' }, options: {} }, X(6, 2));
 f.add('Mensaje ocupado', 'n8n-nodes-base.code', 2, code(`return [{ json: { codigo: 409, cuerpo: { ok: false, error: 'Alguien acaba de coger ese hueco. Elige otro, por favor.', refrescar: true } } }];`), X(7, 3.4));
 f.add('Prep. comprobación', 'n8n-nodes-base.code', 2, code(`
@@ -211,7 +214,8 @@ f.add('Anular fila', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery'
   options: { queryReplacement: "={{ [ $('Reservar fila').first().json.id, $json.codigo, $json.error ] }}" } }, X(14, 3.4), { credentials: CRED.pg });
 f.add('Mensaje error', 'n8n-nodes-base.code', 2, code(`const r = $input.first().json; return [{ json: { codigo: r.codigo, cuerpo: { ok: false, error: r.error, refrescar: r.codigo === 409 } } }];`), X(15, 3.4));
 f.add('Guardar evento', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: `update seo.reservas set evento_id = $2, meet = $3 where id = $1 returning id`,
+  query: `with ev as (insert into seo.visitas (evento, ruta, etiqueta, ref, disp) select 'conversion', '/evento/reserva-hecha', left(coalesce(r.entrada, ''), 120), left(coalesce(r.procedencia, ''), 100), null from seo.reservas r where r.id = $1 and not r.es_prueba returning 1)
+update seo.reservas set evento_id = $2, meet = $3 where id = $1 returning id`,
   options: { queryReplacement: "={{ [ $('Reservar fila').first().json.id, $json.eventoId, $json.meet ] }}" } }, X(14, 2), { credentials: CRED.pg, onError: 'continueRegularOutput' });
 f.add('Preparar avisos', 'n8n-nodes-base.code', 2, code(TZ_JS + `
 const v = $('Validar').first().json;

@@ -52,7 +52,7 @@ if ( ! function_exists( 'tcr_estilos' ) ) {
 	function tcr_estilos() {
 		return <<<'CSS'
 <style id="tcr-css">
-.tcr{--r-bg:var(--tc-card,#14111b);--r-fg:var(--tc-fg,#f4f0f8);--r-mut:var(--tc-muted,#a9a1b4);--r-dim:var(--tc-dim,#7d7588);--r-line:var(--tc-line,rgba(255,255,255,.09));--r-line2:var(--tc-line2,rgba(255,255,255,.16));--r-m:var(--tc-m,#b020ff);--r-m2:var(--tc-m2,#d27bff);--r-glow:var(--tc-glow,rgba(176,32,255,.35));--r-disp:var(--tc-display,"Poppins",system-ui,sans-serif);--r-body:var(--tc-body,"Open Sans",system-ui,sans-serif);
+.tcr{--r-bg:var(--tc-card,#14111b);--r-fg:var(--tc-fg,#f4f0f8);--r-mut:var(--tc-muted,#a9a1b4);--r-dim:var(--tc-muted,#a9a1b4);--r-line:var(--tc-line,rgba(255,255,255,.09));--r-line2:var(--tc-line2,rgba(255,255,255,.16));--r-m:var(--tc-m,#b020ff);--r-m2:var(--tc-m2,#d27bff);--r-glow:var(--tc-glow,rgba(176,32,255,.35));--r-disp:var(--tc-display,"Poppins",system-ui,sans-serif);--r-body:var(--tc-body,"Open Sans",system-ui,sans-serif);
 max-width:880px;margin:0 auto;padding:clamp(20px,4vw,40px);background:var(--r-bg);border:1px solid var(--r-line);border-radius:var(--tc-r,18px);color:var(--r-fg);font-family:var(--r-body);font-size:16px;line-height:1.6;box-shadow:0 30px 80px -40px rgba(0,0,0,.9);text-align:left}
 .tcr *,.tcr *::before,.tcr *::after{box-sizing:border-box}
 .tcr .tcr-h{font-family:var(--r-disp);font-size:clamp(24px,3vw,34px);line-height:1.15;font-weight:700;letter-spacing:-.02em;color:var(--r-fg);margin:0 0 8px}
@@ -65,7 +65,16 @@ max-width:880px;margin:0 auto;padding:clamp(20px,4vw,40px);background:var(--r-bg
 .tcr .tcr-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(176,32,255,.18);box-shadow:inset 0 0 0 1px rgba(210,123,255,.4);color:var(--r-m2);font-size:13px;font-weight:600}
 .tcr .tcr-info{margin:0;color:var(--r-mut);font-size:15px}
 .tcr .tcr-info a,.tcr .tcr-check a,.tcr .tcr-msg a{color:var(--r-m2)!important;text-decoration:underline}
-.tcr-slots{display:grid;gap:14px}
+/* espacio reservado para 3 días de huecos (2 por día) mientras cargan: evita el salto de diseño (CLS) */
+.tcr-slots{display:grid;gap:14px;align-content:start;min-height:292px}
+.tcr .tcr-leg small,.tcr .tcr-opt small,.tcr .tcr-field label small{color:var(--r-mut)!important}
+/* el tema pinta <b> y los botones con su color de acento (#ad49e1, poco contraste): se fijan los de la marca con más especificidad */
+body .tcr .tcr-opt span b{color:#f4f0f8!important}
+body .tcr button.tcr-go{background-color:#b020ff!important;color:#fff!important}
+body .tcr .tcr-leg .tcr-n{color:#e3b0ff!important}
+body .tcr label.tcr-opt>span{color:#f4f0f8!important;font-weight:400!important}
+body .tcr label.tcr-check>span{color:#a9a1b4!important;font-weight:400!important}
+body .tcr .tcr-check a,body .tcr .tcr-info a,body .tcr .tcr-msg a{color:#e3b0ff!important}
 .tcr .tcr-day{display:grid;gap:8px}
 .tcr .tcr-dayn{margin:0;font-family:var(--r-disp);font-weight:500;font-size:14.5px;color:var(--r-mut)}
 .tcr .tcr-dayn::first-letter{text-transform:uppercase}
@@ -77,7 +86,8 @@ max-width:880px;margin:0 auto;padding:clamp(20px,4vw,40px);background:var(--r-bg
 .tcr .tcr-chip input:checked+span{background:var(--r-m);border-color:var(--r-m);color:#fff;box-shadow:0 10px 26px -10px var(--r-glow)}
 .tcr .tcr-chip input:focus-visible+span,.tcr .tcr-opt input:focus-visible+span{outline:2px solid var(--r-m2);outline-offset:3px}
 .tcr .tcr-more{justify-self:start;background:none;border:0;padding:6px 0;color:var(--r-m2)!important;font-family:var(--r-disp);font-weight:600;font-size:15px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;box-shadow:none}
-.tcr .tcr-more[hidden],.tcr [hidden]{display:none!important}
+.tcr [hidden]{display:none!important}
+.tcr .tcr-more[hidden]{display:inline-block!important;visibility:hidden;height:36px}
 .tcr-mod{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .tcr .tcr-opt{position:relative;display:block;margin:0;cursor:pointer}
 .tcr .tcr-opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
@@ -188,6 +198,7 @@ if ( ! function_exists( 'tcr_script' ) ) {
       var d=new URLSearchParams();
       ['nombre','empresa','email','telefono','localidad','web'].forEach(function(n){d.set(n,v(n));});
       d.set('modalidad',mod);d.set('hueco',hueco);d.set('acepto','si');d.set('origen',location.href);
+      try{var at=JSON.parse(sessionStorage.getItem('tcAtr')||'{}');d.set('entrada',String(at.p||location.pathname).slice(0,200));d.set('procedencia',String(at.r||'').slice(0,120));}catch(x){d.set('entrada',location.pathname);}
       ocupado=true;go.disabled=true;var txt=go.textContent;go.textContent='Reservando…';
       fetch(API+'web-reserva',{method:'POST',body:d}).then(function(res){return res.json().catch(function(){return {};}).then(function(j){j.status=res.status;return j;});}).then(function(j){
         if(j.ok){
@@ -199,7 +210,6 @@ if ( ! function_exists( 'tcr_script' ) ) {
           done.appendChild(el('p',null,video?'Recibirás por correo el enlace de la videollamada. Revisa también la carpeta de spam.':'Iremos a tu empresa y te llamaremos antes para confirmar la dirección. Revisa también la carpeta de spam.'));
           done.appendChild(el('p',null,'Si no puedes en ese horario, responde al correo y lo cambiamos.'));
           form.hidden=true;done.hidden=false;done.focus();
-          if(window.tcMedir)tcMedir('contacto','reserva');
         }else{
           aviso(j.error||'No se ha podido reservar. Escríbenos a info@transformaconia.com y te damos hora.');
           if(j.refrescar)cargar();
