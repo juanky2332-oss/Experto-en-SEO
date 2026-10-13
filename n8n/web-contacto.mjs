@@ -21,7 +21,11 @@ const t = (v, n = 1500) => String(v ?? '').trim().slice(0, n);
 const esc = v => t(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const d = { tipo: ['boletin', 'medida'].includes(t(b.tipo, 20)) ? t(b.tipo, 20) : 'contacto', nombre: t(b.nombre, 120), empresa: t(b.empresa, 160), sector: t(b.sector, 120), email: t(b.email, 160).toLowerCase(), mensaje: t(b.mensaje, 3000), origen: t(b.origen, 300) };
 const emailOk = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(d.email);
-const valido = !t(b.web) && emailOk && (d.tipo === 'boletin' || (d.tipo === 'medida' && d.mensaje.length > 3) || (d.nombre.length > 1 && d.mensaje.length > 5));
+const spam = !!t(b.web);
+const acepta = d.tipo !== 'contacto' || t(b.acepto, 5) === 'si';
+const valido = !spam && emailOk && acepta && (d.tipo === 'boletin' || (d.tipo === 'medida' && d.mensaje.length > 3) || (d.nombre.length > 1 && d.mensaje.length > 5));
+// los bots (campo trampa relleno) reciben «ok» y se descartan; a una persona se le dice qué corregir
+const error = valido || spam ? '' : !emailOk ? 'Revisa el correo: así no podemos contestarte.' : !acepta ? 'Marca la casilla de la política de privacidad para poder responderte.' : d.nombre.length < 2 ? 'Escribe tu nombre.' : 'Cuéntanos un poco más en el mensaje.';
 const token = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 const medida = d.tipo === 'medida';
 const filas = medida ? [['Nombre', d.nombre || '-'], ['Email', d.email], ['Plan', d.sector || '-'], ['Temas que quiere seguir', d.mensaje], ['Página', d.origen || '-']] : [['Nombre', d.nombre], ['Empresa', d.empresa || '-'], ['Sector', d.sector || '-'], ['Email', d.email], ['Qué quiere automatizar', d.mensaje], ['Página', d.origen || '-']];
@@ -30,7 +34,8 @@ const texto = d.tipo === 'boletin'
   ? '📰 Nueva alta en el boletín (pendiente de confirmar): ' + d.email
   : medida ? '📰 Boletín A MEDIDA pedido\\n\\n✉️ ' + d.email + (d.nombre ? ' (' + d.nombre + ')' : '') + '\\n📦 ' + d.sector + '\\n\\nQuiere seguir: ' + d.mensaje.slice(0, 1500) + '\\n\\nRespóndele con una muestra y el precio.'
   : '📩 Nuevo contacto web\\n\\n👤 ' + d.nombre + (d.empresa ? ' · ' + d.empresa : '') + (d.sector ? ' (' + d.sector + ')' : '') + '\\n✉️ ' + d.email + '\\n\\n' + d.mensaje.slice(0, 1500) + '\\n\\n🔗 ' + (d.origen || '-');
-return [{ json: { ...d, valido, token, html, texto, asunto: medida ? 'Boletín a medida: ' + d.email : 'Contacto web: ' + (d.empresa || d.nombre) } }];
+const respuesta = JSON.stringify(spam ? { ok: true } : { ok: false, error });
+return [{ json: { ...d, valido, spam, error, respuesta, token, html, texto, asunto: medida ? 'Boletín a medida: ' + d.email : 'Contacto web: ' + (d.empresa || d.nombre) } }];
 `), X(1, 1));
 f.add('¿Válido?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'v', leftValue: '={{ $json.valido }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(2, 1));
 f.add('¿Boletín?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'b', leftValue: '={{ $json.tipo }}', rightValue: 'boletin', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, options: {} }, X(3, 0.5));
@@ -57,7 +62,7 @@ return [{ json: { ...s, html, enviar: !s.confirmado } }];
 `), X(5, 0));
 f.add('Correo confirmación', 'n8n-nodes-base.gmail', 2.1, { sendTo: '={{ $json.email }}', subject: 'Confirma tu suscripción al boletín de Transforma con IA', message: '={{ $json.html }}', options: { appendAttribution: false, senderName: 'Transforma con IA' } }, X(6, 0), { credentials: GMAIL, onError: 'continueRegularOutput' });
 f.add('OK boletín', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'json', responseBody: '={"ok": true}', options: {} }, X(7, 0));
-f.add('OK descartado', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'json', responseBody: '={"ok": true}', options: {} }, X(3, 1.6));
+f.add('OK descartado', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'json', responseBody: '={{ $json.respuesta }}', options: { responseCode: "={{ $json.spam ? 200 : 422 }}" } }, X(3, 1.6));
 
 // ---------- confirmar / darse de baja (GET desde el correo) ----------
 f.add('Enlace boletín', 'n8n-nodes-base.webhook', 2, { httpMethod: 'GET', path: 'web-boletin', responseMode: 'responseNode', options: {} }, X(0, 3), { webhookId: 'web-boletin' });

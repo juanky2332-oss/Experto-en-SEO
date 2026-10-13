@@ -435,7 +435,7 @@ const faqSchema = faq.length >= 2 ? '<script type="application/ld+json">' + JSON
 
 const contenido = estilos + esencial + indice + html + faqHtml + fuentesHtml + autor + faqSchema;
 const publicar = (ajustes.modo || 'publicar') === 'publicar' && F.score >= F.minimo;
-const seoTitle = (a.seo_title || a.title).length <= 44 ? (a.seo_title || a.title) + ' %sep% %sitename%' : (a.seo_title || a.title);
+const seoTitle = (a.seo_title || a.title).length <= 40 ? (a.seo_title || a.title) + ' %sep% %sitename%' : (a.seo_title || a.title);
 const post = {
   title: a.title, content: contenido, excerpt: a.extracto, slug: a.slug,
   status: publicar ? 'publish' : 'draft', categories: [F.categoria_id], tags: [...new Set(tagIds)],

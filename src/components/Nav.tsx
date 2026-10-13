@@ -2,10 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LayoutDashboard, FileText, Send, Radar, Compass, ShieldCheck, Files, History, Settings, Sparkles, BookOpen } from "lucide-react";
+import { LayoutDashboard, FileText, Send, Radar, Compass, ShieldCheck, Files, History, Settings, Sparkles, BookOpen, BarChart3 } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Resumen", icon: LayoutDashboard },
+  { href: "/visitas", label: "Visitas", icon: BarChart3 },
   { href: "/articulos", label: "Artículos", icon: FileText },
   { href: "/publicar", label: "Publicar", icon: Send },
   { href: "/radar", label: "Radar IA", icon: Radar },

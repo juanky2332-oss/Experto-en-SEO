@@ -27,10 +27,11 @@ Object.assign(red, {
   '/inicio/': 'https://transformaconia.com/',
   '/servicios/': 'https://transformaconia.com/soluciones/',
   '/aviso-legal/': 'https://transformaconia.com/privacidad/',
-  '/gestion/': 'https://transformaconia.com/erp-metal/',
+  '/gestion/': 'https://transformaconia.com/erp-industria/',
+  '/erp-metal/': 'https://transformaconia.com/erp-industria/',
   '/boletin/': 'https://transformaconia.com/blog/',
   '/sectores-industriales/': 'https://transformaconia.com/industria/',
-  '/erp/': 'https://transformaconia.com/erp-metal/',
+  '/erp/': 'https://transformaconia.com/erp-industria/',
   '/sectores/': 'https://transformaconia.com/industria/',
 });
 log('redirecciones', Object.keys((await wp('POST', 'experto-seo/v1/redirecciones', red)).data).length);
@@ -41,9 +42,9 @@ const viejos = (await wp('GET', `/wp/v2/menu-items?menus=${MENU}&per_page=100&_f
 for (const v of viejos) await wp('DELETE', `/wp/v2/menu-items/${v.id}?force=true`);
 const S = 'https://transformaconia.com';
 const arbol = [
-  ['Industria', '/industria/', [['IA para la industria', '/industria/'], ['Metal y mecanizado', '/industria/#metal'], ['Distribución industrial', '/distribucion-industrial/'], ['Mantenimiento industrial', '/industria/#mantenimiento'], ['Instaladoras', '/industria/#instaladoras'], ['Consultoría de IA en Murcia', '/consultor-ia-murcia/']]],
-  ['Soluciones', '/soluciones/', [['ERP para el metal', '/erp-metal/'], ['Automatización de procesos', '/automatizacion-procesos-ia/'], ['Asistentes técnicos y chatbots', '/agentes-chatbots-ia/'], ['Gestión documental con IA', '/gestion-documental-ia/'], ['Herramientas a medida y SAP', '/desarrollo-a-medida-ia/'], ['Contenido automático', '/contenido-automatico-ia/'], ['Diseño web', '/diseno-web/'], ['Cómo trabajamos y precios', '/soluciones/']]],
-  ['ERP metal', '/erp-metal/'],
+  ['Industria', '/industria/', [['IA para la industria', '/industria/'], ['Talleres industriales', '/industria/#talleres'], ['Distribución industrial', '/distribucion-industrial/'], ['Mantenimiento industrial', '/industria/#mantenimiento'], ['Instaladoras', '/industria/#instaladoras'], ['Consultoría de IA en Murcia', '/consultor-ia-murcia/']]],
+  ['Soluciones', '/soluciones/', [['ERP para la industria', '/erp-industria/'], ['Automatización de procesos', '/automatizacion-procesos-ia/'], ['Asistentes técnicos y chatbots', '/agentes-chatbots-ia/'], ['Gestión documental con IA', '/gestion-documental-ia/'], ['Herramientas a medida y SAP', '/desarrollo-a-medida-ia/'], ['Contenido automático', '/contenido-automatico-ia/'], ['Diseño web', '/diseno-web/'], ['Cómo trabajamos y precios', '/soluciones/']]],
+  ['ERP industria', '/erp-industria/'],
   ['Casos', '/casos/', [['Casos de éxito', '/casos/'], ['Otros sectores', '/otros-sectores/'], ['Quiénes somos', '/quienes-somos/']]],
   ['Blog', '/blog/', [['IA en la industria', '/category/ia-en-la-industria/'], ['Todo el blog', '/blog/'], ['Noticias de IA', '/category/noticias-ia/'], ['Guías prácticas', '/category/guias-ia/'], ['Trucos y consejos', '/category/trucos-y-consejos-ia/'], ['Automatización y agentes', '/category/automatizacion/'], ['IA en la empresa', '/category/sobre-la-ia/']]],
   ['Diagnóstico gratis', '/contacto/', null, ['tc-menu-cta']],

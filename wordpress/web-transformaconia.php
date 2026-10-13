@@ -6,6 +6,17 @@
  * Fuente: wordpress/web-transformaconia.php (repo Experto en SEO). Desplegar con node n8n/web-snippet.mjs
  */
 
+/* ---------- 0. Verificación de Google Search Console (archivo HTML; no borrar nunca) ---------- */
+add_action( 'init', function () {
+	$ruta = strtok( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '', '?' );
+	if ( '/googlec17d4028eb35f0ab.html' === $ruta ) {
+		status_header( 200 );
+		header( 'Content-Type: text/html; charset=UTF-8' );
+		echo 'google-site-verification: googlec17d4028eb35f0ab.html';
+		exit;
+	}
+}, 0 );
+
 if ( ! function_exists( 'tc_es_landing' ) ) {
 	function tc_es_landing() {
 		if ( ! is_singular( 'page' ) ) {
@@ -158,7 +169,10 @@ add_action( 'wp_head', function () {
 	?>
 <script>document.documentElement.classList.add('tc-js')</script>
 <style id="tc-web">
-:root{--tc-bg:#08070b;--tc-bg2:#0f0d14;--tc-card:#14111b;--tc-line:rgba(255,255,255,.09);--tc-line2:rgba(255,255,255,.16);--tc-fg:#f4f0f8;--tc-muted:#a9a1b4;--tc-dim:#7d7588;--tc-m:#b020ff;--tc-m2:#d27bff;--tc-m3:#6d0fb0;--tc-glow:rgba(176,32,255,.35);--tc-ok:#4ade80;--tc-r:18px;--tc-ease:cubic-bezier(.2,.7,.2,1);--tc-display:"Poppins",system-ui,sans-serif;--tc-body:"Open Sans",system-ui,sans-serif}
+:root{--tc-bg:#08070b;--tc-bg2:#0f0d14;--tc-card:#14111b;--tc-line:rgba(255,255,255,.09);--tc-line2:rgba(255,255,255,.16);--tc-fg:#f4f0f8;--tc-muted:#a9a1b4;--tc-dim:#7d7588;--tc-m:#b020ff;--tc-m2:#d27bff;--tc-m3:#6d0fb0;--tc-glow:rgba(176,32,255,.35);--tc-ok:#4ade80;--tc-r:18px;--tc-ease:cubic-bezier(.2,.7,.2,1);--tc-display:"Poppins","Poppins Fallback",system-ui,sans-serif;--tc-body:"Open Sans","Open Sans Fallback",system-ui,sans-serif}
+/* respaldo con las medidas de Poppins y Open Sans: al llegar la fuente buena el texto no salta (CLS) */
+@font-face{font-family:"Poppins Fallback";src:local("Arial");ascent-override:93.62%;descent-override:31.21%;line-gap-override:8.92%;size-adjust:112.16%}
+@font-face{font-family:"Open Sans Fallback";src:local("Arial");ascent-override:101.65%;descent-override:27.86%;line-gap-override:0%;size-adjust:105.16%}
 /* lienzo de las páginas de diseño propio */
 body.tc-landing,body.tc-landing .container-wrap,body.tc-landing #ajax-content-wrap{background:var(--tc-bg)!important}
 body.tc-landing .container-wrap{padding:0!important;min-height:0!important}
@@ -314,6 +328,8 @@ body.tc-landing .tc strong,body.tc-landing .tc b,.tc-footer strong,.tc-cta-post 
 .tc .tc-check{font-weight:400!important;font-family:var(--tc-body)!important;color:var(--tc-muted)!important;font-size:14px!important;line-height:1.5!important}.tc-check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--tc-muted)}
 .tc-check input{margin-top:4px;accent-color:var(--tc-m)}
 .tc-check a{color:var(--tc-m2)!important;text-decoration:underline}
+.tc .tc-field .is-bad{border-color:#ff6b6b!important;box-shadow:0 0 0 3px rgba(255,90,90,.18)!important}
+.tc-check input.is-bad{outline:2px solid #ff6b6b;outline-offset:2px}
 .tc-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
 .tc-msg{display:none;padding:14px 16px;border-radius:12px;font-size:15px}
 .tc-msg.is-ok{display:block;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.35);color:#c9f7d8}
@@ -510,6 +526,8 @@ html.tc-js .tc-grid>.tc-reveal:nth-child(4){--tc-dl:.24s}html.tc-js .tc-grid>.tc
 html.tc-js .tc-grid>.tc-reveal:nth-child(n+7){--tc-dl:.28s}
 @media (prefers-reduced-motion:reduce){html.tc-js .tc-reveal{opacity:1!important;transform:none!important}}
 .tc-hero .tc-hero__copy>*{animation:tc-up .8s var(--tc-ease) both}
+/* el título y la entradilla salen pintados al momento: son lo primero que mide Google (LCP) */
+.tc-hero .tc-hero__copy>h1,.tc-hero .tc-hero__copy>.tc-lead{animation:none}
 .tc-hero .tc-hero__copy>*:nth-child(2){animation-delay:.06s}.tc-hero .tc-hero__copy>*:nth-child(3){animation-delay:.12s}.tc-hero .tc-hero__copy>*:nth-child(4){animation-delay:.18s}.tc-hero .tc-hero__copy>*:nth-child(5){animation-delay:.24s}
 .tc-hero__panel{animation:tc-up .9s .2s var(--tc-ease) both}
 @keyframes tc-up{from{opacity:0;transform:translateY(18px)}}
@@ -605,6 +623,7 @@ body.single-post .tca-autor .tca-autor__titulo,body.single-post .tca-autor .tca-
 .tc-star{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(28px,5vw,64px);align-items:center;padding:clamp(24px,4vw,48px);border-radius:calc(var(--tc-r) + 8px);border:1px solid rgba(255,181,71,.25);background:radial-gradient(600px 300px at 100% 0%,rgba(176,32,255,.16),transparent 70%),linear-gradient(180deg,#120f18,#0c0a10);position:relative;overflow:hidden}
 .tc-star::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:repeating-linear-gradient(-45deg,var(--tc-amber) 0 8px,#0c0a10 8px 16px);opacity:.7}
 .tc-star__txt{display:grid;gap:20px;min-width:0}
+.tc-star__para{margin:0;padding-left:14px;border-left:2px solid var(--tc-m);color:var(--tc-muted);font-size:15px}
 .tc-star__vis{min-width:0}
 .tc-mini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .tc-mini>div{display:grid;grid-template-columns:auto 1fr;gap:0 12px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--tc-line)}
@@ -734,18 +753,36 @@ add_action( 'wp_footer', function () {
   if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:.08});rv.forEach(function(el){io.observe(el);});}
   else rv.forEach(function(el){el.classList.add('is-in');});
   document.addEventListener('pointermove',function(e){var b=e.target.closest&&e.target.closest('.tc-box');if(!b)return;var r=b.getBoundingClientRect();b.style.setProperty('--mx',(e.clientX-r.left)+'px');b.style.setProperty('--my',(e.clientY-r.top)+'px');},{passive:true});
+  // medición propia sin cookies ni IP: visita, clics en botones de contacto y contactos enviados
+  var VIS='https://paneln8n.transformaconia.com/webhook/web-visita', yo=document.body.classList.contains('logged-in')||navigator.webdriver;
+  window.tcMedir=function(e,l){if(yo)return;var ref='';try{ref=document.referrer?new URL(document.referrer).hostname:'';}catch(x){}
+    var d=JSON.stringify({e:e,r:location.pathname,l:l||'',f:ref,m:matchMedia('(max-width:768px)').matches?'1':'0'});
+    try{if(!(navigator.sendBeacon&&navigator.sendBeacon(VIS,new Blob([d],{type:'text/plain'}))))fetch(VIS,{method:'POST',body:d,keepalive:true,mode:'no-cors'});}catch(x){}};
+  tcMedir('visita');
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(!a)return;var h=a.getAttribute('href')||'';
+    if(/^mailto:|^tel:|\/contacto\/|\/diseno-web\/|wa\.me/.test(h)||a.matches('.tc-btn,.tc-webband__b,.tc-sticky a'))tcMedir('clic',(a.textContent.trim().replace(/\s+/g,' ').slice(0,60)||h)+' → '+h.replace('https://transformaconia.com',''));},{passive:true});
   var URL='https://paneln8n.transformaconia.com/webhook/web-transformaconia';
   document.addEventListener('submit',function(e){
     var f=e.target; if(!f.matches||!f.matches('form[data-tc-form]'))return; e.preventDefault();
     var msg=f.querySelector('.tc-msg'), btn=f.querySelector('button[type=submit]'), txt=btn?btn.innerHTML:'';
+    // validación antes de enviar: el formulario lleva novalidate para poner nuestros propios avisos
+    f.querySelectorAll('.is-bad').forEach(function(x){x.classList.remove('is-bad');x.removeAttribute('aria-invalid');});
+    var fallo=null, em=f.querySelector('[name=email]'), mal=function(el,t){if(!fallo)fallo=[el,t];el.classList.add('is-bad');el.setAttribute('aria-invalid','true');};
+    f.querySelectorAll('[required]').forEach(function(el){
+      if(el.type==='checkbox'){if(!el.checked)mal(el,'Marca la casilla de la política de privacidad para poder responderte.');}
+      else if(!el.value.trim())mal(el,'Rellena el campo «'+((f.querySelector('label[for="'+el.id+'"]')||{}).textContent||'obligatorio').trim()+'».');
+      else if(el===em&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value.trim()))mal(el,'Revisa el correo: así no podemos contestarte.');
+    });
+    if(fallo){msg.className='tc-msg is-err';msg.textContent=fallo[1];fallo[0].focus();return;}
     var d=new URLSearchParams(new FormData(f)); d.set('tipo',f.getAttribute('data-tc-form')); d.set('origen',location.href);
     if(btn){btn.disabled=true;btn.innerHTML='Enviando…';}
-    fetch(URL,{method:'POST',body:d}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(){
+    fetch(URL,{method:'POST',body:d}).then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok||!j.ok)throw j;return j;});}).then(function(){
       msg.className='tc-msg is-ok'; msg.textContent=f.getAttribute('data-ok'); f.reset();
-      if(window.gtag)gtag('event','generate_lead',{tipo:f.getAttribute('data-tc-form')});
-    }).catch(function(){msg.className='tc-msg is-err'; msg.textContent='No se ha podido enviar. Escríbenos a info@transformaconia.com y te respondemos igual.';})
+      if(window.tcMedir)tcMedir('contacto',f.getAttribute('data-tc-form'));
+    }).catch(function(j){msg.className='tc-msg is-err'; msg.textContent=(j&&j.error)||'No se ha podido enviar. Escríbenos a info@transformaconia.com y te respondemos igual.';})
     .finally(function(){if(btn){btn.disabled=false;btn.innerHTML=txt;}});
   });
+  document.addEventListener('input',function(e){if(e.target.classList&&e.target.classList.contains('is-bad')){e.target.classList.remove('is-bad');e.target.removeAttribute('aria-invalid');}});
   // fecha y «hace X» calculados al visitar (la página puede venir de la caché)
   var hoy=document.querySelectorAll('[data-tc-hoy]');if(hoy.length){var f=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',timeZone:'Europe/Madrid'});hoy.forEach(function(e){e.textContent=f;});}
   document.querySelectorAll('[data-tc-hace]').forEach(function(e){var t=Date.parse(e.getAttribute('data-tc-hace'));if(!t)return;var d=(Date.now()-t)/1000,x;
@@ -780,13 +817,13 @@ add_action( 'get_footer', function () {
   <div class="tc-footer__top">
    <div class="tc-footer__brand">
     <a href="<?php echo $u( '/' ); ?>"><img src="<?php echo esc_url( $logo ); ?>" alt="Transforma con IA" width="220" height="35" loading="lazy"></a>
-    <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. ERP para el metal, asistentes técnicos, gestión documental y automatizaciones a medida.</p>
+    <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. ERP para la industria, asistentes técnicos, gestión documental y mejoras sobre SAP o tu ERP.</p>
     <a class="tc-footer__mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a>
     <p>Murcia · En persona en la Región de Murcia y en remoto en toda España</p>
    </div>
    <div><h4>Industria</h4><ul>
     <li><a href="<?php echo $u( '/industria/' ); ?>">IA para la industria</a></li>
-    <li><a href="<?php echo $u( '/industria/#metal' ); ?>">Metal y mecanizado</a></li>
+    <li><a href="<?php echo $u( '/industria/#talleres' ); ?>">Talleres industriales</a></li>
     <li><a href="<?php echo $u( '/distribucion-industrial/' ); ?>">Distribución industrial</a></li>
     <li><a href="<?php echo $u( '/industria/#mantenimiento' ); ?>">Mantenimiento industrial</a></li>
     <li><a href="<?php echo $u( '/industria/#instaladoras' ); ?>">Instaladoras</a></li>
@@ -794,7 +831,7 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/consultor-ia-murcia/' ); ?>">Consultoría de IA en Murcia</a></li>
    </ul></div>
    <div><h4>Soluciones</h4><ul>
-    <li><a href="<?php echo $u( '/erp-metal/' ); ?>">ERP para el metal</a></li>
+    <li><a href="<?php echo $u( '/erp-industria/' ); ?>">ERP para la industria</a></li>
     <li><a href="<?php echo $u( '/automatizacion-procesos-ia/' ); ?>">Automatización de procesos</a></li>
     <li><a href="<?php echo $u( '/agentes-chatbots-ia/' ); ?>">Asistentes técnicos y chatbots</a></li>
     <li><a href="<?php echo $u( '/gestion-documental-ia/' ); ?>">Gestión documental con IA</a></li>
@@ -874,6 +911,31 @@ add_filter( 'rank_math/sitemap/entry', function ( $url, $type, $obj ) {
 	return $url;
 }, 10, 3 );
 
+/* ---------- 6b. Imagen al compartir (WhatsApp, LinkedIn, Facebook, X) con el logo nuevo ----------
+ * Portada, páginas, blog, categorías y archivos usan la tarjeta ancha de marca (id 7486, 1200x630: logo + frase),
+ * que en WhatsApp sale como vista previa grande y vende mejor. Los artículos siguen con su imagen destacada.
+ * (El icono cuadrado de la «T», id 7487, queda en la biblioteca por si se quiere volver a él.) */
+if ( ! defined( 'TC_OG_ID' ) ) {
+	define( 'TC_OG_ID', 7486 );
+}
+foreach ( array( 'facebook', 'twitter' ) as $tc_red ) {
+	add_action( "rank_math/opengraph/{$tc_red}/add_images", function ( $img ) {
+		if ( is_singular( 'post' ) && has_post_thumbnail() ) {
+			return;
+		}
+		if ( method_exists( $img, 'add_image_by_id' ) ) {
+			$img->add_image_by_id( TC_OG_ID );
+		}
+	} );
+}
+add_filter( 'option_rank-math-options-titles', function ( $o ) {
+	if ( is_array( $o ) ) {
+		$o['open_graph_image']    = wp_get_attachment_url( TC_OG_ID );
+		$o['open_graph_image_id'] = TC_OG_ID;
+	}
+	return $o;
+} );
+
 /* ---------- 7. Datos estructurados de la marca (Rank Math) ---------- */
 add_filter( 'rank_math/json_ld', function ( $data ) {
 	$org = home_url( '/#organization' );
@@ -885,16 +947,16 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 		'logo'        => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-logo-v2.png',
 		'image'       => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png',
 		'email'       => 'info@transformaconia.com',
-		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para talleres del metal, asistentes técnicos de catálogo, gestión documental con IA, automatizaciones e integración con SAP para empresas de toda España.',
+		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para la industria (talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria e hidráulica), asistentes técnicos de catálogo, gestión documental con IA, automatizaciones y mejoras sobre SAP o cualquier ERP para empresas de toda España.',
 		'address'     => array( '@type' => 'PostalAddress', 'addressLocality' => 'Murcia', 'addressRegion' => 'Región de Murcia', 'addressCountry' => 'ES' ),
 		'areaServed'  => array( '@type' => 'Country', 'name' => 'España' ),
 		'priceRange'  => '€€',
-		'knowsAbout'  => array( 'Automatización de procesos industriales', 'Inteligencia artificial', 'ERP para el metal', 'Talleres de mecanizado', 'Distribución industrial', 'Gestión documental', 'SAP', 'Asistentes de IA', 'n8n' ),
+		'knowsAbout'  => array( 'Automatización de procesos industriales', 'Inteligencia artificial', 'ERP para la industria', 'Talleres de mecanizado', 'Calderería', 'Carpintería metálica', 'Reparación de maquinaria industrial', 'Hidráulica y neumática', 'Distribución industrial', 'Gestión documental', 'SAP', 'Asistentes de IA' ),
 		'hasOfferCatalog' => array(
 			'@type'           => 'OfferCatalog',
 			'name'            => 'Soluciones de IA y automatización para la industria',
 				'itemListElement' => array(
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para talleres del metal con IA', 'url' => home_url( '/erp-metal/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 690, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 690, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Asistentes técnicos y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 900, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Gestión documental con IA', 'url' => home_url( '/gestion-documental-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
@@ -917,6 +979,20 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 		if ( is_array( $nodo ) && isset( $nodo['@type'] ) && 'Person' === $nodo['@type'] && isset( $nodo['name'] ) && false !== strpos( $nodo['name'], '@' ) ) {
 			$data[ $k ]['name'] = 'Transforma con IA';
 		}
+	}
+	// El ERP como producto de software (precio orientativo de la oferta de lanzamiento)
+	if ( is_page( 'erp-industria' ) ) {
+		$data['TcErp'] = array(
+			'@type'               => 'SoftwareApplication',
+			'name'                => 'TransformaConIA Gestión: ERP para la industria',
+			'applicationCategory' => 'BusinessApplication',
+			'operatingSystem'     => 'Web, Android, iOS',
+			'url'                 => home_url( '/erp-industria/' ),
+			'description'         => 'Programa de gestión con IA para talleres industriales: calculadora de costes y margen, presupuestos, albaranes firmados en el móvil, facturas, cobros, gastos por foto y paquete trimestral para la asesoría.',
+			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
+			'offers'              => array( '@type' => 'Offer', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha (precio orientativo, sin IVA) y mantenimiento orientativo de 69 €/mes' ),
+			'provider'            => array( '@id' => home_url( '/#person' ) ),
+		);
 	}
 	// FAQ declaradas en la propia página (<script type="application/json" class="tc-faq-data">)
 	if ( is_singular( 'page' ) ) {
@@ -1028,7 +1104,7 @@ add_action( 'template_redirect', function () {
 		echo '<p class="tc-lead">' . esc_html( $lead ) . '</p>';
 	}
 	echo '<form class="tc-inline tc-buscar" role="search" action="' . esc_url( home_url( '/' ) ) . '"><input type="search" name="s" value="' . esc_attr( get_search_query() ) . '" placeholder="Buscar en el blog…" aria-label="Buscar en el blog"><button class="tc-btn tc-btn--ghost" type="submit">Buscar</button></form>';
-	echo '</div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>Consultoría de IA para la industria</span></div><p style="margin:4px 0 16px">Lo que contamos aquí, lo implantamos en empresas: ERP para el metal, asistentes técnicos y automatizaciones. Diagnóstico de 30 minutos, gratis.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico</a></aside></div></header>';
+	echo '</div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>Consultoría de IA para la industria</span></div><p style="margin:4px 0 16px">Lo que contamos aquí, lo implantamos en empresas: ERP para la industria, asistentes técnicos y automatizaciones. Diagnóstico de 30 minutos, gratis.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico</a></aside></div></header>';
 	echo '<nav class="tc-wrap tc-filtros" aria-label="Categorías"><a class="' . ( is_home() ? 'is-on' : '' ) . '" href="' . esc_url( $blog ) . '">Todo</a>';
 	foreach ( get_categories( array( 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC' ) ) as $c ) {
 		echo '<a class="' . ( $activa === $c->term_id ? 'is-on' : '' ) . '" href="' . esc_url( get_category_link( $c ) ) . '">' . esc_html( $c->name ) . '</a>';
@@ -1092,5 +1168,225 @@ add_action( 'rest_api_init', function () {
 				return array( 'ok' => true );
 			},
 		),
+	) );
+} );
+
+/* ---------- 11. Velocidad y móvil ---------- */
+/* Fuentes: una sola petición (Poppins + Open Sans) que no bloquea el pintado.
+ * Fuera Nunito y Montserrat (solo las usan piezas de Salient que no tenemos) y el Open Sans duplicado. */
+add_action( 'wp_print_styles', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	foreach ( array( 'nectar_default_font_open_sans', 'redux-google-fonts-salient_redux' ) as $h ) {
+		wp_dequeue_style( $h );
+	}
+}, 1 );
+add_action( 'wp_head', function () {
+	$f = 'https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap';
+	echo '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+	echo '<link rel="preload" as="style" href="' . esc_url( $f ) . '"><link rel="stylesheet" href="' . esc_url( $f ) . '" media="print" onload="this.media=\'all\'"><noscript><link rel="stylesheet" href="' . esc_url( $f ) . '"></noscript>' . "\n";
+}, 2 );
+/* jQuery al pie: en <head> no hay nada que lo use y así no frena la primera pintada */
+add_action( 'wp_enqueue_scripts', function () {
+	if ( is_admin() || is_customize_preview() ) {
+		return;
+	}
+	foreach ( array( 'jquery', 'jquery-core', 'jquery-migrate' ) as $h ) {
+		wp_scripts()->add_data( $h, 'group', 1 );
+	}
+}, 999 );
+/* Hojas que no hacen falta para pintar la primera pantalla: se cargan sin bloquear */
+add_filter( 'style_loader_tag', function ( $tag, $handle ) {
+	if ( is_admin() ) {
+		return $tag;
+	}
+	$diferidas = array( 'font-awesome' );
+	if ( tc_es_landing() || tc_es_archivo() ) {
+		$diferidas[] = 'wp-block-library'; // las páginas de diseño propio no usan bloques
+	}
+	if ( in_array( $handle, $diferidas, true ) ) {
+		$tag = str_replace( array( "media='all'", 'media="all"' ), "media='print' onload=\"this.media='all'\"", $tag );
+	}
+	return $tag;
+}, 10, 2 );
+/* Zoom con dos dedos permitido (Salient lo bloquea: penaliza accesibilidad y molesta a quien ve mal) */
+add_action( 'template_redirect', function () {
+	if ( is_admin() || wp_doing_ajax() || is_feed() ) {
+		return;
+	}
+	ob_start( function ( $h ) {
+		return preg_replace( '#<meta name="viewport" content="[^"]*"\s*/?>#', '<meta name="viewport" content="width=device-width, initial-scale=1" />', $h, 1 );
+	} );
+}, 0 );
+add_action( 'wp_head', function () {
+	?>
+<style id="tc-movil">
+/* móvil: fuera las animaciones infinitas que no van por la tarjeta gráfica (sombras, fondos, bordes, trazos).
+ * Salient lee la posición de la página en cada fotograma y con ellas recalculaba estilos sin parar (~20 ms por fotograma). */
+@media (max-width:768px){
+.tc-live i,.tc-dot,.tc-linea__led i,.tc-shine,.tc-ruta::before,.tc-stats b,.tc-linea__track,.tc-linea__pieza,.tc-linea__est li,.tc-deco__cota,.tc-star::after,.tc-webmini__body span{animation:none!important}
+}
+/* tablas de los artículos: se desplazan de lado en el móvil en vez de salirse de la pantalla */
+@media (max-width:768px){
+body.single-post .content-inner table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+body.single-post .content-inner table th,body.single-post .content-inner table td{min-width:110px}
+}
+/* portada en el móvil: soluciones, sectores, casos y «por qué nosotros» en carrusel (el contenido sigue entero en la página) */
+@media (max-width:620px){
+.tc-home .tc-sec>.tc-wrap>.tc-grid--3,.tc-home .tc-sec>.tc-wrap>.tc-grid--4,.tc-home .tc-sect4,.tc-home .tc-chips{display:flex!important;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:clamp(18px,4vw,40px);gap:14px;margin-inline:calc(-1*clamp(18px,4vw,40px));padding:4px clamp(18px,4vw,40px) 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tc-home .tc-sec>.tc-wrap>.tc-grid--3::-webkit-scrollbar,.tc-home .tc-sec>.tc-wrap>.tc-grid--4::-webkit-scrollbar,.tc-home .tc-sect4::-webkit-scrollbar,.tc-home .tc-chips::-webkit-scrollbar{display:none}
+.tc-home .tc-sec>.tc-wrap>.tc-grid--3>*,.tc-home .tc-sec>.tc-wrap>.tc-grid--4>*,.tc-home .tc-sect4>*{flex:0 0 84%;scroll-snap-align:start}
+.tc-home .tc-chips>*{flex:none;scroll-snap-align:start}
+.tc-desliza{display:flex;align-items:center;gap:8px;margin:-6px 0 10px;font-family:"Poppins",system-ui,sans-serif;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:#a9a1b4}
+}
+@media (min-width:621px){.tc-desliza{display:none}}
+/* botón fijo de diagnóstico en el móvil */
+.tc-sticky{display:none}
+@media (max-width:768px){
+.tc-sticky{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:9990;transform:translateY(140%);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.tc-sticky.is-on{transform:none}
+.tc-sticky a{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 18px;border-radius:14px;background:#b020ff;color:#fff!important;font-family:"Poppins",system-ui,sans-serif;font-weight:600;font-size:15.5px;line-height:1;box-shadow:0 14px 34px -10px rgba(176,32,255,.6),0 0 0 1px rgba(255,255,255,.12) inset;text-decoration:none!important}
+body.tc-con-sticky #to-top{bottom:84px!important}
+}
+</style>
+	<?php
+}, 30 );
+/* Botón fijo «Diagnóstico gratis» en el móvil: aparece al bajar y se esconde cuando hay un formulario o la llamada final a la vista */
+add_action( 'wp_footer', function () {
+	if ( is_page( 'contacto' ) || is_404() ) {
+		return;
+	}
+	?>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>" tabindex="-1">Pide tu diagnóstico gratis <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<script id="tc-sticky-js">
+(function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
+  var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};
+  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){tapan+=e.isIntersecting?1:-1;});tapan=Math.max(0,tapan);mostrar();});
+    document.querySelectorAll('form[data-tc-form],.tc-band,.tc-webband,.tc-footer,.tca-cta').forEach(function(el){io.observe(el);});}
+  window.addEventListener('scroll',mostrar,{passive:true});mostrar();})();
+</script>
+	<?php
+}, 40 );
+
+/* ---------- 12. Página 404 con el diseño propio y en español ---------- */
+add_filter( 'body_class', function ( $cl ) {
+	if ( is_404() ) {
+		$cl[] = 'tc-landing';
+		$cl[] = 'tc-archivo';
+	}
+	return $cl;
+} );
+add_filter( 'rank_math/frontend/title', function ( $t ) {
+	return is_404() ? 'Página no encontrada | Transforma con IA' : $t;
+} );
+add_action( 'template_redirect', function () {
+	if ( ! is_404() ) {
+		return;
+	}
+	status_header( 404 );
+	nocache_headers();
+	$ir = array(
+		'/'               => 'Inicio',
+		'/industria/'     => 'IA para la industria',
+		'/erp-industria/' => 'ERP para la industria',
+		'/soluciones/'    => 'Soluciones y precios',
+		'/casos/'         => 'Casos de éxito',
+		'/blog/'          => 'Blog',
+	);
+	get_header();
+	echo '<div class="tc">';
+	echo '<header class="tc-hero tc-pagehead"><div class="tc-wrap tc-hero__grid"><div class="tc-hero__copy">';
+	echo '<nav class="tc-crumbs" aria-label="Migas"><a href="' . esc_url( home_url( '/' ) ) . '">Inicio</a><span aria-hidden="true">/</span><span>Error 404</span></nav>';
+	echo '<span class="tc-eyebrow">Error 404</span><h1>Esta página no existe o ha cambiado de sitio</h1>';
+	echo '<p class="tc-lead">Puede que el enlace esté mal escrito o que hayamos movido el contenido. Busca lo que necesitabas o sigue por alguna de estas secciones.</p>';
+	echo '<form class="tc-inline tc-buscar" role="search" action="' . esc_url( home_url( '/' ) ) . '"><input type="search" name="s" placeholder="Buscar en la web…" aria-label="Buscar en la web"><button class="tc-btn tc-btn--ghost" type="submit">Buscar</button></form>';
+	echo '<nav class="tc-filtros" aria-label="Secciones" style="padding:22px 0 0;flex-wrap:wrap;overflow:visible">';
+	foreach ( $ir as $u => $t ) {
+		echo '<a href="' . esc_url( home_url( $u ) ) . '">' . esc_html( $t ) . '</a>';
+	}
+	echo '</nav></div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>¿Buscabas cómo automatizar algo?</span></div><p style="margin:4px 0 16px">Cuéntanos qué tarea os quita más tiempo y en 30 minutos te decimos qué se puede automatizar y cuánto costaría.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico gratis</a></aside></div></header>';
+	$ult = get_posts( array( 'numberposts' => 3, 'post_status' => 'publish' ) );
+	if ( $ult ) {
+		echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><h2 style="margin-bottom:22px">Lo último del blog</h2><div class="tc-rejilla">';
+		foreach ( $ult as $p ) {
+			echo tc_tarjeta( $p, '', 'medium_large', 20 );
+		}
+		echo '</div></div></section>';
+	}
+	echo '</div>';
+	get_footer();
+	exit;
+}, 20 );
+
+/* ---------- 13. /blog/ en el mapa del sitio (Rank Math deja fuera la página de entradas) ---------- */
+add_filter( 'rank_math/sitemap/page_content', function ( $c ) {
+	$ult = get_posts( array( 'numberposts' => 1, 'post_status' => 'publish' ) );
+	$mod = $ult ? get_post_modified_time( 'c', true, $ult[0] ) : gmdate( 'c' );
+	return $c . "\t<url>\n\t\t<loc>" . esc_url( home_url( '/blog/' ) ) . "</loc>\n\t\t<lastmod>" . esc_html( $mod ) . "</lastmod>\n\t</url>\n";
+} );
+
+/* ---------- 14. Seguridad básica ---------- */
+/* La API no publica la lista de usuarios a quien no ha iniciado sesión (daba el nombre de acceso del administrador) */
+add_filter( 'rest_endpoints', function ( $e ) {
+	if ( ! is_user_logged_in() ) {
+		unset( $e['/wp/v2/users'], $e['/wp/v2/users/(?P<id>[\d]+)'] );
+	}
+	return $e;
+} );
+add_action( 'send_headers', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	header( 'X-Content-Type-Options: nosniff' );
+	header( 'X-Frame-Options: SAMEORIGIN' );
+	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+	header( 'Strict-Transport-Security: max-age=31536000' );
+	header( 'Permissions-Policy: camera=(), microphone=(), geolocation=()' );
+} );
+
+/* ---------- 15. Avatar del autor = icono de la marca (sin Gravatar: ni muñeco gris ni petición a un servidor externo) ---------- */
+add_filter( 'pre_get_avatar_data', function ( $args ) {
+	if ( is_admin() ) {
+		return $args;
+	}
+	$icono = get_site_icon_url( max( 96, (int) ( $args['size'] ?? 96 ) * 2 ) );
+	if ( $icono ) {
+		$args['url']          = $icono;
+		$args['found_avatar'] = true;
+	}
+	return $args;
+} );
+
+/* ---------- 16. Aviso «desliza» sobre los carruseles de la portada en el móvil ---------- */
+add_action( 'wp_footer', function () {
+	if ( ! is_front_page() ) {
+		return;
+	}
+	?>
+<script id="tc-desliza-js">
+(function(){document.querySelectorAll('.tc-home .tc-sec>.tc-wrap>.tc-grid--3,.tc-home .tc-sec>.tc-wrap>.tc-grid--4,.tc-home .tc-sect4').forEach(function(g){
+  var n=g.children.length;if(n<2)return;var d=document.createElement('p');d.className='tc-desliza';d.setAttribute('aria-hidden','true');d.textContent='Desliza para ver las '+n+' →';g.parentNode.insertBefore(d,g);});})();
+</script>
+	<?php
+}, 41 );
+
+/* ---------- 17. Leer opciones del tema por nombre (solo administradores): GET tc/v1/tema?q=transition ---------- */
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'tc/v1', '/tema', array(
+		'methods'             => 'GET',
+		'permission_callback' => function () {
+			return current_user_can( 'manage_options' );
+		},
+		'callback'            => function ( $req ) {
+			$q   = sanitize_text_field( (string) $req->get_param( 'q' ) );
+			$out = array();
+			foreach ( (array) get_option( 'salient_redux', array() ) as $k => $v ) {
+				if ( '' === $q || false !== stripos( $k, $q ) ) {
+					$out[ $k ] = is_scalar( $v ) ? $v : wp_json_encode( $v );
+				}
+			}
+			return $out;
+		},
 	) );
 } );

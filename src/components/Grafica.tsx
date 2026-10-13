@@ -1,5 +1,5 @@
 "use client";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export function GraficaSalud({ datos }: { datos: { fecha: string; score: number }[] }) {
   if (datos.length < 2)
@@ -19,6 +19,23 @@ export function GraficaSalud({ datos }: { datos: { fecha: string; score: number 
           <Tooltip formatter={(v) => [`${v}/100`, "Salud SEO"]} labelFormatter={(f) => String(f)} />
           <Area type="monotone" dataKey="score" stroke="#2554e8" strokeWidth={2} fill="url(#g)" />
         </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function GraficaVisitas({ datos }: { datos: { fecha: string; visitas: number }[] }) {
+  if (!datos.some((d) => d.visitas))
+    return <p className="py-10 text-center text-sm text-slate-500">Aún no hay visitas registradas. La medición empezó el 10 de octubre de 2026.</p>;
+  return (
+    <div className="h-48">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={datos} margin={{ left: -20, right: 8, top: 8 }}>
+          <XAxis dataKey="fecha" tickFormatter={(f: string) => f.slice(5).split("-").reverse().join("/")} tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+          <Tooltip formatter={(v) => [String(v), "Páginas vistas"]} labelFormatter={(f) => String(f).split("-").reverse().join("/")} />
+          <Bar dataKey="visitas" fill="#3b6cf6" radius={[4, 4, 0, 0]} />
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

@@ -141,3 +141,15 @@ create table if not exists seo.suscriptores (
   confirmado_at timestamptz,
   ultimo_envio timestamptz
 );
+
+-- Web: medición propia sin cookies ni IP (visitas, clics en botones clave y contactos enviados)
+create table if not exists seo.visitas (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  evento text not null default 'visita',   -- visita | clic | contacto
+  ruta text not null,
+  etiqueta text,                            -- texto o destino del botón pulsado
+  ref text,                                 -- dominio de procedencia (google.com, linkedin.com…) o vacío si es directo
+  disp text                                 -- movil | pc
+);
+create index if not exists visitas_fecha on seo.visitas (created_at);
