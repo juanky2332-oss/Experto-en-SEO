@@ -513,6 +513,58 @@ f.link('Se publica', 'Registrar', 1);
 f.chain('IndexNow', 'Registrar', 'Informe final');
 f.link('Fallo publicacion', 'Aviso fallo');
 
+// ---------- LinkedIn: página de empresa (RAMA DESACTIVADA por defecto) ----------
+// Solo posts de la categoría 70 («IA en la industria») y solo si seo.settings.linkedin_activo = true.
+// Sin fila o con false, la rama no hace nada y el resto del publicador queda igual.
+// Antes de encenderla: crear la página de empresa y la app de LinkedIn, rellenar LI_ORG_ID y LI_CRED.
+const LI_ORG_ID = ''; // solo el número de la página de empresa (vacío = la rama no se puede usar)
+const LI_CRED = null; // al crear la credencial: { linkedInOAuth2Api: { id: '...', name: '...' } }
+const LI_CAT_ID = 70;
+f.add('Leer ajuste LinkedIn', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
+  query: `select value from seo.settings where key='linkedin_activo'` }, X(14.5, 10.6), { credentials: CRED.pg, alwaysOutputData: true, onError: 'continueRegularOutput' });
+f.add('LinkedIn activo?', 'n8n-nodes-base.if', 2.2, {
+  conditions: { options: { caseSensitive: true, typeValidation: 'loose', version: 2 }, combinator: 'and',
+    conditions: [
+      { leftValue: '={{ $json.value }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } },
+      { leftValue: "={{ Number($('Articulo final').first().json.categoria_id) }}", rightValue: LI_CAT_ID, operator: { type: 'number', operation: 'equals' } },
+    ] }, options: {},
+}, X(15.5, 10.6));
+f.add('Preparar LinkedIn', 'n8n-nodes-base.code', 2, code(`${UTIL}
+const a = $('Articulo final').first().json.articulo;
+const cp = $('Crear post').first().json;
+const prompts = $('Prompts imagen').all().map(i => i.json);
+const subidas = $('Subir imagen').all().map((i, k) => ({ ...prompts[k], id: i.json && i.json.id, url: i.json && i.json.source_url })).filter(x => Number.isInteger(x.id) && x.url);
+const portada = subidas.find(x => x.rol === 'portada');
+if (!portada) throw new Error('el artículo no tiene imagen destacada subida a WordPress');
+if (!cp.link) throw new Error('WordPress no devolvió el enlace del artículo');
+const titular = decode(a.title);
+const entradilla = decode(a.extracto).trim();
+const enlace = cp.link + (String(cp.link).includes('?') ? '&' : '?') + 'utm_source=linkedin&utm_medium=social';
+const texto = titular + '\\n\\n' + entradilla + '\\n\\nLéelo completo: ' + enlace + '\\n\\n— Transforma con IA';
+return [{ json: { texto: texto.slice(0, 2900), imagen_url: portada.url, titular, enlace } }];
+`), X(16.5, 10.6), { onError: 'continueErrorOutput' });
+f.add('Descargar portada', 'n8n-nodes-base.httpRequest', 4.2, {
+  url: '={{ $json.imagen_url }}',
+  options: { timeout: 60000, response: { response: { responseFormat: 'file', outputPropertyName: 'image' } } },
+}, X(17.5, 10.6), { onError: 'continueRegularOutput' });
+f.add('Publicar LinkedIn', 'n8n-nodes-base.linkedIn', 1, {
+  postAs: 'organization', organization: LI_ORG_ID,
+  text: "={{ $('Preparar LinkedIn').first().json.texto }}",
+  shareMediaCategory: 'IMAGE', binaryPropertyName: '=image', additionalFields: {},
+}, X(18.5, 10.6), { ...(LI_CRED ? { credentials: LI_CRED } : {}), onError: 'continueErrorOutput' });
+f.add('Aviso LinkedIn', 'n8n-nodes-base.telegram', 1.2, {
+  chatId: CHAT_ID,
+  text: "=⚠️ No he podido publicar en LinkedIn el artículo «{{ $('Articulo final').first().json.articulo.title }}».\nMotivo: {{ (typeof $json.error === 'string' ? $json.error : ($json.error && ($json.error.message || $json.error.description))) || 'error desconocido' }}\nEl artículo sigue publicado en la web.",
+  additionalFields: { appendAttribution: false, disable_web_page_preview: true },
+}, X(19.5, 11.6), { credentials: tg, onError: 'continueRegularOutput' });
+f.link('Se publica', 'Leer ajuste LinkedIn', 0);
+f.chain('Leer ajuste LinkedIn', 'LinkedIn activo?');
+f.link('LinkedIn activo?', 'Preparar LinkedIn', 0);
+f.link('Preparar LinkedIn', 'Descargar portada', 0);
+f.link('Preparar LinkedIn', 'Aviso LinkedIn', 1);
+f.link('Descargar portada', 'Publicar LinkedIn', 0);
+f.link('Publicar LinkedIn', 'Aviso LinkedIn', 1);
+
 // 'Prompts imagen' y 'Montar HTML' deben correr una sola vez aunque les lleguen varios items
 for (const n of f.nodes) if (['Prompts imagen', 'Montar HTML', 'Informe final', 'Registrar', 'IndexNow', 'Meta Rank Math'].includes(n.name)) n.executeOnce = true;
 

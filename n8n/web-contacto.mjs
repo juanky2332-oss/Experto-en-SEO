@@ -19,7 +19,8 @@ f.add('Validar', 'n8n-nodes-base.code', 2, code(`
 const b = $input.first().json.body || {};
 const t = (v, n = 1500) => String(v ?? '').trim().slice(0, n);
 const esc = v => t(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const d = { tipo: ['boletin', 'medida'].includes(t(b.tipo, 20)) ? t(b.tipo, 20) : 'contacto', nombre: t(b.nombre, 120), empresa: t(b.empresa, 160), sector: t(b.sector, 120), email: t(b.email, 160).toLowerCase(), mensaje: t(b.mensaje, 3000), origen: t(b.origen, 300) };
+const d = { tipo: ['boletin', 'medida'].includes(t(b.tipo, 20)) ? t(b.tipo, 20) : 'contacto', nombre: t(b.nombre, 120), empresa: t(b.empresa, 160), sector: t(b.sector, 120), email: t(b.email, 160).toLowerCase(), mensaje: t(b.mensaje, 3000), origen: t(b.origen, 300), entrada: t(b.entrada, 200), procedencia: t(b.procedencia, 120).toLowerCase(), utm_source: t(b.utm_source, 60), utm_medium: t(b.utm_medium, 60), utm_campaign: t(b.utm_campaign, 80) };
+const utm = [d.utm_source, d.utm_medium, d.utm_campaign].filter(Boolean).join(' / ');
 const emailOk = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(d.email);
 const spam = !!t(b.web);
 const acepta = d.tipo !== 'contacto' || t(b.acepto, 5) === 'si';
@@ -28,25 +29,47 @@ const valido = !spam && emailOk && acepta && (d.tipo === 'boletin' || (d.tipo ==
 const error = valido || spam ? '' : !emailOk ? 'Revisa el correo: así no podemos contestarte.' : !acepta ? 'Marca la casilla de la política de privacidad para poder responderte.' : d.nombre.length < 2 ? 'Escribe tu nombre.' : 'Cuéntanos un poco más en el mensaje.';
 const token = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 const medida = d.tipo === 'medida';
-const filas = medida ? [['Nombre', d.nombre || '-'], ['Email', d.email], ['Plan', d.sector || '-'], ['Temas que quiere seguir', d.mensaje], ['Página', d.origen || '-']] : [['Nombre', d.nombre], ['Empresa', d.empresa || '-'], ['Sector', d.sector || '-'], ['Email', d.email], ['Qué quiere automatizar', d.mensaje], ['Página', d.origen || '-']];
+const filas = medida ? [['Nombre', d.nombre || '-'], ['Email', d.email], ['Plan', d.sector || '-'], ['Temas que quiere seguir', d.mensaje], ['Página', d.origen || '-']] : [['Nombre', d.nombre], ['Empresa', d.empresa || '-'], ['Sector', d.sector || '-'], ['Email', d.email], ['Qué quiere automatizar', d.mensaje], ['Página desde la que escribe', d.origen || '-'], ['Página de entrada', d.entrada || '-'], ['Procedencia', d.procedencia || 'directo o sin dato'], ['Campaña (utm)', utm || '-']];
 const html = '<h2 style="font-family:Arial">' + (medida ? 'Nueva petición de boletín a medida' : 'Nuevo contacto desde la web') + '</h2><table style="font-family:Arial;font-size:14px;border-collapse:collapse">' + filas.map(([k, v]) => '<tr><td style="padding:6px 12px;border:1px solid #ddd;font-weight:bold;vertical-align:top">' + k + '</td><td style="padding:6px 12px;border:1px solid #ddd;white-space:pre-wrap">' + esc(v) + '</td></tr>').join('') + '</table><p style="font-family:Arial;font-size:13px;color:#666">Responde a este correo y le llega directamente al cliente.</p>';
 const texto = d.tipo === 'boletin'
   ? '📰 Nueva alta en el boletín (pendiente de confirmar): ' + d.email
   : medida ? '📰 Boletín A MEDIDA pedido\\n\\n✉️ ' + d.email + (d.nombre ? ' (' + d.nombre + ')' : '') + '\\n📦 ' + d.sector + '\\n\\nQuiere seguir: ' + d.mensaje.slice(0, 1500) + '\\n\\nRespóndele con una muestra y el precio.'
-  : '📩 Nuevo contacto web\\n\\n👤 ' + d.nombre + (d.empresa ? ' · ' + d.empresa : '') + (d.sector ? ' (' + d.sector + ')' : '') + '\\n✉️ ' + d.email + '\\n\\n' + d.mensaje.slice(0, 1500) + '\\n\\n🔗 ' + (d.origen || '-');
+  : '📩 Nuevo contacto web\\n\\n👤 ' + d.nombre + (d.empresa ? ' · ' + d.empresa : '') + (d.sector ? ' (' + d.sector + ')' : '') + '\\n✉️ ' + d.email + '\\n\\n' + d.mensaje.slice(0, 1500) + '\\n\\n🔗 ' + (d.origen || '-') + '\\n🧭 Entró por ' + (d.entrada || '-') + ' · llegó de ' + (d.procedencia || 'directo o sin dato') + (utm ? ' · ' + utm : '');
+const enlace = e => '${BASE}/web-contacto-estado?t=' + token + '&e=' + e;
+const nombre1 = (d.nombre.split(/\\s+/)[0] || '').replace(/[&<>"]/g, '');
+const cuerpoCliente = [
+  '<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#1b1520;line-height:1.55;font-size:15px">',
+  '<img src="${SITE}/wp-content/uploads/2026/10/transforma-con-ia-logo-v2.png" alt="Transforma con IA" width="150" style="display:block;margin:0 0 18px">',
+  '<h2 style="color:#8a14d0;margin:0 0 12px;font-size:22px">' + (nombre1 ? 'Hola, ' + nombre1 + ': ' : '') + 'recibido</h2>',
+  '<p>Gracias por escribirnos. Hemos recibido tu mensaje y <b>te contestamos en menos de 24 horas</b> (en días laborables), personalmente y sin respuestas enlatadas.</p>',
+  '<p style="margin:20px 0 6px"><b>Qué pasa ahora</b></p>',
+  '<ol style="padding-left:20px;margin:0 0 16px"><li style="margin-bottom:6px">Leemos con calma lo que nos cuentas' + (d.empresa ? ' sobre ' + esc(d.empresa) : '') + '.</li><li style="margin-bottom:6px">Te escribimos con alguna pregunta concreta o con una primera idea de por dónde empezar.</li><li>Si encaja, hacemos una llamada de 30 minutos, el diagnóstico gratuito: vemos qué tarea os quita más tiempo, qué se puede automatizar y cuánto costaría de forma orientativa. Sin compromiso.</li></ol>',
+  '<p>Si quieres ir adelantando, puedes responder a este correo contándonos qué tarea os come más horas y qué programas usáis hoy. No hace falta que sea nada técnico.</p>',
+  '<p style="margin-top:22px">Un saludo,<br><b>El equipo de Transforma con IA</b><br><a href="${SITE}" style="color:#8a14d0">transformaconia.com</a></p>',
+  '<p style="font-size:12px;color:#777;margin-top:22px">Recibes este correo porque has rellenado el formulario de contacto de transformaconia.com. Si no has sido tú, ignóralo y no volverás a saber de nosotros.</p>',
+  '</div>'].join('');
 const respuesta = JSON.stringify(spam ? { ok: true } : { ok: false, error });
-return [{ json: { ...d, valido, spam, error, respuesta, token, html, texto, asunto: medida ? 'Boletín a medida: ' + d.email : 'Contacto web: ' + (d.empresa || d.nombre) } }];
+return [{ json: { ...d, utm, valido, spam, error, respuesta, token, html, texto, responder: d.tipo === 'contacto', cuerpoCliente, url_ok: enlace('respondido'), url_diag: enlace('diagnostico'), url_no: enlace('no_encaja'), asunto: medida ? 'Boletín a medida: ' + d.email : 'Contacto web: ' + (d.empresa || d.nombre) } }];
 `), X(1, 1));
 f.add('¿Válido?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'v', leftValue: '={{ $json.valido }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(2, 1));
 f.add('¿Boletín?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'b', leftValue: '={{ $json.tipo }}', rightValue: 'boletin', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, options: {} }, X(3, 0.5));
 
 // contacto
 f.add('Guardar contacto', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: 'insert into seo.contactos (tipo, nombre, empresa, sector, email, mensaje, origen) values ($1, $2, $3, $4, $5, $6, $7) returning id',
-  options: { queryReplacement: "={{ [ $json.tipo, $json.nombre, $json.empresa, $json.sector, $json.email, $json.mensaje, $json.origen ] }}" } }, X(4, 1), { credentials: CRED.pg, onError: 'continueRegularOutput' });
+  query: 'insert into seo.contactos (tipo, nombre, empresa, sector, email, mensaje, origen, entrada, procedencia, utm_source, utm_medium, utm_campaign, token) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id',
+  options: { queryReplacement: "={{ [ $json.tipo, $json.nombre, $json.empresa, $json.sector, $json.email, $json.mensaje, $json.origen, $json.entrada, $json.procedencia, $json.utm_source, $json.utm_medium, $json.utm_campaign, $json.token ] }}" } }, X(4, 1), { credentials: CRED.pg, onError: 'continueRegularOutput' });
+// Botones de UN TOQUE (2026-10-13): callback_data wc:<id>:<estado>. Los recoge el MULTIAGENTE (uIr6eehJA1h2l3tP,
+// nodo «Es contacto web?»), que actualiza seo.contactos, contesta y edita el mensaje. El enlace web-contacto-estado
+// se mantiene solo para los avisos viejos que llevaban botón-enlace.
+const BOTONES = (idExpr) => ({ replyMarkup: 'inlineKeyboard', inlineKeyboard: { rows: [{ row: { buttons: [
+  ['respondido', '✅ Respondido'], ['diagnostico', '📅 Diagnóstico'], ['no_encaja', '❌ No encaja'],
+].map(([e, text]) => ({ text, additionalFields: { callback_data: "={{ 'wc:' + (" + idExpr + ") + ':" + e + "' }}" } })) } }] } });
 f.add('Correo a info@', 'n8n-nodes-base.gmail', 2.1, { sendTo: 'info@transformaconia.com', subject: "={{ $('Validar').first().json.asunto }}", message: "={{ $('Validar').first().json.html }}", options: { appendAttribution: false, senderName: 'Web Transforma con IA', replyTo: "={{ $('Validar').first().json.email }}" } }, X(5, 1), { credentials: GMAIL, onError: 'continueRegularOutput' });
-f.add('Telegram contacto', 'n8n-nodes-base.telegram', 1.2, { chatId: '8765904', text: "={{ $('Validar').first().json.texto }}", additionalFields: { appendAttribution: false } }, X(6, 1), { credentials: TG, onError: 'continueRegularOutput' });
-f.add('OK contacto', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'json', responseBody: '={"ok": true}', options: {} }, X(7, 1));
+f.add('Telegram contacto', 'n8n-nodes-base.telegram', 1.2, { chatId: '8765904', text: "={{ $('Validar').first().json.texto }}", additionalFields: { appendAttribution: false, disable_web_page_preview: true },
+  ...BOTONES("$('Guardar contacto').first().json.id || 0") }, X(6, 1), { credentials: TG, onError: 'continueRegularOutput' });
+f.add('¿Responder al cliente?', 'n8n-nodes-base.if', 2, { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, conditions: [{ id: 'r', leftValue: "={{ $('Validar').first().json.responder }}", rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' }, options: {} }, X(6.5, 1.3));
+f.add('Respuesta al cliente', 'n8n-nodes-base.gmail', 2.1, { sendTo: "={{ $('Validar').first().json.email }}", subject: 'Recibido: te escribimos en menos de 24 h · Transforma con IA', message: "={{ $('Validar').first().json.cuerpoCliente }}", options: { appendAttribution: false, senderName: 'Transforma con IA' } }, X(7, 1.3), { credentials: GMAIL, onError: 'continueRegularOutput' });
+f.add('OK contacto', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'json', responseBody: '={"ok": true}', options: {} }, X(8, 1));
 
 // boletín
 f.add('Guardar suscriptor', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
@@ -87,12 +110,59 @@ f.link('¿Válido?', '¿Boletín?', 0);
 f.link('¿Válido?', 'OK descartado', 1);
 f.link('¿Boletín?', 'Guardar suscriptor', 0);
 f.link('¿Boletín?', 'Guardar contacto', 1);
-f.chain('Guardar contacto', 'Correo a info@', 'Telegram contacto', 'OK contacto');
+f.chain('Guardar contacto', 'Telegram contacto', 'Correo a info@', '¿Responder al cliente?');
+f.link('¿Responder al cliente?', 'Respuesta al cliente', 0);
+f.link('¿Responder al cliente?', 'OK contacto', 1);
+f.link('Respuesta al cliente', 'OK contacto');
+
+// ---------- seguimiento: botones del aviso (GET) y recordatorio a las 20 h laborables sin estado ----------
+f.add('Enlace estado', 'n8n-nodes-base.webhook', 2, { httpMethod: 'GET', path: 'web-contacto-estado', responseMode: 'responseNode', options: {} }, X(0, 5), { webhookId: 'web-contacto-estado' });
+f.add('Actualizar estado', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
+  query: `update seo.contactos set estado = $2,
+  respondido_en = case when $2 in ('respondido', 'diagnostico') then coalesce(respondido_en, now()) else respondido_en end
+where token = $1 and tipo = 'contacto' and $2 in ('respondido', 'diagnostico', 'no_encaja')
+returning id, nombre, empresa, estado`,
+  options: { queryReplacement: "={{ [ String($json.query.t || 'x').replace(/[^a-f0-9]/g, ''), String($json.query.e || '') ] }}" } }, X(1, 5), { credentials: CRED.pg, alwaysOutputData: true });
+f.add('Página estado', 'n8n-nodes-base.code', 2, code(`
+const r = $input.first().json;
+const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const txt = { respondido: '✅ Marcado como respondido', diagnostico: '📅 Marcado: diagnóstico acordado', no_encaja: '❌ Marcado como «no encaja»' };
+const ok = !!r.id;
+const titulo = ok ? txt[r.estado] : 'Enlace no válido';
+const sub = ok ? esc(r.nombre) + (r.empresa ? ' · ' + esc(r.empresa) : '') + '. Ya no saltará el aviso de «sin respuesta».' : 'El enlace ha caducado o no existe.';
+const html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + titulo + '</title><body style="font-family:Arial,sans-serif;background:#08070b;color:#f4f0f8;display:grid;place-items:center;min-height:100vh;margin:0"><div style="text-align:center;padding:24px"><h1 style="font-size:24px">' + titulo + '</h1><p style="color:#a9a1b4">' + sub + '</p></div></body>';
+return [{ json: { html } }];
+`), X(2, 5));
+f.add('Mostrar estado', 'n8n-nodes-base.respondToWebhook', 1.1, { respondWith: 'text', responseBody: '={{ $json.html }}', options: { responseHeaders: { entries: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }] } } }, X(3, 5));
+f.chain('Enlace estado', 'Actualizar estado', 'Página estado', 'Mostrar estado');
+
+f.add('Cada hora laborable', 'n8n-nodes-base.scheduleTrigger', 1.2, { rule: { interval: [{ field: 'cronExpression', expression: '0 8-21 * * 1-5' }] } }, X(0, 7));
+f.add('Contactos sin estado', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
+  query: `select c.id, c.nombre, c.empresa, c.email, c.mensaje, c.token, c.entrada, c.procedencia
+from seo.contactos c
+where c.tipo = 'contacto' and c.estado = 'nuevo' and c.avisado_en is null and c.created_at > now() - interval '10 days'
+  and (select count(*) from generate_series(date_trunc('hour', c.created_at), date_trunc('hour', now()), interval '1 hour') h
+       where extract(isodow from h at time zone 'Europe/Madrid') < 6) >= 20
+order by c.created_at limit 10`, options: {} }, X(1, 7), { credentials: CRED.pg });
+f.add('Preparar recordatorio', 'n8n-nodes-base.code', 2, code(`
+const c = $input.item.json;
+const e = x => '${BASE}/web-contacto-estado?t=' + c.token + '&e=' + x;
+const texto = '⏰ Llevan 20 horas laborables sin respuesta\\n\\n👤 ' + c.nombre + (c.empresa ? ' · ' + c.empresa : '') + '\\n✉️ ' + c.email + '\\n\\n' + String(c.mensaje || '').slice(0, 600) + '\\n\\nLa promesa era contestar en menos de 24 h. Cuando lo hagas, márcalo con los botones.';
+return { json: { id: c.id, texto, url_ok: e('respondido'), url_diag: e('diagnostico'), url_no: e('no_encaja') } };
+`, 'runOnceForEachItem'), X(2, 7));
+f.add('Telegram recordatorio', 'n8n-nodes-base.telegram', 1.2, { chatId: '8765904', text: '={{ $json.texto }}', additionalFields: { appendAttribution: false, disable_web_page_preview: true },
+  ...BOTONES('$json.id') }, X(3, 7), { credentials: TG, onError: 'continueRegularOutput' });
+f.add('Marcar avisado', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery', query: 'update seo.contactos set avisado_en = now() where id = $1',
+  options: { queryReplacement: "={{ [ $('Preparar recordatorio').item.json.id ] }}" } }, X(4, 7), { credentials: CRED.pg });
+f.chain('Cada hora laborable', 'Contactos sin estado', 'Preparar recordatorio', 'Telegram recordatorio', 'Marcar avisado');
 f.chain('Guardar suscriptor', 'Preparar confirmación', 'Correo confirmación', 'OK boletín');
 f.chain('Enlace boletín', 'Alta o baja', 'Destino', 'Redirigir', 'Telegram alta');
 
-const wf = f.json({ saveDataSuccessExecution: 'all' });
+const wf = f.json({ saveDataSuccessExecution: 'all', timezone: 'Europe/Madrid' });
 checkExpr(wf);
+if (process.argv.includes('--probar')) { fs.writeFileSync(process.env.TEMP + '/web-contacto-wf.json', JSON.stringify(wf, null, 1)); console.log('probado en seco:', wf.nodes.length, 'nodos'); process.exit(0); }
+// copia de seguridad del flujo actual antes de redesplegar
+if (ids.contacto) { fs.mkdirSync('_backups', { recursive: true }); fs.writeFileSync('_backups/web-contacto-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(await n8n.get('/workflows/' + ids.contacto), null, 1)); }
 const r = await n8n.upsert(wf, ids.contacto);
 ids.contacto = r.id;
 fs.writeFileSync(IDS, JSON.stringify(ids, null, 1));

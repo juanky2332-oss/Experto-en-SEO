@@ -131,6 +131,18 @@ create table if not exists seo.contactos (
   nombre text, empresa text, sector text, email text, mensaje text, origen text,
   created_at timestamptz not null default now()
 );
+-- Atribución del contacto (página de entrada, procedencia y utm_* de la sesión) y seguimiento (2026-10-13)
+alter table seo.contactos add column if not exists entrada text;
+alter table seo.contactos add column if not exists procedencia text;
+alter table seo.contactos add column if not exists utm_source text;
+alter table seo.contactos add column if not exists utm_medium text;
+alter table seo.contactos add column if not exists utm_campaign text;
+alter table seo.contactos add column if not exists estado text not null default 'nuevo';  -- nuevo | respondido | diagnostico | no_encaja
+alter table seo.contactos add column if not exists respondido_en timestamptz;
+alter table seo.contactos add column if not exists token text;                              -- enlace de los botones de Telegram
+alter table seo.contactos add column if not exists avisado_en timestamptz;               -- aviso de «sin respuesta» ya enviado
+create index if not exists contactos_estado on seo.contactos (estado, created_at);
+create index if not exists contactos_token on seo.contactos (token);
 create table if not exists seo.suscriptores (
   email text primary key,
   token text not null,
@@ -153,3 +165,25 @@ create table if not exists seo.visitas (
   disp text                                 -- movil | pc
 );
 create index if not exists visitas_fecha on seo.visitas (created_at);
+
+-- Web: reservas del diagnóstico gratuito (30 min) en el calendario. ip_hash = hash con sal diaria, nunca la IP.
+create table if not exists seo.reservas (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  nombre text, empresa text, email text, telefono text,
+  modalidad text,                           -- videollamada | en tu empresa
+  localidad text,
+  hueco timestamptz not null,               -- inicio de los 30 min
+  estado text not null default 'confirmada', -- confirmada | anulada | cancelada
+  evento_id text, meet text, ip_hash text, origen text
+);
+create unique index if not exists reservas_hueco_unico on seo.reservas (hueco) where estado = 'confirmada';
+create index if not exists reservas_email_fecha on seo.reservas (email, created_at);
+create index if not exists reservas_ip_fecha on seo.reservas (ip_hash, created_at);
+
+-- Límite de eventos por minuto del webhook de visitas: huella de IP con sal diaria, se borra a los 10 minutos (nunca se guarda en seo.visitas)
+create table if not exists seo.visitas_limite (
+  huella text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists visitas_limite_h on seo.visitas_limite (huella, created_at);

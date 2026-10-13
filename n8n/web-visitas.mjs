@@ -1,5 +1,8 @@
 // Flujo «WEB TRANSFORMACONIA → visitas»: medición propia de la web, sin cookies ni IP.
 // La web manda (sendBeacon) evento, ruta, etiqueta, dominio de procedencia y tipo de dispositivo.
+// Protegido (2026-10-13): solo se aceptan eventos con Origin o Referer de transformaconia.com, ruta/campos validados y
+// máximo 40 eventos por minuto por huella de IP (la huella solo vive en seo.visitas_limite unos minutos; nunca se guarda en seo.visitas).
+// Limpieza diaria: visitas de más de 13 meses.
 // Uso: node n8n/web-visitas.mjs   (crea o actualiza; el id queda en n8n/web-ids.json)
 import fs from 'node:fs';
 import { Flow, code, CRED, checkExpr, n8n } from './lib.mjs';
@@ -13,22 +16,43 @@ f.add('Limpiar', 'n8n-nodes-base.code', 2, code(`
 const j = $input.first().json;
 let b = j.body || {};
 if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = Object.fromEntries(new URLSearchParams(b)); } }
-const ua = String((j.headers || {})['user-agent'] || '');
-const t = (v, n) => String(v ?? '').trim().slice(0, n);
+if (!b || typeof b !== 'object') return [];
+const h = j.headers || {};
+const ua = String(h['user-agent'] || '');
+const t = (v, n) => String(v ?? '').replace(/[\\u0000-\\u001f\\u007f]/g, ' ').trim().slice(0, n);
+// solo eventos que vienen de nuestra propia web
+const propio = /^https:\\/\\/(www\\.)?transformaconia\\.com(\\/|$)/i;
+if (!propio.test(String(h.origin || '')) && !propio.test(String(h.referer || ''))) return [];
 const evento = ['visita', 'clic', 'contacto'].includes(b.e) ? b.e : '';
-const ruta = t(b.r, 300).replace(/[?#].*$/, '');
+const ruta = t(b.r, 200).replace(/[?#].*$/, '');
 const bot = /bot|crawl|spider|slurp|preview|headless|lighthouse|pagespeed|facebookexternalhit|whatsapp/i.test(ua);
-if (!evento || !ruta.startsWith('/') || bot) return [];
-const ref = t(b.f, 120).replace(/^www\\./, '');
-return [{ json: { evento, ruta, etiqueta: t(b.l, 120), ref: ref === 'transformaconia.com' ? '' : ref, disp: b.m === '1' || b.m === 1 ? 'movil' : 'pc' } }];
+if (!evento || !/^\\/[a-z0-9\\-\\/]*$/i.test(ruta) || bot) return [];
+let ref = t(b.f, 100).replace(/^www\\./, '').toLowerCase();
+if (!/^[a-z0-9.\\-]{1,100}$/.test(ref) || ref === 'transformaconia.com') ref = '';
+const etiqueta = evento === 'visita' ? '' : t(b.l, 120);
+const ip = String(h['x-forwarded-for'] || h['x-real-ip'] || '').split(',')[0].trim().slice(0, 64) || ('sin-ip-' + Math.random());
+return [{ json: { evento, ruta, etiqueta, ref, disp: b.m === '1' || b.m === 1 ? 'movil' : 'pc', ip } }];
 `), [240, 0]);
 f.add('Guardar', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: 'insert into seo.visitas (evento, ruta, etiqueta, ref, disp) values ($1, $2, $3, $4, $5)',
-  options: { queryReplacement: '={{ [ $json.evento, $json.ruta, $json.etiqueta, $json.ref, $json.disp ] }}' } }, [480, 0], { credentials: CRED.pg });
+  query: `with limpia as (delete from seo.visitas_limite where created_at < now() - interval '10 minutes'),
+nueva as (insert into seo.visitas_limite (huella) values (encode(sha256(convert_to('tc-visita|' || current_date::text || '|' || $6::text, 'UTF8')), 'hex')) returning huella)
+insert into seo.visitas (evento, ruta, etiqueta, ref, disp)
+select $1, $2, $3, $4, $5
+where (select count(*) from seo.visitas_limite where huella = (select huella from nueva) and created_at > now() - interval '1 minute') < 40`,
+  options: { queryReplacement: '={{ [ $json.evento, $json.ruta, $json.etiqueta, $json.ref, $json.disp, $json.ip ] }}' } }, [480, 0], { credentials: CRED.pg });
 f.chain('Visita', 'Limpiar', 'Guardar');
 
-const wf = f.json({ saveDataSuccessExecution: 'none', saveDataErrorExecution: 'all' });
+// limpieza diaria: visitas de más de 13 meses y huellas de límite caducadas
+f.add('Cada madrugada', 'n8n-nodes-base.scheduleTrigger', 1.2, { rule: { interval: [{ field: 'cronExpression', expression: '30 4 * * *' }] } }, [0, 200]);
+f.add('Borrar antiguas', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
+  query: `with a as (delete from seo.visitas where created_at < now() - interval '13 months' returning 1)
+delete from seo.visitas_limite where created_at < now() - interval '1 hour'`, options: {} }, [240, 200], { credentials: CRED.pg });
+f.chain('Cada madrugada', 'Borrar antiguas');
+
+const wf = f.json({ saveDataSuccessExecution: 'none', saveDataErrorExecution: 'all', timezone: 'Europe/Madrid' });
 checkExpr(wf);
+if (process.argv.includes('--probar')) { fs.writeFileSync(process.env.TEMP + '/web-visitas-wf.json', JSON.stringify(wf, null, 1)); console.log('probado en seco', wf.nodes.length); process.exit(0); }
+if (ids.visitas) { fs.mkdirSync('_backups', { recursive: true }); fs.writeFileSync('_backups/web-visitas-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(await n8n.get('/workflows/' + ids.visitas), null, 1)); }
 const r = await n8n.upsert(wf, ids.visitas);
 ids.visitas = r.id;
 fs.writeFileSync(IDS, JSON.stringify(ids, null, 1));

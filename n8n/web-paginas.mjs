@@ -172,6 +172,8 @@ const POR_QUE = [
   ['mapa', 'Cerca de ti', 'En persona en la Región de Murcia y en remoto en toda España. Hablas siempre con quien lo construye.'],
   ['radar', 'Al día en IA', 'Revisamos cada mañana lo que sale en inteligencia artificial. Lo que aplicamos hoy es lo último que funciona, probado antes en casa.'],
 ];
+// Calculadora orientativa [tc_calculadora] (shortcode del snippet #13; la tarifa vive allí)
+const CALCULADORA = `<section class="tc-sec tc-sec--alt" id="calculadora"><div class="tc-wrap">${head('Haz la cuenta', '¿Cuánto te cuesta el papeleo?', 'Pon las horas que dedicáis a presupuestos, albaranes y facturas y mira el orden de magnitud. Es orientativo: parte de tus propias cifras.')}[tc_calculadora]</div></section>`;
 const porQue = `<div class="tc-grid tc-grid--3">${POR_QUE.map(([i, t, p]) => `<div class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></div>`).join('')}</div>`;
 const STATS = `<div class="tc-stats tc-reveal" style="margin-top:28px"><div><b>+15</b><span>herramientas con IA construidas y en uso</span></div><div><b>1-3 sem.</b><span>para tener un piloto con tus datos</span></div><div><b>&lt; 24 h</b><span>para responder a tu consulta</span></div><div><b>0 €</b><span>el diagnóstico inicial</span></div></div>`;
 
@@ -361,6 +363,7 @@ P['industria'] = {
     ['¿Qué pasa con la confidencialidad de mis datos?', 'Accesos mínimos, servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. Lo que montamos es tuyo.'],
     ['¿Hacéis visitas a la nave o al taller?', 'Sí, en la Región de Murcia. Ver cómo trabajáis en persona es la mejor forma de detectar qué automatizar.'],
   ])}</div></section>
+${CALCULADORA}
 ${band('¿Tu sector no aparece?', 'Da igual: si hay tareas repetitivas con datos o documentos, hay algo que automatizar. Cuéntanos cómo trabajáis.')}`),
 };
 
@@ -402,6 +405,7 @@ P['erp-industria'] = {
 <div class="tc-step tc-reveal"><span class="tc-step__when">Semana 1</span><h3>Demo y configuración</h3><p>Te lo enseñamos con datos de ejemplo, cargamos tus clientes, tu catálogo y tus tarifas de máquina, taller y material.</p></div>
 <div class="tc-step tc-reveal"><span class="tc-step__when">Semanas 2 y 3</span><h3>Arranque con tu equipo</h3><p>Empezáis a presupuestar, albaranar y facturar con él. Ajustamos lo que haga falta para que encaje con vuestra forma de trabajar.</p></div>
 <div class="tc-step tc-reveal"><span class="tc-step__when">Cuando tú das el visto bueno</span><h3>Empieza el mantenimiento</h3><p>El mantenimiento no empieza hasta que el programa está a tu gusto. Soporte, copias y mejoras incluidos.</p></div></div></div></section>
+${CALCULADORA}
 <section class="tc-sec" id="precio"><div class="tc-wrap tc-split tc-split--center"><div class="tc-prose tc-reveal" style="gap:16px">${eyebrow('Precio orientativo')}<h2>Oferta de lanzamiento para las 10 primeras empresas</h2><p>Puesta en marcha en dos pagos y los tres primeros meses de mantenimiento gratis. Sin permanencia: mes a mes con 30 días de aviso. Todos los precios son orientativos; tras la demo recibes el presupuesto cerrado.</p></div>
 ${facts('Precios orientativos (sin IVA)', [['Puesta en marcha', '<s style="color:var(--tc-dim);font-weight:400">990 €</s> 690 €'], ['Mantenimiento orientativo', '69 €/mes'], ['Primeros 3 meses', 'Gratis'], ['Usuario extra', '15 €/mes'], ['Permanencia', 'Ninguna']])}</div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Sobre el ERP para la industria')}${faq([
@@ -412,7 +416,7 @@ ${facts('Precios orientativos (sin IVA)', [['Puesta en marcha', '<s style="color
     ['¿Sirve para presentar los impuestos?', 'Te prepara el paquete trimestral para tu asesoría con facturas emitidas, gastos y totales. La presentación la sigue haciendo tu asesor.'],
     ['¿Qué pasa si quiero dejarlo?', 'No hay permanencia. Avisas con 30 días y te llevas tus datos exportados.'],
   ])}</div></section>
-<div id="contacto-erp">${band('¿Lo vemos con tus trabajos y tus precios?', 'En una videollamada te enseñamos el programa y calculamos un presupuesto real de tu taller con tu margen.', btn('https://transformaconia-gestion.vercel.app/', 'Pedir una demo'))}</div>`),
+<div id="contacto-erp">${band('¿Lo vemos con tus trabajos y tus precios?', 'En una videollamada te enseñamos el programa y calculamos un presupuesto real de tu taller con tu margen.', btn('https://transformaconia-gestion.vercel.app/', 'Pedir una demo') + btn('/contacto/#reserva', 'Reserva tu diagnóstico gratis', true))}</div>`),
 };
 
 P['distribucion-industrial'] = {
@@ -635,7 +639,8 @@ P['contacto'] = {
   id: 12, title: 'Contacto',
   seo: ['Contacto y diagnóstico gratis | Transforma con IA', 'Cuéntanos qué proceso queréis automatizar y te respondemos en menos de 24 horas con un diagnóstico gratuito. info@transformaconia.com · Murcia y toda España.', 'consultoría automatización industrial contacto'],
   html: page(`${pagehead('<span>Contacto</span>', 'Diagnóstico gratis', 'Cuéntanos qué os quita más horas', 'Te respondemos en menos de 24 horas laborables con una primera valoración. Si tiene sentido, hacemos el diagnóstico gratuito de 30 minutos, en tu empresa si estás en la Región de Murcia o por videollamada.', '', facts('Cómo funciona', [['Respuesta', 'menos de 24 h'], ['Diagnóstico', '30 min, gratis'], ['Piloto', '1 a 3 semanas'], ['Compromiso', 'Ninguno'], ['Presencial', 'Región de Murcia']]))}
-<section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split">
+<section class="tc-sec tc-sec--tight" id="reserva"><div class="tc-wrap">[tc_reserva]</div></section>
+<section class="tc-sec tc-sec--tight" id="contacto"><div class="tc-wrap tc-split">
  <div class="tc-box tc-reveal" style="padding:clamp(22px,3vw,36px)">${FORM_CONTACTO}</div>
  <div class="tc-prose tc-reveal" style="gap:26px">
   <div style="display:grid;gap:10px">${eyebrow('Correo directo')}<a class="tc-mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a><p>Si lo prefieres, escríbenos directamente. Llega al mismo sitio.</p></div>
@@ -664,13 +669,13 @@ P['privacidad'] = {
   html: page(`${pagehead('<span>Privacidad</span>', 'Legal', 'Política de privacidad', 'Qué datos recogemos, para qué y cómo puedes ejercer tus derechos. Sin letra pequeña.')}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-prose" style="max-width:820px;gap:22px">
 <div class="tc-prose"><h3>Responsable</h3><p>Transforma con IA (transformaconia.com). Contacto para cualquier asunto de privacidad: <a class="tc-link" href="mailto:info@transformaconia.com">info@transformaconia.com</a>.</p></div>
-<div class="tc-prose"><h3>Qué datos recogemos y para qué</h3><p><b>Formulario de contacto:</b> nombre, empresa, sector, correo y el mensaje que escribes. Los usamos solo para responderte y, si lo pides, preparar un presupuesto. Base legal: tu consentimiento y la aplicación de medidas precontractuales a petición tuya.</p></div>
+<div class="tc-prose"><h3>Qué datos recogemos y para qué</h3><p><b>Formulario de contacto:</b> nombre, empresa, sector, correo y el mensaje que escribes. Los usamos solo para responderte y, si lo pides, preparar un presupuesto. Junto con tu mensaje guardamos la página por la que entraste y la web desde la que llegaste, para saber qué contenidos funcionan. Te enviamos un correo automático de confirmación y, después, la respuesta a tu consulta. Base legal: tu consentimiento y la aplicación de medidas precontractuales a petición tuya.</p><p><b>Reserva del diagnóstico:</b> si reservas una cita, tratamos tu nombre, empresa, correo, teléfono y localidad solo para gestionar la cita del diagnóstico gratuito. Para evitar el spam guardamos además una huella cifrada de tu dirección IP, que no permite conocer la dirección original.</p></div>
 <div class="tc-prose"><h3>Cuánto tiempo los guardamos</h3><p>Los datos de contacto, mientras dure la relación y un máximo de dos años después del último contacto.</p></div>
 <div class="tc-prose"><h3>Quién más los trata</h3><p>Para funcionar usamos proveedores que tratan los datos por nuestra cuenta: el alojamiento de la web (Hostinger), el correo electrónico (Google) y la base de datos (Neon, con servidores en Fráncfort, UE). No vendemos ni cedemos tus datos a terceros.</p></div>
 <div class="tc-prose"><h3>Cookies</h3><p>Esta web no usa cookies de publicidad ni de seguimiento. Solo pueden instalarse cookies técnicas necesarias para que la web funcione, que no requieren consentimiento.</p></div>
-<div class="tc-prose"><h3>Estadísticas de visitas</h3><p>Contamos las visitas con un sistema propio que no usa cookies ni guarda tu dirección IP ni ningún dato que te identifique: solo la página que ves, la web desde la que llegas, si entras desde el móvil o el ordenador y los clics en los botones de contacto. Se guardan en la misma base de datos de la UE y solo sirven para saber qué contenidos interesan y mejorar la web.</p></div>
+<div class="tc-prose"><h3>Estadísticas de visitas</h3><p>Contamos las visitas con un sistema propio que no usa cookies ni guarda tu dirección IP ni ningún dato que te identifique: solo la página que ves, la web desde la que llegas, si entras desde el móvil o el ordenador y los clics en los botones de contacto. Se guardan en la misma base de datos de la UE y solo sirven para saber qué contenidos interesan y mejorar la web. Para frenar el spam, durante unos minutos se conserva aparte una huella cifrada e irreversible de la conexión, que se borra sola y nunca se asocia a tus visitas. Las estadísticas se eliminan pasados 13 meses.</p></div>
 <div class="tc-prose"><h3>Tus derechos</h3><p>Puedes pedir acceso, rectificación, supresión, oposición, limitación y portabilidad de tus datos escribiendo a info@transformaconia.com. Si crees que no los hemos tratado bien, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</p></div>
-<p style="font-size:14px;color:var(--tc-dim)">Última actualización: 10 de octubre de 2026.</p>
+<p style="font-size:14px;color:var(--tc-dim)">Última actualización: 13 de octubre de 2026.</p>
 </div></div></section>`),
 };
 
@@ -678,7 +683,7 @@ P['privacidad'] = {
 // Páginas que cambian de URL: se reutiliza la página antigua (mismo id) con el slug nuevo.
 const RENOMBRAR = { 'erp-industria': 'erp-metal', industria: 'sectores-industriales' };
 const solo = process.argv.slice(2);
-const BK = '_backups/web-2026-10-09/';
+const BK = '_backups/web-2026-10-13/';
 fs.mkdirSync(BK, { recursive: true });
 for (const [slug, def] of Object.entries(P)) {
   if (solo.length && !solo.includes(slug)) continue;
