@@ -45,6 +45,13 @@ add_action( 'template_redirect', function () {
 	}
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
 	$ruta = '/' . trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' ) . '/';
+	/* tc-paginado: /category/x/page/2/ o /category/x/feed/ van a la misma categoría de destino */
+	if ( ! isset( $mapa[ $ruta ] ) ) {
+		$base = preg_replace( '#(page/[0-9]+/|feed/)$#', '', $ruta );
+		if ( $base !== $ruta && 0 === strpos( $base, '/category/' ) && isset( $mapa[ $base ] ) ) {
+			$ruta = $base;
+		}
+	}
 	if ( isset( $mapa[ $ruta ] ) ) {
 		wp_redirect( $mapa[ $ruta ], 301, 'Experto SEO' );
 		exit;

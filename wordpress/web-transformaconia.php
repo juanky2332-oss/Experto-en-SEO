@@ -320,7 +320,6 @@ add_action( 'wp_footer', function () {
     if(btn){btn.disabled=true;btn.innerHTML='Enviando…';}
     fetch(FORM,{method:'POST',body:d}).then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok||!j.ok)throw j;return j;});}).then(function(){
       msg.className='tc-msg is-ok'; msg.textContent=f.getAttribute('data-ok'); f.reset();
-      if(window.tcMedir)tcMedir('contacto',f.getAttribute('data-tc-form'));
     }).catch(function(j){msg.className='tc-msg is-err'; msg.textContent=(j&&j.error)||'No se ha podido enviar. Escríbenos a info@transformaconia.com y te respondemos igual.';})
     .finally(function(){if(btn){btn.disabled=false;btn.innerHTML=txt;}});
   });
@@ -386,6 +385,8 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/quienes-somos/' ); ?>">Quiénes somos</a></li>
     <li><a href="<?php echo $u( '/blog/' ); ?>">Blog</a></li>
     <li><a href="<?php echo $u( '/category/ia-en-la-industria/' ); ?>">IA en la industria</a></li>
+    <li><a href="<?php echo $u( '/category/gestion-y-facturacion/' ); ?>">Gestión y facturación</a></li>
+    <li><a href="<?php echo $u( '/category/actualidad-ia/' ); ?>">Actualidad IA</a></li>
     <li><a href="<?php echo $u( '/contacto/' ); ?>">Diagnóstico gratis</a></li>
     <li><a href="<?php echo $u( '/privacidad/' ); ?>">Privacidad</a></li>
    </ul></div>
@@ -413,7 +414,37 @@ add_filter( 'the_content', function ( $c ) {
 	if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $c;
 	}
-	$cta = '<div class="tc-cta-post"><div><p class="tc-cta-post__t">¿Quieres aplicar esto en tu empresa?</p><p>Somos una consultoría de IA y automatización especializada en la industria. Cuéntanos qué tarea os quita más horas y te decimos, sin compromiso, qué se puede automatizar y cuánto costaría.</p></div><a class="tc-cta-post__b" href="' . esc_url( home_url( '/contacto/' ) ) . '">Diagnóstico gratis →</a></div>';
+	/* Llamada según la categoría del artículo (tres categorías: IA en la industria, Gestión y facturación, Actualidad IA) */
+	$ctas = array(
+		'ia-en-la-industria'    => array(
+			'¿Tienes un taller o una planta con un caso parecido?',
+			'Trabajamos con talleres y empresas industriales de toda España. Cuéntanos qué os quita más tiempo y te decimos, sin compromiso, qué se puede automatizar y cómo encaja con vuestro programa de gestión.',
+			array( array( '/industria/', 'IA para la industria →', true ), array( '/erp-industria/', 'ERP para la industria', false ) ),
+		),
+		'gestion-y-facturacion' => array(
+			'¿Sigues tecleando facturas y albaranes a mano?',
+			'Montamos programas de gestión y lectura de documentos con IA para pymes y talleres, siempre con una persona que revisa antes de registrar nada. Te enseñamos cómo quedaría en tu empresa.',
+			array( array( '/erp-industria/', 'ERP para la industria →', true ), array( '/gestion-documental-ia/', 'Gestión documental con IA', false ) ),
+		),
+		'actualidad-ia'         => array(
+			'¿Qué puede hacer esto por tu empresa?',
+			'Somos una consultoría de IA y automatización especializada en la industria. En 30 minutos, gratis y sin compromiso, te decimos qué se puede automatizar en tu caso y cuánto costaría.',
+			array( array( '/contacto/#reserva', 'Reserva tu diagnóstico gratis →', true ) ),
+		),
+	);
+	$clave = 'actualidad-ia';
+	foreach ( (array) get_the_category() as $cat_ ) {
+		if ( isset( $ctas[ $cat_->slug ] ) ) {
+			$clave = $cat_->slug;
+			break;
+		}
+	}
+	list( $ct, $cp, $cb ) = $ctas[ $clave ];
+	$bots = '';
+	foreach ( $cb as $b ) {
+		$bots .= '<a class="tc-cta-post__b' . ( $b[2] ? '' : ' tc-cta-post__b--2' ) . '" href="' . esc_url( home_url( $b[0] ) ) . '">' . esc_html( $b[1] ) . '</a>';
+	}
+	$cta = '<div class="tc-cta-post tc-cta-post--' . esc_attr( $clave ) . '"><div><p class="tc-cta-post__t">' . esc_html( $ct ) . '</p><p>' . esc_html( $cp ) . '</p></div><div class="tc-cta-post__bs">' . $bots . '</div></div>';
 	if ( false !== strpos( $c, '<aside class="tca-autor"' ) ) {
 		return str_replace( '<aside class="tca-autor"', $cta . '<aside class="tca-autor"', $c );
 	}
@@ -653,13 +684,19 @@ add_action( 'template_redirect', function () {
 		$eb     = 'Categoría';
 		$h1     = single_cat_title( '', false );
 		$lead   = wp_strip_all_tags( category_description() );
-		$crumb  = '<a href="' . esc_url( $blog ) . '">Noticias</a><span aria-hidden="true">/</span><span>' . esc_html( $h1 ) . '</span>';
+		$crumb  = '<a href="' . esc_url( $blog ) . '">Blog</a><span aria-hidden="true">/</span><span>' . esc_html( $h1 ) . '</span>';
 		$activa = $obj->term_id;
+		$partes = array_values( array_filter( array_map( 'trim', preg_split( '/[
+]+/', (string) category_description() ) ) ) );
+		if ( $partes ) {
+			$lead   = wp_strip_all_tags( $partes[0] );
+			$desc_h = count( $partes ) > 1 ? '<p>' . implode( '</p><p>', array_slice( $partes, 1 ) ) . '</p>' : '';
+		}
 	} elseif ( is_tag() ) {
 		$eb    = 'Tema';
 		$h1    = single_tag_title( '', false );
 		$lead  = 'Artículos sobre ' . $h1 . ' publicados en Transforma con IA.';
-		$crumb = '<a href="' . esc_url( $blog ) . '">Noticias</a><span aria-hidden="true">/</span><span>' . esc_html( $h1 ) . '</span>';
+		$crumb = '<a href="' . esc_url( $blog ) . '">Blog</a><span aria-hidden="true">/</span><span>' . esc_html( $h1 ) . '</span>';
 	} elseif ( is_author() ) {
 		$eb    = 'Autor';
 		$h1    = $obj->display_name;
@@ -689,6 +726,13 @@ add_action( 'template_redirect', function () {
 		echo '<a class="' . ( $activa === $c->term_id ? 'is-on' : '' ) . '" href="' . esc_url( get_category_link( $c ) ) . '">' . esc_html( $c->name ) . '</a>';
 	}
 	echo '</nav>';
+	if ( is_category() && $pag <= 1 && ! empty( $desc_h ) ) {
+		/* resto de la descripción de la categoría (con enlaces a los servicios) */
+		$resto = $desc_h;
+		if ( trim( wp_strip_all_tags( $resto ) ) ) {
+			echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-catdesc">' . wp_kses( $resto, array( 'p' => array(), 'a' => array( 'href' => array() ), 'strong' => array(), 'em' => array() ) ) . '</div></div></section>';
+		}
+	}
 	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap">';
 	if ( have_posts() ) {
 		echo '<div class="tc-rejilla">';
@@ -899,12 +943,7 @@ add_action( 'template_redirect', function () {
 	exit;
 }, 20 );
 
-/* ---------- 13. /blog/ en el mapa del sitio (Rank Math deja fuera la página de entradas) ---------- */
-add_filter( 'rank_math/sitemap/page_content', function ( $c ) {
-	$ult = get_posts( array( 'numberposts' => 1, 'post_status' => 'publish' ) );
-	$mod = $ult ? get_post_modified_time( 'c', true, $ult[0] ) : gmdate( 'c' );
-	return $c . "\t<url>\n\t\t<loc>" . esc_url( home_url( '/blog/' ) ) . "</loc>\n\t\t<lastmod>" . esc_html( $mod ) . "</lastmod>\n\t</url>\n";
-} );
+/* ---------- 13. (retirada) /blog/ ya sale en el mapa de entradas de Rank Math; añadirla también al de páginas la duplicaba ---------- */
 
 /* ---------- 14. Seguridad básica ---------- */
 /* La API no publica la lista de usuarios a quien no ha iniciado sesión (daba el nombre de acceso del administrador) */
@@ -970,3 +1009,106 @@ add_action( 'rest_api_init', function () {
 		},
 	) );
 } );
+
+/* ---------- 18. Ajustes de Rank Math desde la API (solo administradores): GET/POST tc/v1/rm ---------- */
+add_action( 'rest_api_init', function () {
+	$permitidas = array( 'general' => 'rank-math-options-general', 'titles' => 'rank-math-options-titles', 'sitemap' => 'rank-math-options-sitemap' );
+	register_rest_route( 'tc/v1', '/rm', array(
+		'methods'             => array( 'GET', 'POST' ),
+		'permission_callback' => function () {
+			return current_user_can( 'manage_options' );
+		},
+		'callback'            => function ( $req ) use ( $permitidas ) {
+			$p = $req->get_json_params();
+			$k = $req->get_param( 'o' );
+			if ( 'POST' === $req->get_method() ) {
+				$k = isset( $p['o'] ) ? $p['o'] : '';
+			}
+			if ( ! isset( $permitidas[ $k ] ) ) {
+				return new WP_Error( 'opcion', 'o = general | titles | sitemap', array( 'status' => 400 ) );
+			}
+			$o = get_option( $permitidas[ $k ], array() );
+			if ( 'POST' === $req->get_method() && ! empty( $p['set'] ) && is_array( $p['set'] ) ) {
+				$o = array_merge( (array) $o, $p['set'] );
+				update_option( $permitidas[ $k ], $o );
+			}
+			return (object) $o;
+		},
+	) );
+} );
+
+
+/* ---------- 19. Blog en tres categorías (2026-10-13) ---------- */
+/* Título y descripción de Rank Math para los archivos de las tres categorías */
+function tc_cats_info() {
+	return array(
+		'ia-en-la-industria' => array( 'IA en la industria: casos y novedades | Transforma con IA', 'Casos reales de IA en talleres y plantas industriales: visión artificial, mantenimiento, costes y presupuestos. Qué funciona y cómo llevarlo a una pyme.' ),
+		'gestion-y-facturacion' => array( 'Gestión y facturación con IA para pymes | Transforma con IA', 'Facturas, albaranes, presupuestos, costes y ROI: cómo quitar el papeleo en una pyme con IA y un programa de gestión, con ejemplos prácticos.' ),
+		'actualidad-ia' => array( 'Actualidad de IA para empresas | Transforma con IA', 'Novedades de inteligencia artificial contadas por su impacto práctico: modelos, herramientas, precios y regulación, y qué hacer con ellas en tu empresa.' ),
+	);
+}
+add_filter( 'rank_math/frontend/title', function ( $t ) {
+	if ( is_category() ) {
+		$i = tc_cats_info();
+		$o = get_queried_object();
+		if ( $o && isset( $i[ $o->slug ] ) ) {
+			$p = max( 1, (int) get_query_var( 'paged' ) );
+			return $i[ $o->slug ][0] . ( $p > 1 ? ' (página ' . $p . ')' : '' );
+		}
+	}
+	return $t;
+}, 20 );
+add_filter( 'rank_math/frontend/description', function ( $d ) {
+	if ( is_category() ) {
+		$i = tc_cats_info();
+		$o = get_queried_object();
+		if ( $o && isset( $i[ $o->slug ] ) ) {
+			return $i[ $o->slug ][1];
+		}
+	}
+	return $d;
+}, 20 );
+
+/* Categorías antiguas (vacías, con 301): si el publicador o el panel crean una entrada con una de ellas, pasa a su equivalente nueva */
+add_action( 'rest_after_insert_post', function ( $post ) {
+	$mapa = array( 'automatizacion' => 'gestion-y-facturacion', 'sobre-la-ia' => 'gestion-y-facturacion', 'servicios-y-herramientas-de-ia' => 'actualidad-ia', 'noticias-ia' => 'actualidad-ia', 'guias-ia' => 'actualidad-ia', 'trucos-y-consejos-ia' => 'actualidad-ia' );
+	$ids  = array();
+	foreach ( $mapa as $viejo => $nuevo ) {
+		$tv = get_category_by_slug( $viejo );
+		$tn = get_category_by_slug( $nuevo );
+		if ( $tv && $tn ) {
+			$ids[ $tv->term_id ] = $tn->term_id;
+		}
+	}
+	$act = wp_get_post_categories( $post->ID );
+	$nue = array();
+	foreach ( $act as $c ) {
+		$nue[] = isset( $ids[ $c ] ) ? $ids[ $c ] : $c;
+	}
+	$nue = array_values( array_unique( $nue ) );
+	if ( $nue !== $act ) {
+		wp_set_post_categories( $post->ID, $nue );
+	}
+}, 20 );
+
+/* ---------- 20. Migas de pan (Rank Math: pantalla + esquema BreadcrumbList) ---------- */
+/* Página de entradas = «Blog»; las páginas de servicio cuelgan de «Soluciones» (igual que las migas escritas a mano en cada página) */
+add_filter( 'rank_math/frontend/breadcrumb/items', function ( $crumbs ) {
+	foreach ( $crumbs as $k => $c ) {
+		if ( isset( $c[1] ) && trailingslashit( (string) $c[1] ) === home_url( '/blog/' ) ) {
+			$crumbs[ $k ][0] = 'Blog';
+		}
+	}
+	if ( is_page( array( 'automatizacion-procesos-ia', 'agentes-chatbots-ia', 'gestion-documental-ia', 'desarrollo-a-medida-ia', 'contenido-automatico-ia', 'diseno-web' ) ) && count( $crumbs ) >= 2 ) {
+		array_splice( $crumbs, 1, 0, array( array( 'Soluciones', home_url( '/soluciones/' ) ) ) );
+	}
+	return $crumbs;
+}, 20 );
+/* En los artículos se muestran, discretas, justo antes del contenido. En las páginas de servicio ya están escritas en su cabecera. */
+add_filter( 'the_content', function ( $c ) {
+	if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() || ! function_exists( 'rank_math_get_breadcrumbs' ) ) {
+		return $c;
+	}
+	$m = rank_math_get_breadcrumbs( array( 'wrap_before' => '<nav class="tc-migas" aria-label="Migas de pan"><p>', 'wrap_after' => '</p></nav>', 'before' => '', 'after' => '', 'separator' => '<span aria-hidden="true"> / </span>' ) );
+	return ( is_string( $m ) ? $m : '' ) . $c;
+}, 5 );

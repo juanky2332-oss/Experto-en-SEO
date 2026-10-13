@@ -602,3 +602,16 @@ html:not(.tc-js) .tc-head h2::after,.tc-head.is-in h2::after{transform:scaleX(1)
 .tc-ba{position:relative}
 @media (min-width:621px){.tc .tc-hero--home .tc-h1-home{font-size:clamp(34px,3.5vw,46px);line-height:1.1}}
 .tc .tc-h1-home .tc-grad,.tc .tc-h1-home .tc-shine{background:none!important;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor;color:var(--tc-m2)!important;animation:none!important}
+
+/* ---- Tanda 4-6: CTA con dos botones, migas en artículos y descripción de categoría ---- */
+.tc-cta-post__bs{display:grid;gap:10px;align-content:center;justify-items:stretch;text-align:center}
+body.single-post .content-inner .tc-cta-post a.tc-cta-post__b.tc-cta-post__b--2{background:transparent;border:1px solid rgba(176,32,255,.7);color:#e9dff2!important}
+body.single-post .content-inner .tc-cta-post a.tc-cta-post__b.tc-cta-post__b--2:hover{background:rgba(176,32,255,.18)}
+.tc-migas{margin:0 0 18px}
+.tc-migas p{margin:0!important;padding:0!important;font-size:13.5px!important;line-height:1.5!important;color:#6b6475}
+.tc-migas a{color:#6b6475;text-decoration:underline;text-underline-offset:2px}
+.tc-migas a:hover{color:#b020ff}
+.tc-migas .rank-math-breadcrumb p{margin:0!important}
+.tc-catdesc{max-width:78ch}
+.tc-catdesc p{margin:0 0 14px;font-size:17px;line-height:1.7;color:var(--tc-dim,#cdbfda)}
+.tc-catdesc a{color:var(--tc-m2,#d98cff);text-decoration:underline;text-underline-offset:3px}

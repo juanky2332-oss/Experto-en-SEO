@@ -4,14 +4,12 @@
 import { TIPO_CLAVES } from '../src/lib/guia-base.ts';
 
 export const CATEGORIAS = {
-  'noticias-ia': 'Noticias de IA — lanzamientos de modelos, movimientos de empresas de IA, regulación que acaba de salir.',
-  'trucos-y-consejos-ia': 'Trucos y consejos — comandos, atajos, prompts y configuraciones concretas y copiables (Claude Code, ChatGPT, n8n, agentes).',
-  'servicios-y-herramientas-de-ia': 'Herramientas de IA — análisis a fondo de una herramienta, app o modelo concreto y cómo usarlo.',
-  'automatizacion': 'Automatización y agentes — n8n, agentes de IA, flujos, integraciones, IA agéntica aplicada a procesos.',
-  'guias-ia': 'Guías prácticas — tutoriales paso a paso, cómo hacer algo concreto con IA.',
+  'actualidad-ia': 'Actualidad IA — noticias, lanzamientos de modelos, herramientas concretas (análisis y cómo usarlas), trucos y guías prácticas, regulación y casos de uso en pymes.',
+  'gestion-y-facturacion': 'Gestión y facturación — facturas, albaranes, documentos y OCR, ERP, ROI de la IA, hojas de ruta y automatización de procesos para pymes, agentes prácticos de ventas y chatbots sobre documentos propios.',
   'ia-en-la-industria': 'IA en la industria — casos reales de empresas industriales (fabricación, metal, mecanizado, mantenimiento, distribución, logística, agroindustria) que aplican IA: qué hicieron, qué beneficios obtuvieron con cifras de la fuente y qué puede copiar una pyme.',
-  'sobre-la-ia': 'IA en la empresa — estrategia, empleo, productividad, casos de uso en pymes, ética y regulación aplicada al negocio.',
 };
+// Compatibilidad: la guía editorial (src/lib/guia-base.ts) aún emite los slugs antiguos
+export const CAT_ANTIGUAS = { 'noticias-ia': 'actualidad-ia', 'trucos-y-consejos-ia': 'actualidad-ia', 'servicios-y-herramientas-de-ia': 'actualidad-ia', 'guias-ia': 'actualidad-ia', 'automatizacion': 'gestion-y-facturacion', 'sobre-la-ia': 'gestion-y-facturacion' };
 const CAT_SLUGS = Object.keys(CATEGORIAS);
 
 // ----------------------------------------------------------------------------
@@ -54,7 +52,7 @@ Criterio editorial:
 
 REGLA DE ORO: todo dato, cifra, nombre o cita sale del texto fuente. Si no está en la fuente, no existe. Nunca inventes versiones de modelos, precios, fechas ni porcentajes.
 
-CATEGORÍA: la del tipo (actualidad → noticias-ia, truco → trucos-y-consejos-ia, guia → guias-ia, herramienta → servicios-y-herramientas-de-ia, automatizacion → automatizacion, empresa → sobre-la-ia), salvo que otra encaje claramente mejor.`;
+CATEGORÍA: la del tipo (actualidad, truco, guia, herramienta → actualidad-ia; automatizacion, empresa → gestion-y-facturacion; casos industriales → ia-en-la-industria), salvo que otra encaje claramente mejor.`;
 
 // ----------------------------------------------------------------------------
 // 2) INVESTIGACIÓN CON BÚSQUEDA WEB (contexto actual y fuentes de autoridad)
