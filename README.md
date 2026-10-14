@@ -24,14 +24,14 @@ Telegram ─┐                        ┌─> WordPress REST (Rank Math, IndexN
 App ──────┘   │                    └─> Telegram (avisos con botones)
               ├─ Publicador IA SEO v3 (brief → investigación web → redacción → QC SEO → fotos → publicación)
               └─ RADAR IA (comprueba cada hora su configuración; trabaja a la hora elegida)
-App / n8n ──> Postgres (Supabase, esquema `seo`)
+App / n8n ──> Postgres (Neon, esquema `seo`)
 App ──> OpenAI (gpt-5.5, gpt-5.4-mini, gpt-image-2)
 ```
 
 - La app **nunca** tiene la contraseña de WordPress ni el token del bot: pasa por el webhook `seo-pasarela` de n8n con la cabecera `X-Seo-Key`.
 - Los flujos de n8n se generan desde código: `node n8n/publicador.mjs`, `node n8n/radar.mjs`, `node n8n/pasarela.mjs <id>` (leen `N8N_API_KEY` de `.env.local`).
 - La guía editorial y la configuración del radar viven en `seo.settings` (`guia`, `radar`, `radar_estado`); los valores de partida están en `src/lib/guia-base.ts`, que también importan los scripts de n8n. Migración: `node n8n/migrar-radar-guia.mjs`. `node n8n/radar.mjs --guardar` despliega el radar guardando también las ejecuciones correctas (para depurar).
-- `wordpress/` contiene los dos snippets PHP instalados con Code Snippets (campos de Rank Math en la API y `/llms.txt`).
+- `wordpress/` contiene las copias de los snippets PHP de Code Snippets (diseño de la web, reserva, fechas, redirecciones, Rank Math en la API, `/llms.txt`…). Ver `CLAUDE.md`.
 
 ## Desarrollo
 
