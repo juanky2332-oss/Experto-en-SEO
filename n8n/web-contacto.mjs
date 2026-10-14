@@ -54,7 +54,7 @@ const texto = d.tipo === 'boletin'
 const nombre1 = (d.nombre.split(/\\s+/)[0] || '').replace(/[&<>"]/g, '');
 const cuerpoCliente = [
   '<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#1b1520;line-height:1.55;font-size:15px">',
-  '<img src="${SITE}/wp-content/uploads/2026/10/transforma-con-ia-logo-v2.png" alt="Transforma con IA" width="150" style="display:block;margin:0 0 18px">',
+  '<img src="${SITE}/wp-content/uploads/2026/10/transforma-con-ia-logo-fondo-claro.png" alt="Transforma con IA" width="190" height="30" style="display:block;margin:0 0 18px;border:0">',
   '<h2 style="color:#8a14d0;margin:0 0 12px;font-size:22px">' + (nombre1 ? 'Hola, ' + nombre1 + ': ' : '') + 'recibido</h2>',
   '<p>Gracias por escribirnos. Hemos recibido tu mensaje y <b>te contestamos en menos de 24 horas</b> (en días laborables), personalmente y sin respuestas enlatadas.</p>',
   '<p style="margin:20px 0 6px"><b>Qué pasa ahora</b></p>',
