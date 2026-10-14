@@ -615,3 +615,6 @@ body.single-post .content-inner .tc-cta-post a.tc-cta-post__b.tc-cta-post__b--2:
 .tc-catdesc{max-width:78ch}
 .tc-catdesc p{margin:0 0 14px;font-size:17px;line-height:1.7;color:var(--tc-dim,#cdbfda)}
 .tc-catdesc a{color:var(--tc-m2,#d98cff);text-decoration:underline;text-underline-offset:3px}
+
+/* Rendimiento móvil: no pintar secciones lejanas hasta acercarse (sin id/ancla ni formularios dentro) */
+@media (max-width:999px){.tc>.tc-sec:nth-of-type(n+3):not(:has([id],form,iframe)){content-visibility:auto;contain-intrinsic-size:auto 800px}}

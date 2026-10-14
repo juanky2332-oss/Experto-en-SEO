@@ -15,3 +15,6 @@ n8n/*.build.json
 n8n/_*.mjs
 n8n/_t4/
 n8n/_t4b/
+
+# Credenciales locales (nunca al repo)
+.secrets/
