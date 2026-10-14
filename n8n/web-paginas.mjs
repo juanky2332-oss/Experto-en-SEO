@@ -164,7 +164,13 @@ const POR_DEP = [
   ['Papeles que llegan tarde a la oficina', 'Partes y albaranes desde el móvil'],
 ];
 const antesDespuesDep = `<div class="tc-ad tc-reveal"><div class="tc-ad__h"><span>Hoy</span><span>Con IA</span></div>${POR_DEP.map(([a, d]) => `<div class="tc-ad__row"><p class="tc-ad__antes">${a}</p><span class="tc-ad__arrow" aria-hidden="true">${ARROW}</span><p class="tc-ad__despues">${d}</p></div>`).join('')}</div>`;
-const LIMITES = `<div class="tc-box tc-reveal" style="margin-top:28px"><h3>Lo que no te vamos a prometer</h3>${list(['<b>Porcentajes de ahorro antes de ver tus datos:</b> los calculamos contigo en el piloto.', '<b>Que la IA decida sola:</b> las acciones importantes siempre las confirma una persona de tu equipo.', '<b>Que cambies de ERP:</b> si tiene API lo conectamos; si no, valoramos cómo adaptarlo.', '<b>Sustituir a tu asesoría:</b> te preparamos el trimestre, la presentación la hace tu asesor.'])}<p class="tc-nota">Datos en servidores de la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. ERP sin permanencia: 30 días de aviso.</p></div>`;
+const LIMITES_4 = [
+  ['grafica', 'Ahorros sin datos', 'Nada de porcentajes antes de ver tus cifras: los calculamos contigo en el piloto.'],
+  ['equipo', 'IA que decide sola', 'Las acciones importantes las confirma siempre una persona de tu equipo.'],
+  ['erp', 'Cambiar de ERP', 'Si tiene API lo conectamos; si no, valoramos cómo adaptarlo.'],
+  ['carpeta', 'Sustituir a tu asesoría', 'Te preparamos el trimestre; la presentación la hace tu asesor.'],
+];
+const LIMITES = sec(head('Lo que no prometemos', 'Lo que no te vamos a prometer', 'Mejor decirlo claro desde el principio.') + `<div class="tc-grid tc-grid--4">${LIMITES_4.map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div><p class="tc-nota tc-reveal" style="margin-top:18px">Datos en servidores de la Unión Europea siempre que es posible. ERP sin permanencia: 30 días de aviso.</p>`);
 
 // Línea de proceso animada (ejemplo ilustrativo de una automatización)
 const LINEA = [
@@ -191,6 +197,13 @@ const POR_QUE = [
 // Calculadora orientativa [tc_calculadora] (shortcode del snippet #13; la tarifa vive allí)
 const calcu = (titulo = 'Calcula cuánto papeleo podrías quitarte') => `<section class="tc-sec tc-sec--alt" id="calculadora"><div class="tc-wrap">${head('Haz la cuenta', titulo, 'Pon las horas que dedicáis a presupuestos, albaranes y facturas y mira el orden de magnitud. Es orientativo: parte de tus propias cifras.')}[tc_calculadora]</div></section>`;
 const CALCULADORA = calcu();
+const CALC_ENLACE = sec(`<a class="tc-box tc-reveal" href="/#calculadora">${icon('calc')}<h3>¿Cuánto te cuesta el papeleo?</h3><p>Haz la cuenta en 1 minuto con tus propias cifras.</p><span class="tc-link">Haz la cuenta →</span></a>`, 'tc-sec--tight', 'calculadora');
+const GARANTIAS = [
+  ['reloj', 'Sin permanencia', 'Mes a mes en el ERP, con 30 días de aviso. Te llevas tus datos.'],
+  ['equipo', 'Revisión humana', 'Lo dudoso se marca y lo importante lo confirma una persona de tu equipo.'],
+  ['escudo', 'Datos en la UE', 'Servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros.'],
+  ['euro', 'Precio por escrito', 'Tras el diagnóstico recibes un presupuesto cerrado, sin sorpresas.'],
+];
 const porQue = `<div class="tc-grid tc-grid--3">${POR_QUE.map(([i, t, p]) => `<div class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></div>`).join('')}</div>`;
 
 const formContacto = (portada = false) => `<form class="tc-form" data-tc-form="contacto" data-ok="¡Recibido! Te respondemos en menos de 24 horas laborables en tu correo." novalidate>
@@ -200,7 +213,7 @@ const formContacto = (portada = false) => `<form class="tc-form" data-tc-form="c
 <div class="tc-field">${portada ? `<label for="tc-sector">¿Dónde perdéis más horas?</label><select id="tc-sector" name="sector"><option value="">Elige uno</option>${['Documentos y facturas', 'Búsqueda de referencias', 'Presupuestos', 'Partes y albaranes', 'Otro'].map((o) => `<option>${o}</option>`).join('')}</select>` : `<label for="tc-sector">Sector</label><select id="tc-sector" name="sector"><option value="">Elige uno</option><optgroup label="Industria">${SECTORES.map((s) => `<option>${s.t}</option>`).join('')}</optgroup><optgroup label="Otros sectores">${OTROS_SECTORES.map((s) => `<option>${s[1]}</option>`).join('')}<option>Otro</option></optgroup></select>`}</div></div>
 <div class="tc-field"><label for="tc-mensaje">¿Qué tarea o consulta os repite más vuestro equipo?</label><textarea id="tc-mensaje" name="mensaje" required placeholder="Ej.: los presupuestos los calculamos a mano y tardamos días en contestar…"></textarea></div>
 <label class="tc-hp" aria-hidden="true">Web <input name="web" tabindex="-1" autocomplete="off"></label>
-<label class="tc-check"><input type="checkbox" required id="tc-acepto" name="acepto" value="si"> <span>He leído la <a href="/privacidad/">política de privacidad</a> y acepto que uséis mis datos para responderme.</span></label>
+<label class="tc-check"><input type="checkbox" required id="tc-acepto" name="acepto" value="si"> <span style="color:#a9a1b4!important">He leído la <a href="/privacidad/">política de privacidad</a> y acepto que uséis mis datos para responderme.</span></label>
 <div><button class="tc-btn" type="submit">${portada ? 'Pedir mi diagnóstico gratis' : 'Enviar y pedir diagnóstico'} ${ARROW}</button></div>
 <p class="tc-msg" role="status" aria-live="polite"></p></form>`;
 const FORM_CONTACTO = formContacto();
@@ -304,17 +317,17 @@ const CASOS = [...CASOS_IND, ...CASOS_OTR];
 // Ficha de 5 partes. Se usa en /casos/, /otros-sectores/ y en el bloque de caso de cada página de servicio.
 const fichaHTML = (c) => `<article class="tc-caso tc-reveal"${c.id ? ` id="${c.id}"` : ''}>
 <div class="tc-caso__txt">
-<header class="tc-caso__h">${icon(c.ic)}<div>${c.ejemplo ? '<span class="tc-nota-ej">Ejemplo de lo que se puede implementar</span><br>' : ''}<span class="tc-eyebrow tc-eyebrow--plain">${c.sector}</span><h3>${c.titulo}</h3></div></header>
+<header class="tc-caso__h">${icon(c.ic)}<div>${c.ejemplo ? '<span class="tc-nota-ej">Ejemplo ficticio</span><br>' : ''}<span class="tc-eyebrow tc-eyebrow--plain">${c.sector}</span><h3>${c.titulo}</h3></div></header>
 <div class="tc-caso__pc"><div class="tc-caso__p"><span class="tc-pc__l tc-pc__l--p">Problema</span><p>${c.problema}</p></div><div class="tc-caso__s"><span class="tc-pc__l">Solución</span><p>${c.solucion}</p></div>
 <div><span class="tc-pc__l">Cómo funciona</span><ol class="tc-flow" style="flex-direction:column;align-items:stretch">${c.pasos.map((p) => `<li>${p}</li>`).join('')}</ol></div></div>
 </div>
-<div class="tc-caso__vis"><div class="tc-caso__pc"><div><span class="tc-pc__l">Ejemplo</span><div>${ESTE(c.ejNota)}</div>${c.ejTxt ? `<p>${c.ejTxt}</p>` : ''}${c.ej}</div>
+<div class="tc-caso__vis"><div class="tc-caso__pc"><div><span class="tc-pc__l">${c.ejemplo ? 'Así se vería' : c.ejNota}</span>${c.ejTxt ? `<p>${c.ejTxt}</p>` : ''}${c.ej}</div>
 <div><span class="tc-pc__l">Siguiente paso</span><p>${c.sig}</p><div class="tc-btns">${c.cta}</div></div></div></div>
 </article>`;
 const casoHTML = fichaHTML;
 // primera frase con un solo punto final (antes salía «..» si el texto tenía una sola frase)
 const frase = (t) => t.split('. ')[0].replace(/\.+$/, '') + '.';
-const casoCard = (id) => { const c = CASOS.find((x) => x.id === id); return `<article class="tc-box tc-pc tc-reveal">${icon(c.ic)}${c.ejemplo ? '<span class="tc-nota-ej">Ejemplo de lo que se puede implementar</span>' : ''}<span class="tc-eyebrow tc-eyebrow--plain">${c.sector}</span><h3>${c.titulo}</h3><span class="tc-pc__l tc-pc__l--p">Problema</span><p>${frase(c.problema)}</p><span class="tc-pc__l">Solución</span><p>${frase(c.solucion)}</p><a class="tc-link" href="/casos/#${c.id}">${c.ejemplo ? 'Leer el ejemplo sobre SAP con IA' : 'Leer el caso de ' + c.sector.toLowerCase()}</a></article>`; };
+const casoCard = (id) => { const c = CASOS.find((x) => x.id === id); return `<article class="tc-box tc-pc tc-reveal">${icon(c.ic)}${c.ejemplo ? '<span class="tc-nota-ej">Ejemplo ficticio</span>' : ''}<span class="tc-eyebrow tc-eyebrow--plain">${c.sector}</span><h3>${c.titulo}</h3><span class="tc-pc__l tc-pc__l--p">Problema</span><p>${frase(c.problema)}</p><span class="tc-pc__l">Solución</span><p>${frase(c.solucion)}</p><a class="tc-link" href="/casos/#${c.id}">${c.ejemplo ? 'Leer el ejemplo sobre SAP con IA' : 'Leer el caso de ' + c.sector.toLowerCase()}</a></article>`; };
 
 // ======================= PÁGINAS =======================
 // ---- Portada: rejillas de soluciones y de sectores (fondos propios en CSS, sin imágenes) ----
@@ -349,7 +362,7 @@ P['transforma-con-ia'] = {
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
   <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP. Presencial en la Región de Murcia y en remoto en toda España.</p>
   <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/#reserva">${CAL_ICO}Reserva tu diagnóstico gratis ${ARROW}</a></div>
-  <ul class="tc-proof"><li><span><b>30 min</b> de diagnóstico gratis</span></li><li><span><b>Piloto con tus datos</b> antes de comprometer el presupuesto completo</span></li><li><a class="tc-link" href="#calculadora">Haz la cuenta de tu papeleo</a></li></ul>
+  <ul class="tc-proof"><li><span><b>30&nbsp;min</b> gratis · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
 
 <section class="tc-sec" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${solHome}</div></section>
@@ -382,7 +395,8 @@ ${calcu('Antes de hablar con nosotros, haz la cuenta')}
 
 <section class="tc-sec"><div class="tc-wrap">${head('El problema', '¿Cuánto tiempo se va en tareas que no fabrican ni venden?')}${antesDespuesDep}</div></section>
 
-<section class="tc-sec tc-sec--alt" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', 'Cómo trabajamos: de la primera llamada a funcionando, sin pagar a ciegas', 'Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Precios orientativos</a>')}${PASOS}${LIMITES}</div></section>
+<section class="tc-sec tc-sec--alt" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', 'Cómo trabajamos: de la primera llamada a funcionando, sin pagar a ciegas', 'Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Precios orientativos</a>')}${PASOS}</div></section>
+${LIMITES}
 
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Casos', 'Qué hemos montado y qué se puede montar', 'Sin nombres de clientes por confidencialidad. El caso marcado como ejemplo no es un proyecto concreto: muestra lo que se puede implementar.', '<a class="tc-link" href="/casos/">Ver todos los casos</a>')}
 <div class="tc-grid tc-grid--4">${['gestion', 'distribucion', 'documentacion', 'sap'].map(casoCard).join('')}</div>
@@ -390,13 +404,10 @@ ${calcu('Antes de hablar con nosotros, haz la cuenta')}
 
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Preguntas frecuentes sobre consultoría de IA industrial', 'Lo que suelen preguntarnos las empresas industriales antes del diagnóstico.')}${faq([
     ['¿Qué es la consultoría de IA industrial?', 'Es analizar cómo trabaja una empresa industrial, decidir qué tareas compensa automatizar con inteligencia artificial y dejarlo funcionando: presupuestos, pedidos, albaranes, facturas, consultas técnicas o informes. Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia y empezamos siempre con un diagnóstico gratuito de 30 minutos.'],
-    ['¿Qué procesos industriales se pueden automatizar con IA?', 'Los repetitivos con documentos o datos: presupuestos y cálculo de costes, pedidos que llegan por correo, consultas de referencias y equivalencias, albaranes y partes de trabajo, facturas de proveedor, avisos de avería e informes. En el diagnóstico gratuito vemos cuáles compensan en tu caso.'],
     ['¿Cuánto cuesta el ERP para la industria?', 'TransformaConIA Gestión tiene una puesta en marcha de 690 € (en dos pagos de 345 €: al empezar y a los 3 meses) y un mantenimiento orientativo de 69 €/mes, con los tres primeros meses gratis. Cada usuario extra cuesta 15 €/mes desde el primer mes, no hay permanencia (30 días de aviso) y los precios no incluyen IVA.'],
     ['¿Cuánto cuesta automatizar un proceso?', 'Como referencia orientativa, una automatización parte de 450 € + IVA, un asistente técnico de 900 € y una herramienta a medida de 2.500 €. Tras el diagnóstico recibes un presupuesto cerrado por escrito.'],
     ['¿Tengo que cambiar de ERP?', 'No. Si tu ERP tiene API, lo conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. Con SAP, por ejemplo, cualquier idea para mejorarlo se puede valorar, y lo mismo con el programa que uséis. Si no tienes programa de gestión o se te ha quedado corto, te ofrecemos nuestro ERP para la industria.'],
-    ['¿Ofrecéis IA para empresas en Murcia?', 'Sí. Somos de Murcia y vamos a tu empresa en la Región de Murcia; en el resto de España trabajamos en remoto por videollamada. Tenemos una página con las zonas en las que trabajamos y lo que hacemos en cada una.'],
     ['¿Puedo probarlo antes de pagarlo todo?', 'Sí. Montamos un piloto con tus datos reales en 1 a 3 semanas y lo usáis en el día a día antes de comprometer el presupuesto completo. Las acciones importantes siempre piden confirmación a una persona.'],
-    ['¿Dónde quedan mis datos?', 'Accesos mínimos, servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. Lo que montamos es tuyo.'],
   ])}</div></section>
 <section class="tc-sec"><div class="tc-wrap">${head('Blog', 'IA en la industria y gestión de empresa', 'Casos de empresas industriales con IA y guías de gestión y automatización para aplicar en tu empresa.', '<a class="tc-link" href="/blog/">Ir al blog</a>')}[tc_categoria slug="ia-en-la-industria" n=3 relleno_ids="6768,6258"]</div></section>
 ${contactoPortada()}
@@ -417,7 +428,7 @@ P['industria'] = {
     ['¿Qué pasa con la confidencialidad de mis datos?', 'Accesos mínimos, servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. Lo que montamos es tuyo.'],
     ['¿Hacéis visitas a la nave o al taller?', 'Sí, en la Región de Murcia. Ver cómo trabajáis en persona es la mejor forma de detectar qué automatizar.'],
   ])}</div></section>
-${CALCULADORA}
+${CALC_ENLACE}
 ${band('¿Tu sector no aparece?', 'Da igual: si hay tareas repetitivas con datos o documentos, hay algo que automatizar. Cuéntanos cómo trabajáis.')}`),
 };
 
@@ -461,7 +472,7 @@ P['erp-industria'] = {
 <div class="tc-step tc-reveal"><span class="tc-step__when">Semana 1</span><h3>Demo y configuración</h3><p>Te lo enseñamos con datos de ejemplo, cargamos tus clientes, tu catálogo y tus tarifas de máquina, taller y material.</p></div>
 <div class="tc-step tc-reveal"><span class="tc-step__when">Semanas 2 y 3</span><h3>Arranque con tu equipo</h3><p>Empezáis a presupuestar, albaranar y facturar con él. Ajustamos lo que haga falta para que encaje con vuestra forma de trabajar.</p></div>
 <div class="tc-step tc-reveal"><span class="tc-step__when">Cuando tú das el visto bueno</span><h3>Empieza el mantenimiento</h3><p>El mantenimiento no empieza hasta que el programa está a tu gusto. Soporte, copias y mejoras incluidos.</p></div></div></div></section>
-${CALCULADORA}
+${CALC_ENLACE}
 <section class="tc-sec" id="precio"><div class="tc-wrap tc-split tc-split--center"><div class="tc-prose tc-reveal" style="gap:16px">${eyebrow('Precio')}<h2>Oferta de lanzamiento para las 10 primeras empresas</h2><p><b>690 € de puesta en marcha en dos pagos</b>: 345 € al empezar y 345 € a los 3 meses. <b>69 €/mes de mantenimiento</b>, los 3 primeros meses gratis. Usuario extra: 15 €/mes desde el primer mes. Sin permanencia (30 días de aviso). Precios sin IVA.</p><p>Tras la demo recibes el presupuesto cerrado por escrito. La cuota no empieza hasta que el programa está a tu gusto.</p><div class="tc-btns">${btn(DEMO_URL, DEMO_TXT)}${btn('/contacto/#reserva', 'Reserva el diagnóstico', true)}</div></div>
 ${facts('Precios sin IVA', [['Puesta en marcha', '<s style="color:var(--tc-dim);font-weight:400">990 €</s> 690 €'], ['Forma de pago', '345 € al empezar + 345 € a los 3 meses'], ['Mantenimiento orientativo', '69 €/mes'], ['Primeros 3 meses', 'Gratis'], ['Usuario extra', '15 €/mes desde el primer mes'], ['Permanencia', 'Ninguna (30 días de aviso)']])}</div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Sobre el ERP para la industria')}${faq([
@@ -504,7 +515,7 @@ ${band('¿Te lo enseñamos con una referencia que vendéis?', '15 minutos por vi
 P['otros-sectores'] = {
   title: 'Otros sectores',
   seo: ['IA para clínicas, asesorías y comercios | Transforma con IA', 'Asistentes que atienden a tus clientes, citas, documentación y software a medida para clínicas, asesorías, despachos, comercios y centros de formación.', 'chatbot para asesorías y clínicas'],
-  html: page(`${pagehead('<span>Otros sectores</span>', 'Más allá de la industria', 'Si tu equipo repite la misma tarea cada día, se puede automatizar', 'Nuestra especialidad es la industria, pero el mismo método funciona en clínicas, asesorías, despachos, comercios y centros de formación. Estas son aplicaciones que hemos construido y ejemplos de lo que se puede hacer. Los datos de los ejemplos son ficticios.', btn('/contacto/#reserva', 'Cuéntanos tu caso'), facts('Sectores', OTROS_SECTORES.map(([, t]) => [t, 'Sí'])))}
+  html: page(`${pagehead('<span>Otros sectores</span>', 'Más allá de la industria', 'Si tu equipo repite la misma tarea cada día, se puede automatizar', 'Nuestra especialidad es la industria, pero el mismo método funciona en clínicas, asesorías, despachos, comercios y centros de formación. Estas son aplicaciones que hemos construido y ejemplos de lo que se puede hacer. Los datos de los ejemplos son ficticios.', btn('/contacto/#reserva', 'Cuéntanos tu caso'), `<aside class="tc-hero__panel tc-spec"><div class="tc-hero__panel-h"><span>Sectores</span></div><div class="tc-mini" style="grid-template-columns:minmax(0,1fr);padding:14px">${OTROS_SECTORES.map(([i, t]) => `<div>${icon(i)}<b>${t}</b></div>`).join('')}</div></aside>`)}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-grid tc-grid--4">${[
     ['clinicas', 'cal', 'Clínicas y centros con cita', 'Agenda, fichas, recordatorios automáticos y un asistente que atiende y cita a cualquier hora.'],
     ['asesorias', 'balanza', 'Asesorías y despachos', 'Asistentes que responden a los clientes y piden la documentación que falta; buscadores jurídicos con IA.'],
@@ -519,10 +530,10 @@ ${band('¿Tu caso es distinto?', 'Cuéntanos qué tarea os quita más tiempo y t
 P['soluciones'] = {
   title: 'Soluciones de IA para empresas',
   seo: ['Soluciones de IA para la industria | Transforma con IA', 'ERP para la industria, automatización de procesos, asistentes técnicos, gestión documental y mejoras sobre SAP o tu ERP, con precios orientativos.', 'soluciones de automatización industrial con IA'],
-  html: page(`${pagehead('<span>Soluciones</span>', 'Soluciones', 'Lo que implantamos, con precio claro', 'Seis formas de empezar. Todas arrancan con un diagnóstico gratuito de 30 minutos y, cuando hay desarrollo, con un piloto que pruebas con tus propios datos antes de pagar el total.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos reales', true), facts('Precios orientativos (sin IVA)', [['Diagnóstico', 'Gratis'], ['ERP para la industria', 'desde 690 €'], ['Automatización', 'desde 450 €'], ['Gestión documental', 'desde 450 €'], ['Asistente técnico', 'desde 900 €'], ['Herramienta a medida', 'desde 2.500 €']]))}
+  html: page(`${pagehead('<span>Soluciones</span>', 'Soluciones', 'Lo que implantamos, con precio claro', 'Seis formas de empezar. Todas arrancan con un diagnóstico gratuito de 30 minutos y, cuando hay desarrollo, con un piloto que pruebas con tus propios datos antes de pagar el total.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Precios orientativos (sin IVA)', [['Diagnóstico', 'Gratis'], ['ERP para la industria', 'desde 690 €'], ['Automatización', 'desde 450 €'], ['Gestión documental', 'desde 450 €'], ['Asistente técnico', 'desde 900 €'], ['Herramienta a medida', 'desde 2.500 €']]))}
 ${sec(servCards() + `<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Soluciones concretas</span><p>Lo que montamos con más frecuencia:</p></div>` + chips, 'tc-sec--tight')}
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Cómo trabajamos', 'Tres pasos, y en ninguno pagas a ciegas')}${PASOS}</div></section>
-<section class="tc-sec"><div class="tc-wrap">${head('Por qué con nosotros', 'Lo que nos diferencia')}${porQue}</div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('Lo que no prometemos', 'Lo que no prometemos, y lo que sí', 'No prometemos porcentajes de ahorro antes de ver tus datos ni una IA que decida sola. Esto sí:')}<div class="tc-grid tc-grid--4">${GARANTIAS.map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Antes de empezar')}${faq([
     ['¿Los precios son cerrados?', 'No: son orientativos para que sepas el orden de magnitud. Tras el diagnóstico gratuito te enviamos un presupuesto cerrado por escrito.'],
     ['¿Necesito conocimientos técnicos?', 'No. Tú nos explicas cómo trabajáis y nosotros nos encargamos de la parte técnica. Al terminar formamos a tu equipo y te dejamos una guía sencilla.'],
@@ -677,7 +688,8 @@ ${band('¿Tienes un problema parecido?', 'Cuéntanoslo y te decimos cómo lo res
 P['quienes-somos'] = {
   id: 7105, title: 'Quiénes somos',
   seo: ['Quiénes somos | Consultoría de IA industrial', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia automatizando procesos en empresas industriales.', 'quiénes somos transforma con ia'],
-  html: page(`${pagehead('<span>Quiénes somos</span>', 'Quiénes somos', 'Transforma con IA: consultoría de IA para la industria', 'Somos un grupo de expertos en IA de Murcia, consultores y desarrolladores con más de 2 años de experiencia en automatización. Venimos de la industria y construimos nosotros mismos lo que implantamos: integraciones con el ERP y el correo, lectura automática de documentos, asistentes que consultan catálogos y automatizaciones con revisión humana.', btn('/contacto/#reserva', 'Reserva el diagnóstico de 30 minutos'), facts('En pocas palabras', [['Quiénes', 'Expertos en IA: consultores y desarrolladores'], ['Experiencia', 'Más de 2 años automatizando procesos'], ['Especialidad', 'Industria'], ['Dónde', 'Región de Murcia en persona y toda España en remoto']]))}
+  html: page(`${pagehead('<span>Quiénes somos</span>', 'Quiénes somos', 'Transforma con IA: consultoría de IA para la industria', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia. Venimos de la industria y construimos nosotros mismos lo que implantamos.', btn('/contacto/#reserva', 'Reserva el diagnóstico de 30 minutos'), facts('En pocas palabras', [['Quiénes', 'Expertos en IA: consultores y desarrolladores'], ['Experiencia', 'Más de 2 años automatizando procesos'], ['Especialidad', 'Industria'], ['Dónde', 'Región de Murcia en persona y toda España en remoto']]))}
+<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-grid tc-grid--3">${[['equipo', 'Hablas con quien lo construye', 'Sin intermediarios entre el diagnóstico y el código.'], ['objetivo', 'Pruebas con tus datos', 'Un piloto real antes de pagar el total.'], ['reloj', 'Sin permanencia', 'Si deja de servirte, lo dejas. Con 30 días de aviso.']].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow('Quiénes construyen')}<h2>Un grupo de expertos en IA de Murcia</h2><p>Transforma con IA es una consultoría de inteligencia artificial y automatización de procesos para empresas industriales. Analizamos cómo trabaja la empresa, detectamos las tareas que más horas repiten y desarrollamos la solución: no hay intermediarios entre quien te escucha en el diagnóstico y quien escribe el código.</p><p>Venimos de la industria: conocemos el día a día de un taller, de una distribuidora o de un servicio técnico, con sus referencias, albaranes, plazos y urgencias, y de ahí sale el criterio para decidir qué compensa automatizar y qué no.</p></div>
 <div class="tc-box tc-reveal"><h3>Qué construimos</h3>${list(['Integraciones con el ERP (SAP u otros) y con el correo: pedidos, albaranes y facturas que entran sin teclear', 'Lectura automática de documentos: PDF, fotos y correos convertidos en datos validados', 'Agentes que consultan catálogos, fichas técnicas y bases de datos y responden con la referencia correcta', 'Automatizaciones con revisión humana en lo dudoso y confirmación en lo importante', 'Aplicaciones web a medida, usables desde el móvil, con usuarios y permisos'])}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Cómo trabajamos', 'De un diagnóstico a una solución en producción')}
@@ -701,7 +713,8 @@ P['contacto'] = {
   // Tanda 5: la reserva va primero; el formulario queda como alternativa. El último encabezado antes del pie es un h3 para que el h4 del pie siga el orden.
   html: page(`${pagehead('<span>Contacto</span>', 'Diagnóstico gratis', 'Reserva tu diagnóstico gratis de 30 minutos', 'Elige día y hora en el calendario y lo vemos en una llamada de 30 minutos, por videollamada o en tu empresa si estás en la Región de Murcia. Si prefieres escribirnos, tienes el formulario más abajo.', '', facts('Cómo funciona', [['Diagnóstico', '30 min, gratis'], ['Compromiso', 'Ninguno'], ['Presencial', 'Región de Murcia'], ['Respuesta al formulario', 'menos de 24 h']]))}
 <section class="tc-sec tc-sec--tight" id="reserva"><div class="tc-wrap">
- <div class="tc-prose tc-reveal" style="max-width:880px;margin:0 auto 22px;gap:12px"><p><b>Horario:</b> de lunes a jueves de 19:00 a 20:30 y los viernes de 16:00 a 20:30. ¿No te viene bien? Escríbenos a <a href="mailto:info@transformaconia.com">info@transformaconia.com</a> y buscamos otro momento.</p><p><b>Qué incluye:</b> una llamada de 30 minutos, gratis, con uno de los consultores que después construirá lo que se acuerde. Vemos qué tarea os quita más horas y por dónde se podría empezar.</p>${list(['<b>Qué conviene preparar:</b> las 2 o 3 tareas que más horas os quitan y, si se puede, un ejemplo de documento (con los datos tapados si prefieres).', '<b>Qué no prometemos:</b> no hay compromiso ni venta en la llamada. Si encaja, te enviamos después por escrito qué automatizaríamos, cómo y un precio orientativo.'])}</div>
+ <div class="tc-grid tc-grid--3">${[['reloj', 'Qué incluye', 'Una llamada de 30 minutos, gratis, con quien después construirá lo que se acuerde.'], ['carpeta', 'Qué preparar', 'Las 2 o 3 tareas que más horas os quitan y, si puedes, un documento de ejemplo con los datos tapados.'], ['escudo', 'Qué no prometemos', 'Ni compromiso ni venta en la llamada. Si encaja, te enviamos por escrito qué haríamos y un precio orientativo.']].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div>
+ <p class="tc-reveal" style="max-width:880px;margin:22px auto 22px;text-align:center">Diagnósticos por la tarde, de lunes a viernes. ¿No te viene bien? Escríbenos a <a class="tc-link" href="mailto:info@transformaconia.com">info@transformaconia.com</a> y buscamos otro momento.</p>
  [tc_reserva]</div></section>
 <section class="tc-sec tc-sec--alt" id="contacto"><div class="tc-wrap">${head('Formulario', '¿Prefieres escribirnos?', 'Cuéntanos qué tarea o consulta os repite más vuestro equipo y te respondemos en menos de 24 horas laborables.')}<div class="tc-split">
  <div class="tc-box tc-reveal" style="padding:clamp(22px,3vw,36px)">${FORM_CONTACTO}</div>
