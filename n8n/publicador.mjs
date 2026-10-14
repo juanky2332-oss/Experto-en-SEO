@@ -5,8 +5,34 @@
 // Cualquier otro mensaje o botón "app:*" se reenvía a la app Experto en SEO.
 import fs from 'node:fs';
 import { Flow, CRED, CHAT_ID, WP, APP_URL, n8n, code, OPENAI_HTTP, reqJs, checkExpr, PARSE_RESPONSES } from './lib.mjs';
-import { CATEGORIAS, BRIEF_SCHEMA, BRIEF_SISTEMA, INVESTIGACION_SCHEMA, ARTICULO_SCHEMA, REDACCION_SISTEMA, QC_JS } from './prompts.mjs';
+import { CATEGORIAS, CAT_ANTIGUAS, BRIEF_SCHEMA, BRIEF_SISTEMA, INVESTIGACION_SCHEMA, INVESTIGACION_SISTEMA, ARTICULO_SCHEMA, REDACCION_SISTEMA, QC_JS } from './prompts.mjs';
 import { TIPOS_BASE, GUIA_INICIAL, guiaATexto, cajaAutor } from '../src/lib/guia-base.ts';
+
+// Páginas a las que el artículo puede llevar (servicio, sector, ERP, locales). Solo se ofrecen
+// las que existen publicadas en WordPress en el momento de redactar.
+const PAGINAS = {
+  '/erp-industria/': 'ERP para la industria (TransformaConIA Gestión): presupuestos, pedidos, albaranes, facturas, stock, partes de trabajo e informes',
+  '/industria/': 'IA y automatización para empresas industriales (página general del sector)',
+  '/ia-talleres-industriales/': 'IA para talleres de mecanizado, calderería, carpintería metálica y reparación de maquinaria',
+  '/ia-mantenimiento-industrial/': 'IA para mantenimiento industrial: preventivo, averías, órdenes de trabajo y repuestos',
+  '/ia-empresas-instaladoras/': 'IA para empresas instaladoras: avisos, partes, certificados y facturación',
+  '/ia-fabricacion-industrial/': 'IA en fabricación: planificación, órdenes de fabricación, calidad y datos de máquina',
+  '/distribucion-industrial/': 'Asistente técnico para distribución industrial: catálogo, equivalencias y pedidos',
+  '/gestion-documental-ia/': 'Gestión documental con IA: leer facturas, albaranes y pedidos sin teclear',
+  '/automatizacion-procesos-ia/': 'Automatización de procesos e informes que se hacen solos',
+  '/agentes-chatbots-ia/': 'Asistentes técnicos y chatbots sobre la documentación de la empresa',
+  '/desarrollo-a-medida-ia/': 'Herramientas a medida y conexión con SAP u otro ERP',
+  '/soluciones/': 'Todas las soluciones de IA para empresas',
+  '/casos/': 'Casos y fichas de proyectos industriales',
+  '/consultor-ia-murcia/': 'Consultoría de IA y automatización en Murcia',
+  '/automatizacion-industria-cartagena/': 'Automatización e IA para la industria en Cartagena',
+  '/automatizacion-industria-molina-de-segura/': 'Automatización e IA para la industria en Molina de Segura',
+  '/automatizacion-industria-lorca/': 'Automatización e IA para la industria en Lorca',
+  '/automatizacion-industria-alcantarilla/': 'Automatización e IA para la industria en Alcantarilla',
+  '/automatizacion-industria-elche/': 'Automatización e IA para la industria en Elche',
+  '/automatizacion-industria-albacete/': 'Automatización e IA para la industria en Albacete',
+  '/contacto/': 'Contacto y reserva del diagnóstico gratis (usar https://transformaconia.com/contacto/#reserva como CTA)',
+};
 
 const ID = process.argv[2] || 'rzxO46Wfc2eJcD7x';
 const f = new Flow('Transformaconia - Publicador IA SEO v3');
@@ -39,8 +65,12 @@ const j = $json;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 if (j.body && j.headers) {                      // llamada desde la app
   const b = j.body || {};
-  const map = { brief_url: 'url', brief_radar: 'prep', publish: 'publish', reject: 'reject' };
-  return [{ json: { route: map[b.action] || 'ignore', url: b.url || null, radar_id: b.radar_id ? +b.radar_id : null, brief_id: b.brief_id || null, origin: 'app', chatId: CHAT } }];
+  // brief_pista: tema propuesto desde «Qué publicar» (con o sin URL de referencia).
+  // pista = { keyword, secundarias[], intencion, publico, categoria | pilar, destino, destino_ref, enlaces[{url, ancla}], cta, titulo, tipo, notas }
+  const map = { brief_url: 'url', brief_pista: 'url', brief_radar: 'prep', publish: 'publish', reject: 'reject' };
+  const pista = b.pista && typeof b.pista === 'object' && String(b.pista.keyword || '').trim() ? b.pista : null;
+  if (b.action === 'brief_pista' && !pista) return [{ json: { route: 'ignore', motivo: 'brief_pista sin pista.keyword', chatId: CHAT } }];
+  return [{ json: { route: map[b.action] || 'ignore', url: b.url || null, radar_id: b.radar_id ? +b.radar_id : null, brief_id: b.brief_id || null, origin: 'app', chatId: CHAT, pista, borrador: b.borrador === true, rec_id: b.rec_id || null } }];
 }
 const cq = j.callback_query;
 const chatId = String(cq ? (cq.message && cq.message.chat && cq.message.chat.id) : (j.message && j.message.chat && j.message.chat.id) || '');
@@ -112,8 +142,8 @@ f.add('Radar a URL', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery'
 f.add('Preparar lectura', 'n8n-nodes-base.code', 2, code(`
 const r = $('Enrutar entrada').first().json;
 const url = $json.url || r.url;
-if (!url) throw new Error('No hay URL que leer');
-return [{ json: { url, chatId: r.chatId, origin: r.origin || 'telegram', radar_id: r.radar_id || null } }];
+if (!url && !r.pista) throw new Error('No hay URL que leer');
+return [{ json: { url: url || null, sin_fuente: !url, pista: r.pista || null, borrador: r.borrador === true, chatId: r.chatId, origin: r.origin || 'telegram', radar_id: r.radar_id || null } }];
 `), X(4, 1));
 f.add('Escribiendo', 'n8n-nodes-base.telegram', 1.2, { operation: 'sendChatAction', chatId: CHAT_ID }, X(5, 0), { credentials: tg, onError: 'continueRegularOutput' });
 f.add('Descargar noticia', 'n8n-nodes-base.httpRequest', 4.2, {
@@ -133,28 +163,58 @@ f.add('Aviso lectura fallida', 'n8n-nodes-base.telegram', 1.2, {
   additionalFields: { appendAttribution: false, disable_web_page_preview: true },
 }, X(8, 2), { credentials: tg });
 
+f.add('Sin URL', 'n8n-nodes-base.if', 2.2, {
+  conditions: { options: { caseSensitive: true, typeValidation: 'loose', version: 2 }, combinator: 'and',
+    conditions: [{ leftValue: '={{ $json.sin_fuente }}', rightValue: true, operator: { type: 'boolean', operation: 'true', singleValue: true } }] }, options: {},
+}, X(4.5, 2));
+// Tema propuesto sin noticia detrás: la "fuente" es la propia pista (los datos los aporta la investigación web)
+f.add('Fuente pista', 'n8n-nodes-base.code', 2, code(`
+const p = $('Preparar lectura').first().json.pista || {};
+return [{ json: { title: p.titulo || p.keyword, source: 'Panel · Qué publicar', link: '', content_markdown: '', h2_originales: [] } }];
+`), X(6, 3));
+// Publicados y programados con su foco de Rank Math (canibalización). Con usuario: los programados no son públicos.
 f.add('Inventario blog', 'n8n-nodes-base.httpRequest', 4.2, {
-  url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=id,title,link`,
+  url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish,future&_fields=id,title,link,status,meta.rank_math_focus_keyword`,
+  authentication: 'genericCredentialType', genericAuthType: 'httpBasicAuth',
   options: { timeout: 30000, response: { response: { fullResponse: true, neverError: true } } },
-}, X(8, 1));
+}, X(8, 1), { credentials: CRED.wp });
 
 f.add('Leer guia', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: `select (select value->>'texto' from seo.settings where key='guia') as guia, (select tipo from seo.radar where id = nullif($1,'')::bigint) as tipo_radar`,
+  query: `select (select value->>'texto' from seo.settings where key='guia') as guia, (select value->'pilares' from seo.settings where key='guia') as pilares, (select tipo from seo.radar where id = nullif($1,'')::bigint) as tipo_radar`,
   options: { queryReplacement: "={{ [ String($('Preparar lectura').first().json.radar_id || '') ] }}" } }, X(8.5, 0), { credentials: CRED.pg, alwaysOutputData: true, onError: 'continueRegularOutput' });
-f.add('Preparar brief', 'n8n-nodes-base.code', 2, code(`${UTIL}
-const d = $('Extraer contenido').first().json;
+const FUENTE_JS = `
+const fuente = () => { try { return $('Extraer contenido').first().json; } catch (e) { return $('Fuente pista').first().json; } };
+const PILARES_BASE = ${JSON.stringify(GUIA_INICIAL.pilares.map((p) => ({ nombre: p.nombre, categoria: p.categoria })))};
+const CAT_VIEJAS = ${JSON.stringify(CAT_ANTIGUAS)};
+const CATS_OK = ${JSON.stringify(Object.keys(CATEGORIAS))};
+const textoPista = (p) => !p ? '' : [
+  'Keyword principal: ' + p.keyword,
+  p.secundarias && p.secundarias.length ? 'Keywords secundarias: ' + [].concat(p.secundarias).join(', ') : '',
+  p.intencion ? 'Intención: ' + p.intencion : '', p.publico ? 'Público: ' + p.publico : '',
+  p.tipo ? 'Tipo: ' + p.tipo : '', p.pilar ? 'Pilar: ' + p.pilar : '', p.categoria ? 'Categoría: ' + p.categoria : '',
+  p.destino ? 'Destino: ' + p.destino + (p.destino_ref ? ' (' + p.destino_ref + ')' : '') : '',
+  p.enlaces && p.enlaces.length ? 'Enlaces internos obligatorios: ' + p.enlaces.map(e => (e.url || e) + (e.ancla ? ' («' + e.ancla + '»)' : '')).join(' · ') : '',
+  p.cta ? 'CTA: ' + p.cta : '', p.titulo ? 'Título orientativo: ' + p.titulo : '', p.notas ? 'Notas: ' + p.notas : '',
+].filter(Boolean).join('\\n');
+`;
+f.add('Preparar brief', 'n8n-nodes-base.code', 2, code(`${UTIL}${FUENTE_JS}
+const d = fuente();
+const L = $('Preparar lectura').first().json;
 const g = $('Leer guia').first().json || {};
 const body = $('Inventario blog').first().json.body;
 const posts = Array.isArray(body) ? body : [];
-const inventario = posts.map(p => '- [' + p.id + '] ' + decode(p.title && p.title.rendered)).join('\\n');
+const inventario = posts.map(p => '- [' + p.id + (p.status === 'future' ? ', programado' : '') + '] ' + decode(p.title && p.title.rendered) + ((p.meta && p.meta.rank_math_focus_keyword) ? ' — foco: ' + p.meta.rank_math_focus_keyword.split(',').slice(0, 3).join(', ') : '')).join('\\n');
 const cats = ${JSON.stringify(Object.entries(CATEGORIAS).map(([k, v]) => `- ${k}: ${v}`).join('\n'))};
+const conFuente = !!String(d.content_markdown || '').trim();
 const usuario = 'FECHA DE HOY: ' + hoyMadrid() + '\\n\\n' +
-  'NOTICIA\\nTítulo: ' + d.title + '\\nFuente: ' + d.source + '\\nURL: ' + d.link + '\\n' +
-  'Subtítulos originales: ' + JSON.stringify(d.h2_originales || []) + '\\n\\nTEXTO FUENTE:\\n' + String(d.content_markdown || '').slice(0, 14000) +
+  (L.pista ? 'PISTA DEL EDITOR (manda sobre lo que deduzcas):\\n' + textoPista(L.pista) + '\\n\\n' : '') +
+  (conFuente ? 'NOTICIA\\nTítulo: ' + d.title + '\\nFuente: ' + d.source + '\\nURL: ' + d.link + '\\n' +
+    'Subtítulos originales: ' + JSON.stringify(d.h2_originales || []) + '\\n\\nTEXTO FUENTE:\\n' + String(d.content_markdown || '').slice(0, 14000)
+    : 'SIN TEXTO FUENTE: tema evergreen propuesto por el editor. "hechos" va vacío y no escribas cifras.') +
   (g.tipo_radar ? '\\n\\nTIPO SUGERIDO POR EL RADAR: ' + g.tipo_radar + ' (cámbialo si otro saca más valor)' : '') +
   '\\n\\nGUÍA EDITORIAL:\\n' + (g.guia || GUIA_TEXTO_BASE) +
   '\\n\\nCATEGORÍAS DEL BLOG:\\n' + cats +
-  '\\n\\nARTÍCULOS QUE YA TIENE EL BLOG (para detectar canibalización):\\n' + inventario;
+  '\\n\\nARTÍCULOS QUE YA TIENE EL BLOG (publicados y programados, con su foco de Rank Math, para detectar canibalización):\\n' + inventario;
 const sistema = ${JSON.stringify(BRIEF_SISTEMA)};
 ${reqJs({ model: 'gpt-5.5', effort: 'low', schemaName: 'brief_editorial', schema: BRIEF_SCHEMA, maxTokens: 12000 })}
 return [{ json: { req } }];
@@ -164,23 +224,46 @@ f.add('Brief editorial', 'n8n-nodes-base.httpRequest', 4.2,
   OPENAI_HTTP,
   X(10, 1), { credentials: CRED.openai, retryOnFail: true, maxTries: 2, waitBetweenTries: 5000 });
 
-f.add('Parsear brief', 'n8n-nodes-base.code', 2, code(`${UTIL}${PARSE_RESPONSES}
+f.add('Parsear brief', 'n8n-nodes-base.code', 2, code(`${UTIL}${PARSE_RESPONSES}${FUENTE_JS}
 const b = leerRespuesta($json);
-const d = $('Extraer contenido').first().json;
+const d = fuente();
+const p = $('Preparar lectura').first().json;
+const g = $('Leer guia').first().json || {};
+// La pista del panel manda sobre lo que deduce el modelo
+const P = p.pista;
+if (P) {
+  b.keyword_principal = String(P.keyword).trim().toLowerCase();
+  if (Array.isArray(P.secundarias) && P.secundarias.length) b.keywords_secundarias = P.secundarias.map(String);
+  const INT = { informacional: 'Informacional', comercial: 'Comercial', transaccional: 'Transaccional', navegacional: 'Navegacional', local: 'Local' };
+  if (P.intencion && INT[String(P.intencion).toLowerCase()]) b.intencion = INT[String(P.intencion).toLowerCase()];
+  if (P.publico) b.publico = String(P.publico);
+  if (P.tipo && TIPOS_BASE.some(t => t.clave === P.tipo)) b.tipo = P.tipo;
+  let cat = P.categoria ? (CAT_VIEJAS[P.categoria] || P.categoria) : '';
+  if (!CATS_OK.includes(cat) && P.pilar) {
+    const pil = [].concat(Array.isArray(g.pilares) ? g.pilares : [], PILARES_BASE).find(x => x && String(x.nombre).toLowerCase() === String(P.pilar).toLowerCase());
+    if (pil) cat = CAT_VIEJAS[pil.categoria] || pil.categoria;
+  }
+  if (CATS_OK.includes(cat)) b.categoria = cat;
+  if (!String(d.content_markdown || '').trim()) { b.hechos = []; b.vigencia = b.tipo === 'actualidad' ? 'noticia' : 'evergreen'; }
+  b.pista = P;
+}
+b.categoria = CAT_VIEJAS[b.categoria] || b.categoria;
+if (p.borrador) b.forzar_borrador = true;
 const semaforo = b.interes >= 75 ? '🟢' : b.interes >= 55 ? '🟡' : '🔴';
-let t = '📰 <b>' + esc(b.titular) + '</b>\\n' + '<i>' + esc(d.source) + '</i> · ' + esc(d.link) + '\\n\\n' +
+let t = (d.link ? '📰 ' : '🧭 ') + '<b>' + esc(b.titular) + '</b>\\n' + (d.link ? '<i>' + esc(d.source) + '</i> · ' + esc(d.link) : '<i>Tema propuesto desde «Qué publicar»</i>') + '\\n\\n' +
   '<b>En una línea:</b> ' + esc(b.resumen_linea) + '\\n\\n' +
-  '<b>Qué ha pasado:</b> ' + esc(b.que_ha_pasado) + '\\n\\n' +
+  '<b>' + (d.link ? 'Qué ha pasado' : 'Qué cubre') + ':</b> ' + esc(b.que_ha_pasado) + '\\n\\n' +
   '<b>Por qué importa:</b> ' + esc(b.por_que_importa) + '\\n\\n' +
-  '<b>Dato clave:</b> ' + esc(b.dato_clave) + '\\n\\n' +
-  semaforo + ' <b>Interés ' + b.interes + '/100</b> — ' + (b.publicar ? 'recomiendo publicarla' : 'no recomiendo publicarla') + '. ' + esc(b.motivo) + '\\n' +
+  '<b>' + (d.link ? 'Dato clave' : 'Idea clave') + ':</b> ' + esc(b.dato_clave) + '\\n\\n' +
+  semaforo + ' <b>Interés ' + b.interes + '/100</b> — ' + (b.publicar ? 'recomiendo publicarlo' : 'no recomiendo publicarlo') + '. ' + esc(b.motivo) + '\\n' +
   '🎯 ' + esc(tipoDe(null, b.tipo).nombre) + ' · ' + esc(b.angulo) + ' · ' + esc(b.vigencia) + ' · ' + esc(b.categoria) + '\\n' +
-  '🔑 <code>' + esc(b.keyword_principal) + '</code> (' + esc(b.intencion) + ')\\n' +
-  '❓ ' + b.preguntas.slice(0, 3).map(esc).join(' · ');
+  '🔑 <code>' + esc(b.keyword_principal) + '</code> (' + esc(b.intencion) + ')' + (P ? ' · pista del panel' : '') + '\\n' +
+  '👤 ' + esc(b.publico) + '\\n' +
+  '❓ ' + b.preguntas.slice(0, 3).map(esc).join(' · ') +
+  (b.forzar_borrador ? '\\n📝 Se guardará como BORRADOR' : '');
 if (b.canibaliza && b.canibaliza.post_id) t += '\\n\\n⚠️ <b>Ya tienes algo parecido:</b> ' + esc(b.canibaliza.titulo) + ' (#' + b.canibaliza.post_id + '). ' + esc(b.canibaliza.recomendacion);
 if (t.length > 3900) t = t.slice(0, 3890) + '…';
-const p = $('Preparar lectura').first().json;
-return [{ json: { brief: b, telegram: t, origin: p.origin, radar_id: p.radar_id ? String(p.radar_id) : '', url: d.link, titulo: d.title, fuente: d.source, texto: String(d.content_markdown || '').slice(0, 16000) } }];
+return [{ json: { brief: b, telegram: t, origin: p.origin, radar_id: p.radar_id ? String(p.radar_id) : '', url: d.link || '', titulo: d.title, fuente: d.source, texto: String(d.content_markdown || '').slice(0, 16000) } }];
 `), X(11, 1));
 
 f.add('Guardar brief', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
@@ -201,7 +284,10 @@ f.link('Ruta', 'Preparar lectura', 0);
 f.link('Ruta', 'Radar a URL', 1);
 f.link('Radar a URL', 'Preparar lectura');
 f.link('Preparar lectura', 'Escribiendo');
-f.link('Preparar lectura', 'Descargar noticia');
+f.link('Preparar lectura', 'Sin URL');
+f.link('Sin URL', 'Fuente pista', 0);
+f.link('Sin URL', 'Descargar noticia', 1);
+f.link('Fuente pista', 'Inventario blog');
 f.link('Descargar noticia', 'Extraer contenido', 0);
 f.link('Descargar noticia', 'Lector Jina', 1);
 f.link('Lector Jina', 'Extraer contenido');
@@ -228,9 +314,14 @@ f.add('Aviso ya en marcha', 'n8n-nodes-base.telegram', 1.2, { chatId: CHAT_ID, t
 f.add('Aviso redactando', 'n8n-nodes-base.telegram', 1.2, { chatId: CHAT_ID, text: "=✍️ Redactando <b>{{ $json.brief.titular }}</b>\nInvestigo la actualidad, escribo, reviso el SEO y genero 3 imágenes. Tardo unos 4-7 minutos; te aviso al terminar.", additionalFields: HTML }, X(5, Y - 1), { credentials: tg, onError: 'continueRegularOutput' });
 
 f.add('Inventario enlaces', 'n8n-nodes-base.httpRequest', 4.2, {
-  url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=id,title,link,excerpt,categories,date`,
+  url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish,future&_fields=id,title,link,excerpt,categories,date,status,meta.rank_math_focus_keyword`,
+  authentication: 'genericCredentialType', genericAuthType: 'httpBasicAuth',
   options: { timeout: 30000, response: { response: { fullResponse: true, neverError: true } } },
-}, X(5, Y));
+}, X(5, Y), { credentials: CRED.wp });
+f.add('Paginas', 'n8n-nodes-base.httpRequest', 4.2, {
+  url: `${WP}/wp-json/wp/v2/pages?per_page=100&status=publish&_fields=id,link`,
+  options: { timeout: 30000, response: { response: { fullResponse: true, neverError: true } } },
+}, X(5.5, Y + 1));
 f.add('Categorias', 'n8n-nodes-base.httpRequest', 4.2, {
   url: `${WP}/wp-json/wp/v2/categories?per_page=100&_fields=id,name,slug`,
   options: { timeout: 30000, response: { response: { fullResponse: true, neverError: true } } },
@@ -238,9 +329,15 @@ f.add('Categorias', 'n8n-nodes-base.httpRequest', 4.2, {
 
 f.add('Preparar investigacion', 'n8n-nodes-base.code', 2, code(`${UTIL}
 const r = $('Bloquear brief').first().json; const b = r.brief;
-const usuario = 'Fecha de hoy: ' + hoyMadrid() + '.\\nTema: ' + b.titular + '\\nKeyword: ' + b.keyword_principal + '\\nEntidades: ' + b.entidades.join(', ') +
-  '\\nFuente original: ' + r.source_url + '\\n\\nBusca en la web la información MÁS RECIENTE y fiable sobre este tema: anuncio oficial, documentación, precios o disponibilidad, reacciones de medios de referencia y datos que un lector necesitaría. Devuelve 5-10 hechos concretos con su URL exacta. Solo fuentes primarias o medios de referencia; nada de blogs de SEO ni agregadores. Si algo no lo puedes confirmar, no lo incluyas.';
-const sistema = 'Eres un documentalista riguroso. Respondes solo con hechos verificados en fuentes que has consultado, siempre con su URL.';
+const noticia = b.vigencia === 'noticia' && !!r.source_url;
+const usuario = 'Fecha de hoy: ' + hoyMadrid() + '.\\nTema: ' + b.titular + '\\nKeyword: ' + b.keyword_principal +
+  '\\nSecundarias: ' + (b.keywords_secundarias || []).join(', ') + '\\nIntención: ' + b.intencion + '\\nPúblico: ' + (b.publico || 'pyme industrial española') +
+  '\\nEntidades: ' + (b.entidades || []).join(', ') + (r.source_url ? '\\nFuente original: ' + r.source_url : '\\nSin noticia de origen: tema evergreen.') +
+  '\\nPreguntas previstas: ' + (b.preguntas || []).join(' | ') +
+  '\\n\\nBusca en la web (España y UE primero): (1) 2-4 fuentes OFICIALES o PRIMARIAS que respalden lo esencial del tema (normativa, organismos públicos, estadísticas oficiales, documentación técnica, estudios de asociaciones industriales o universidades); (2) datos concretos y actuales que necesitaría un responsable de una pyme industrial; (3) las preguntas que la gente hace sobre esta búsqueda («Otras preguntas de los usuarios»).' +
+  (noticia ? ' Incluye el anuncio oficial, la disponibilidad en España/UE y reacciones de medios de referencia.' : '') +
+  ' Devuelve 5-10 hechos con la URL EXACTA de la página concreta (no la portada del sitio) y el tipo de fuente. Si algo no lo puedes confirmar, no lo incluyas.';
+const sistema = ${JSON.stringify(INVESTIGACION_SISTEMA)};
 ${reqJs({ model: 'gpt-5.5', effort: 'low', tools: [{ type: 'web_search', search_context_size: 'medium', user_location: { type: 'approximate', country: 'ES' } }], schemaName: 'investigacion', schema: INVESTIGACION_SCHEMA, maxTokens: 12000 })}
 return [{ json: { req } }];
 `), X(7, Y));
@@ -249,36 +346,72 @@ f.add('Investigar actualidad', 'n8n-nodes-base.httpRequest', 4.2,
   X(8, Y), { credentials: CRED.openai, onError: 'continueRegularOutput' });
 
 f.add('Preparar redaccion', 'n8n-nodes-base.code', 2, code(`${UTIL}${PARSE_RESPONSES}
-const r = $('Bloquear brief').first().json; const b = r.brief;
-let inv = { hechos: [], contexto: '' }, citas = [];
-try { inv = leerRespuesta($json); citas = fuentesWeb($json); } catch (e) { inv = { hechos: [], contexto: '' }; }
-// candidatos a enlace interno: por solapamiento de palabras con la keyword/entidades
-const posts = (($('Inventario enlaces').first().json.body) || []).map(p => ({ id: p.id, t: decode(p.title && p.title.rendered), link: p.link, ex: decode(p.excerpt && p.excerpt.rendered).slice(0, 160), date: p.date }));
+const r = $('Bloquear brief').first().json; const b = r.brief; const P = b.pista || null;
+const BASE = '${WP}';
+let inv = { hechos: [], contexto: '', preguntas_relacionadas: [] }, citas = [];
+try { inv = leerRespuesta($json); citas = fuentesWeb($json); } catch (e) { inv = { hechos: [], contexto: '', preguntas_relacionadas: [] }; }
+const limpia = (u) => String(u || '').replace(/[?&]utm_source=openai/g, '').replace(/#.*$/, '');
+// sin URL(): no existe en el sandbox de los Code nodes
+const ruta = (u) => { const s = String(u || '').trim().replace(/^https?:\\/\\/[^/]+/i, '').replace(/[?#].*$/, ''); return s ? ('/' + s.replace(/^\\/+/, '')).replace(/\\/?$/, '/') : ''; };
+const abs = (u) => /^https?:/.test(u) ? u : BASE + (String(u).startsWith('/') ? '' : '/') + u;
+// inventario: publicados (enlazables) y programados (solo para canibalización)
+const bodyP = $('Inventario enlaces').first().json.body;
+const posts = (Array.isArray(bodyP) ? bodyP : []).map(p => ({ id: p.id, t: decode(p.title && p.title.rendered), link: p.link, ex: decode(p.excerpt && p.excerpt.rendered).slice(0, 160), date: p.date, estado: p.status, foco: (p.meta && p.meta.rank_math_focus_keyword) || '' }));
+const publicados = posts.filter(p => p.estado === 'publish');
+const bodyG = $('Paginas').first().json.body;
+const rutasWp = new Set((Array.isArray(bodyG) ? bodyG : []).map(p => ruta(p.link)));
+const PAG = ${JSON.stringify(PAGINAS)};
+const paginas = Object.entries(PAG).filter(([k]) => rutasWp.has(k));
+// artículos relacionados: solapamiento de palabras con keyword, secundarias y entidades
 const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-const claves = norm([b.keyword_principal, ...b.keywords_secundarias, ...b.entidades, b.titular].join(' ')).split(/[^a-z0-9]+/).filter(w => w.length > 3);
-const puntuados = posts.map(p => { const t = norm(p.t + ' ' + p.ex); return { ...p, s: claves.reduce((a, w) => a + (t.includes(w) ? 1 : 0), 0) }; })
-  .sort((a, b2) => b2.s - a.s || (b2.date > a.date ? 1 : -1)).slice(0, 14);
-const internos = puntuados.map(p => '- ' + p.t + ' → ' + p.link).join('\\n');
-const hechosFuente = b.hechos.map(h => '- ' + h.dato + ' (cita: "' + h.cita + '")').join('\\n');
-const hechosWeb = (inv.hechos || []).map(h => '- ' + h.dato + ' — ' + h.fuente + ' (' + h.url + ')').join('\\n');
-const urlsFuente = [r.source_url, ...(inv.hechos || []).map(h => h.url), ...citas.map(c => c.url)].filter(Boolean);
+const claves = norm([b.keyword_principal, ...(b.keywords_secundarias || []), ...(b.entidades || []), b.titular].join(' ')).split(/[^a-z0-9]+/).filter(w => w.length > 3);
+const relacionados = publicados.map(p => { const t = norm(p.t + ' ' + p.ex + ' ' + p.foco); return { ...p, s: claves.reduce((a, w) => a + (t.includes(w) ? 1 : 0), 0) }; })
+  .sort((a, b2) => b2.s - a.s || (b2.date > a.date ? 1 : -1)).slice(0, 12);
+// enlaces obligatorios de la pista (solo si existen de verdad)
+const existentes = new Set([...paginas.map(([k]) => k), ...publicados.map(p => ruta(p.link))]);
+const obligatorios = ((P && P.enlaces) || []).map(e => abs(typeof e === 'string' ? e : e.url)).filter(u => existentes.has(ruta(u)));
+const descartados = ((P && P.enlaces) || []).map(e => typeof e === 'string' ? e : e.url).filter(u => !existentes.has(ruta(abs(u))));
+const anclas = Object.fromEntries(((P && P.enlaces) || []).filter(e => e && e.url && e.ancla).map(e => [ruta(abs(e.url)), e.ancla]));
+// CTA del cierre: destino de la pista > página por categoría > diagnóstico
+const CTA_CAT = { 'ia-en-la-industria': '/industria/', 'gestion-y-facturacion': '/erp-industria/', 'actualidad-ia': '/contacto/' };
+const dest = P && P.destino_ref ? ruta(P.destino_ref) : '';
+const ctaRuta = dest && existentes.has(dest) ? dest : (CTA_CAT[b.categoria] || '/contacto/');
+const ctaUrl = ctaRuta === '/contacto/' ? BASE + '/contacto/#reserva' : BASE + ctaRuta;
+// externas permitidas
+const externas = [...new Set([r.source_url, ...(inv.hechos || []).map(h => h.url), ...citas.map(c => c.url)].filter(Boolean).map(limpia))].slice(0, 14);
+// extensión según intención
+const esNoticia = b.vigencia === 'noticia' || b.tipo === 'actualidad';
+const rango = esNoticia ? [600, 900] : b.intencion === 'Informacional' ? [1200, 1800] : b.intencion === 'Local' ? [900, 1400] : [1000, 1600];
 const T = tipoDe(r.guia, b.tipo || 'actualidad');
-const bloqueTipo = '═══ TIPO DE ARTÍCULO: ' + T.nombre.toUpperCase() + ' ═══\\nObjetivo: ' + T.objetivo + '\\nExtensión: ' + T.extension + ' (mínimo ' + T.min_palabras + ' palabras)\\nEstructura recomendada (adáptala al tema; los H2 son preguntas o variantes de la keyword, no copies estos rótulos):\\n- ' + T.estructura.join('\\n- ') + '\\nESTILO VISUAL de las imágenes: ' + T.estilo_imagen;
+const bloqueTipo = '═══ TIPO DE ARTÍCULO: ' + T.nombre.toUpperCase() + ' ═══\\nObjetivo: ' + T.objetivo + '\\nExtensión: ' + rango[0] + '-' + rango[1] + ' palabras (entradilla + contenido_html; las FAQ no cuentan). Intención: ' + b.intencion + (esNoticia ? ' (noticia: directo al grano)' : '') +
+  '\\nEstructura recomendada (adáptala; los H2 son preguntas o variantes de la keyword, no copies estos rótulos):\\n- ' + T.estructura.join('\\n- ') + '\\nESTILO VISUAL de las imágenes: ' + T.estilo_imagen;
 const sistema = ${JSON.stringify(REDACCION_SISTEMA)}.split('{{HOY}}').join(hoyMadrid()).split('{{ANIO}}').join(String(anio()))
   .split('{{TIPO}}').join(bloqueTipo).split('{{GUIA}}').join((r.guia && r.guia.texto) || GUIA_TEXTO_BASE);
+const hechosFuente = (b.hechos || []).map(h => '- ' + h.dato + ' (cita: "' + h.cita + '")').join('\\n');
+const hechosWeb = (inv.hechos || []).map(h => '- [' + (h.tipo_fuente || 'medio') + '] ' + h.dato + ' — ' + h.fuente + ' (' + limpia(h.url) + ')').join('\\n');
 const usuario = [
-  'BRIEF APROBADO', 'Titular: ' + b.titular, 'Tipo: ' + T.nombre + ' · Ángulo: ' + b.angulo + ' · Vigencia: ' + b.vigencia + ' · Intención: ' + b.intencion,
-  'Keyword principal: ' + b.keyword_principal, 'Keywords secundarias: ' + b.keywords_secundarias.join(', '),
-  'Categoría sugerida: ' + b.categoria, 'Preguntas a responder: ' + b.preguntas.join(' | '),
-  'Qué ha pasado: ' + b.que_ha_pasado, 'Por qué importa: ' + b.por_que_importa, 'Dato clave: ' + b.dato_clave,
-  '', 'HECHOS DE LA FUENTE (' + r.source_name + ' — ' + r.source_url + '):', hechosFuente,
-  '', 'INVESTIGACIÓN ACTUAL (búsqueda web de hoy):', inv.contexto || '(sin datos adicionales)', hechosWeb,
-  '', 'URLs EXTERNAS PERMITIDAS:', [...new Set(urlsFuente)].slice(0, 12).join('\\n'),
-  '', 'ARTÍCULOS DEL BLOG PARA ENLAZAR (usa 3-5, solo estas URLs):', internos,
-  '', 'TEXTO FUENTE (referencia):', String(r.source_text || '').slice(0, 9000),
-].join('\\n');
+  'BRIEF APROBADO', 'Titular de trabajo: ' + b.titular, 'Tipo: ' + T.nombre + ' · Ángulo: ' + b.angulo + ' · Vigencia: ' + b.vigencia + ' · Intención: ' + b.intencion,
+  'Público: ' + (b.publico || 'responsable de una pyme industrial'),
+  'Keyword principal: ' + b.keyword_principal, 'Keywords secundarias: ' + (b.keywords_secundarias || []).join(', '),
+  'Categoría: ' + b.categoria, 'Preguntas del brief: ' + (b.preguntas || []).join(' | '),
+  'PREGUNTAS RELACIONADAS (búsqueda web, «la gente también pregunta»): ' + ((inv.preguntas_relacionadas || []).join(' | ') || '(sin datos)'),
+  P ? 'PISTA DEL EDITOR (manda): ' + JSON.stringify({ keyword: P.keyword, publico: P.publico, destino: P.destino, destino_ref: P.destino_ref, cta: P.cta, notas: P.notas }) : '',
+  (r.source_url ? 'Qué ha pasado: ' : 'Qué cubre: ') + b.que_ha_pasado, 'Por qué importa: ' + b.por_que_importa, 'Idea o dato clave: ' + b.dato_clave,
+  '', r.source_url ? 'HECHOS DE LA FUENTE (' + r.source_name + ' — ' + r.source_url + '):\\n' + hechosFuente : 'SIN NOTICIA DE ORIGEN: los datos salen solo de la investigación.',
+  '', 'INVESTIGACIÓN ACTUAL (búsqueda web de hoy, ' + hoyMadrid() + '):', inv.contexto || '(sin datos adicionales)', hechosWeb,
+  '', 'URLs EXTERNAS PERMITIDAS (1-3 en el texto, prioriza las oficiales/primarias):', externas.join('\\n') || '(ninguna: no pongas enlaces externos)',
+  '', 'PÁGINAS DE SERVICIO / SECTOR / ERP / LOCALES (elige 1-3 que encajen de verdad):', paginas.map(([k, v]) => '- ' + BASE + k + ' → ' + v).join('\\n'),
+  '', 'ARTÍCULOS DEL BLOG PARA ENLAZAR (elige 1-3 relacionados):', relacionados.map(p => '- ' + p.t + ' → ' + p.link).join('\\n'),
+  obligatorios.length ? '\\nENLACES OBLIGATORIOS (todos, con ancla descriptiva):\\n' + obligatorios.map(u => '- ' + u + (anclas[ruta(u)] ? ' (ancla sugerida: «' + anclas[ruta(u)] + '»)' : '')).join('\\n') : '',
+  '', 'CTA DEL CIERRE: enlaza a ' + ctaUrl + (P && P.cta ? ' — mensaje: ' + P.cta : '') + ' (si encaja mejor, puedes usar ' + BASE + '/contacto/#reserva, diagnóstico gratis).',
+  '', r.source_text ? 'TEXTO FUENTE (referencia):\\n' + String(r.source_text).slice(0, 9000) : '',
+].filter(x => x !== null && x !== undefined).join('\\n');
 ${reqJs({ model: 'gpt-5.5', effort: 'medium', schemaName: 'articulo', schema: ARTICULO_SCHEMA, maxTokens: 40000 })}
-return [{ json: { req, sistema, usuario, urls_internas: posts.map(p => p.link), investigacion: inv, citas } }];
+const rutasPaginas = paginas.map(([k]) => k).filter(k => k !== '/contacto/');
+return [{ json: { req, sistema, usuario, investigacion: inv, citas, rango,
+  rutas_internas: [...new Set([...paginas.map(([k]) => k), '/quienes-somos/', '/blog/', ...publicados.map(p => ruta(p.link))])],
+  rutas_paginas: rutasPaginas, rutas_cta: [...rutasPaginas, '/contacto/'], urls_externas: externas, obligatorios, descartados,
+  focos: posts.map(p => ({ id: p.id, titulo: p.t, foco: p.foco, estado: p.estado })) } }];
 `), X(9, Y));
 
 f.add('Redactar articulo', 'n8n-nodes-base.httpRequest', 4.2,
@@ -286,15 +419,43 @@ f.add('Redactar articulo', 'n8n-nodes-base.httpRequest', 4.2,
   X(10, Y), { credentials: CRED.openai, retryOnFail: true, maxTries: 2, waitBetweenTries: 10000 });
 
 const QC_NODE = (fuente) => `${UTIL}${PARSE_RESPONSES}${QC_JS}
-const r = $('Bloquear brief').first().json;
+const r = $('Bloquear brief').first().json; const b = r.brief;
 const prep = $('Preparar redaccion').first().json;
 const a = leerRespuesta($json);
-a.slug = String(a.slug || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 8).join('-').slice(0, 60).replace(/-$/, '');
-const ctx = { anio: anio(), vigencia: r.brief.vigencia, minPal: tipoDe(r.guia, r.brief.tipo || 'actualidad').min_palabras, fuenteTexto: String(r.source_text || '') + JSON.stringify(prep.investigacion || {}),
-  urlsInternas: new Set((prep.urls_internas || []).map(u => u.replace(/\\/?$/, '/'))), hayInternos: (prep.urls_internas || []).length > 3 };
+const CAT_VIEJAS = ${JSON.stringify(CAT_ANTIGUAS)};
+const CATS_OK = ${JSON.stringify(Object.keys(CATEGORIAS))};
+// slug corto: sin stopwords, máx. 5 palabras
+const STOP = new Set(['de','la','el','en','y','a','los','las','del','para','con','por','que','un','una','como','tu','su','sus','al','sin','o']);
+let sw = String(a.slug || a.focus_keyword || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').filter(Boolean);
+const sinStop = sw.filter(w => !STOP.has(w));
+if (sinStop.length >= 2) sw = sinStop;
+a.slug = sw.slice(0, 5).join('-').slice(0, 50).replace(/-$/, '');
+// categoría: la pista manda; los slugs viejos se traducen
+a.categoria = CAT_VIEJAS[a.categoria] || a.categoria;
+if (b.pista && CATS_OK.includes(b.categoria)) a.categoria = b.categoria;
+if (!CATS_OK.includes(a.categoria)) a.categoria = CATS_OK.includes(b.categoria) ? b.categoria : 'actualidad-ia';
+// enlaces: absolutos, sin parámetros de rastreo del buscador
+a.contenido_html = String(a.contenido_html || '').replace(/href="\\/(?!\\/)/g, 'href="${WP}/').replace(/[?&]utm_source=openai/g, '');
+a.fuentes = (a.fuentes || []).map(x => ({ ...x, url: String(x.url || '').replace(/[?&]utm_source=openai/g, '') }));
+// comprobación real de los enlaces (200)
+const urls = [...new Set([...a.contenido_html.matchAll(/<a\\s[^>]*href=["']([^"']+)["']/gi)].map(m => m[1]).filter(u => /^https?:/.test(u)))].slice(0, 18);
+const estado = {};
+await Promise.all(urls.map(async (u) => {
+  try { const x = await this.helpers.httpRequest({ method: 'GET', url: u.replace(/#.*$/, ''), returnFullResponse: true, ignoreHttpStatusErrors: true, timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TransformaQC/1.0; +https://transformaconia.com)' } }); estado[u] = x.statusCode; }
+  catch (e) { estado[u] = 0; }
+}));
+const limpiaExt = (u) => String(u).replace(/#.*$/, '').replace(/\\/$/, '');
+const ctx = { anio: anio(), minPal: prep.rango[0], maxPal: prep.rango[1], categoria: a.categoria,
+  fuenteTexto: String(r.source_text || '') + JSON.stringify(prep.investigacion || {}) + JSON.stringify(b.hechos || []),
+  rutasInternas: new Set(prep.rutas_internas || []), rutasPaginas: new Set(prep.rutas_paginas || []), rutasCta: new Set(prep.rutas_cta || []),
+  urlsExternas: new Set((prep.urls_externas || []).map(limpiaExt)), obligatorios: prep.obligatorios || [], estado,
+  entidades: [...(b.entidades || []), ...((prep.investigacion && prep.investigacion.hechos) || []).map(h => h.fuente)], focos: prep.focos || [] };
 const ev = evaluar(a, ctx);
 const minimo = +((r.ajustes || {}).score_minimo || 80);
-return [{ json: { articulo: a, score: ev.score, issues: ev.issues, metricas: ev.metricas, minimo, necesita_revision: ev.score < 90, origen: '${fuente}' } }];
+const malos = Object.entries(estado).filter(([, c]) => c && c !== 200).map(([u, c]) => u + ' → ' + c);
+return [{ json: { articulo: a, score: ev.score, issues: ev.issues, bloqueantes: ev.bloqueantes, avisos: ev.avisos, canibal: ev.canibal,
+  metricas: { ...ev.metricas, enlaces_comprobados: urls.length, enlaces_no_200: malos.length }, enlaces_no_200: malos, minimo,
+  necesita_revision: ev.bloqueantes.length > 0 || ev.score < 90, origen: '${fuente}' } }];
 `;
 f.add('Control calidad', 'n8n-nodes-base.code', 2, code(QC_NODE('primera')), X(11, Y));
 f.add('Necesita revision', 'n8n-nodes-base.if', 2.2, {
@@ -304,8 +465,10 @@ f.add('Necesita revision', 'n8n-nodes-base.if', 2.2, {
 f.add('Preparar revision', 'n8n-nodes-base.code', 2, code(`
 const q = $json; const prep = $('Preparar redaccion').first().json;
 const usuario = prep.usuario + '\\n\\n════ BORRADOR ACTUAL (JSON) ════\\n' + JSON.stringify(q.articulo) +
-  '\\n\\n════ FALLOS DETECTADOS POR EL CONTROL SEO (puntuación ' + q.score + '/100) ════\\n- ' + q.issues.join('\\n- ') +
-  '\\n\\nDevuelve el artículo COMPLETO corregido con el mismo esquema. Corrige todos los fallos sin perder calidad, datos ni extensión; no inventes nada para corregirlos.';
+  '\\n\\n════ CONTROL SEO AUTOMÁTICO (puntuación ' + q.score + '/100) ════' +
+  (q.bloqueantes.length ? '\\nFALLOS BLOQUEANTES (si no se corrigen, no se publica):\\n- ' + q.bloqueantes.join('\\n- ') : '') +
+  (q.avisos.length ? '\\nMEJORAS:\\n- ' + q.avisos.join('\\n- ') : '') +
+  '\\n\\nDevuelve el artículo COMPLETO corregido con el mismo esquema. Corrige primero todos los bloqueantes y después las mejoras, sin perder calidad, datos ni extensión. No inventes nada para corregirlos: si una cifra no tiene fuente, quítala o márcala dentro de un ejemplo ficticio; si un enlace no existe, usa uno de las listas.';
 const sistema = prep.sistema;
 ${reqJs({ model: 'gpt-5.5', effort: 'medium', schemaName: 'articulo', schema: ARTICULO_SCHEMA, maxTokens: 40000 })}
 return [{ json: { req } }];
@@ -318,7 +481,7 @@ f.add('Control calidad 2', 'n8n-nodes-base.code', 2, code(QC_NODE('revisada')), 
 f.add('Articulo final', 'n8n-nodes-base.code', 2, code(`${UTIL}
 const q1 = $('Control calidad').first().json;
 let q = q1;
-try { const q2 = $('Control calidad 2').first().json; if (q2 && q2.articulo && q2.score >= q1.score) q = q2; } catch (e) {}
+try { const q2 = $('Control calidad 2').first().json; if (q2 && q2.articulo && Array.isArray(q2.bloqueantes) && (q2.bloqueantes.length < q1.bloqueantes.length || (q2.bloqueantes.length === q1.bloqueantes.length && q2.score >= q1.score))) q = q2; } catch (e) {}
 const a = q.articulo;
 const cats = ($('Categorias').first().json.body || []);
 const rb = $('Bloquear brief').first().json;
@@ -335,7 +498,7 @@ f.link('Bloquear brief', 'Brief libre');
 f.link('Brief libre', 'Aviso redactando', 0);
 f.link('Brief libre', 'Inventario enlaces', 0);
 f.link('Brief libre', 'Aviso ya en marcha', 1);
-f.chain('Inventario enlaces', 'Categorias', 'Preparar investigacion', 'Investigar actualidad', 'Preparar redaccion', 'Redactar articulo', 'Control calidad', 'Necesita revision');
+f.chain('Inventario enlaces', 'Paginas', 'Categorias', 'Preparar investigacion', 'Investigar actualidad', 'Preparar redaccion', 'Redactar articulo', 'Control calidad', 'Necesita revision');
 f.link('Necesita revision', 'Preparar revision', 0);
 f.link('Necesita revision', 'Articulo final', 1);
 f.chain('Preparar revision', 'Revisar articulo', 'Control calidad 2', 'Articulo final');
@@ -356,7 +519,7 @@ f.add('Crear etiqueta', 'n8n-nodes-base.httpRequest', 4.2, {
 f.add('Prompts imagen', 'n8n-nodes-base.code', 2, code(`${UTIL}
 const f = $('Articulo final').first().json; const a = f.articulo;
 const rb = $('Bloquear brief').first().json;
-const estilo = ' ' + tipoDe(rb.guia, rb.brief.tipo || 'actualidad').estilo_prompt;
+const estilo = ' ' + tipoDe(rb.guia, rb.brief.tipo || 'actualidad').estilo_prompt + ' Absolutely no text, letters, numbers, logos, signage or invented brand names anywhere in the image.';
 const roles = ['portada', 'seccion_1', 'seccion_2'];
 return roles.map((rol, i) => {
   const im = (a.imagenes || []).find(x => x.rol === rol) || (a.imagenes || [])[i] || { prompt: 'A clear visual metaphor for ' + a.focus_keyword, alt: a.title, titulo: a.focus_keyword, pie: '' };
@@ -424,19 +587,26 @@ html = html.replace(/<h2([^>]*)>([\\s\\S]*?)<\\/h2>/gi, (m, at, inner) => {
   return /\\sid=/.test(at) ? m : '<h2' + at + ' id="' + id + '">' + inner + '</h2>';
 });
 
+const entradilla = a.entradilla ? '<p class="tca-entradilla">' + esc(a.entradilla) + '</p>' : '';
 const esencial = (a.lo_esencial || []).length ? '<div class="tca-esencial"><p class="tca-esencial__titulo"><strong>Lo esencial</strong></p><ul>' + a.lo_esencial.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '';
 const indice = toc.length >= 3 ? '<nav class="tca-indice" aria-label="Índice del artículo"><p class="tca-indice__titulo"><strong>En este artículo</strong></p><ol>' + toc.map(x => '<li><a href="#' + x.id + '">' + esc(x.t) + '</a></li>').join('') + '<li><a href="#preguntas-frecuentes">Preguntas frecuentes</a></li></ol></nav>' : '';
 const faq = (a.faq || []).slice(0, 6);
 const faqHtml = faq.length ? '<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>' + faq.map(x => '<h3>' + esc(x.pregunta) + '</h3><p>' + esc(x.respuesta) + '</p>').join('') : '';
 const fuentes = (a.fuentes || []).filter(x => /^https?:\\/\\//.test(x.url)).slice(0, 8);
-const fuentesHtml = fuentes.length ? '<h2 id="fuentes">Fuentes</h2><ul class="tca-fuentes">' + fuentes.map(x => '<li><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.nombre) + '</a></li>').join('') + '</ul>' : '';
+const hoy = hoyMadrid();
+const fuentesHtml = fuentes.length ? '<h2 id="fuentes">Fuentes</h2><ul class="tca-fuentes">' + fuentes.map(x => '<li><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.nombre) + '</a> <span class="tca-consulta">(consultado el ' + hoy + ')</span></li>').join('') + '</ul>' : '';
+const firma = '<p class="tca-firma">Redacción Transforma con IA · Actualizado el ' + hoy + '. Revisamos este artículo cuando cambian la normativa, los precios o las herramientas.</p>';
 const T = tipoDe(r.guia, r.brief.tipo || 'actualidad');
 const autor = (${cajaAutor.toString()})(T.cta || '');
-const estilos = '<style>.tca-esencial{background:#f4f7fb;border-left:4px solid #8a14d0;border-radius:10px;padding:16px 20px;margin:0 0 24px}.tca-esencial ul{margin:6px 0 0 18px}.tca-indice{background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:14px 20px;margin:0 0 28px}.tca-indice ol{margin:6px 0 0 18px}.tca-figura{margin:32px 0}.tca-figura img{border-radius:12px;width:100%;height:auto}.tca-figura figcaption{font-size:.85em;color:#6b7280;text-align:center;margin-top:8px}.tca-autor{display:block;background:linear-gradient(135deg,#0d0912,#2c0d45);color:#e6dcef;border-radius:16px;padding:24px 28px;margin:40px 0 10px;font-size:.96em}.tca-autor p{color:#e6dcef!important;margin:0 0 10px}.tca-autor .tca-autor__etiqueta{color:#c9b6f5!important;text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:700}.tca-autor .tca-autor__titulo{color:#fff!important;font-weight:700;font-size:1.12em;margin-top:18px}.tca-autor a{color:#ebd3f8!important;font-weight:700}.entry-content table{width:100%;border-collapse:collapse;margin:24px 0}.entry-content th,.entry-content td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}.entry-content th{background:#f4f7fb}.entry-content pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:.88em;line-height:1.55;margin:20px 0}.entry-content pre code{background:none;color:inherit;padding:0}.entry-content :not(pre)>code{background:#eef2ff;color:#1e3a8a;border-radius:5px;padding:1px 5px;font-size:.9em}</style>';
+const estilos = '<style>.tca-entradilla{font-size:1.12em;line-height:1.65;margin:0 0 22px}.tca-ejemplo{background:#faf5ff;border:1px dashed #b020ff;border-radius:10px;padding:14px 18px;margin:24px 0}.tca-ejemplo p:last-child{margin-bottom:0}.tca-consulta{color:#6b7280;font-size:.9em}.tca-firma{font-size:.88em;color:#6b7280;margin:18px 0 0}.tca-esencial{background:#f4f7fb;border-left:4px solid #8a14d0;border-radius:10px;padding:16px 20px;margin:0 0 24px}.tca-esencial ul{margin:6px 0 0 18px}.tca-indice{background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:14px 20px;margin:0 0 28px}.tca-indice ol{margin:6px 0 0 18px}.tca-figura{margin:32px 0}.tca-figura img{border-radius:12px;width:100%;height:auto}.tca-figura figcaption{font-size:.85em;color:#6b7280;text-align:center;margin-top:8px}.tca-autor{display:block;background:linear-gradient(135deg,#0d0912,#2c0d45);color:#e6dcef;border-radius:16px;padding:24px 28px;margin:40px 0 10px;font-size:.96em}.tca-autor p{color:#e6dcef!important;margin:0 0 10px}.tca-autor .tca-autor__etiqueta{color:#c9b6f5!important;text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:700}.tca-autor .tca-autor__titulo{color:#fff!important;font-weight:700;font-size:1.12em;margin-top:18px}.tca-autor a{color:#ebd3f8!important;font-weight:700}.entry-content table{width:100%;border-collapse:collapse;margin:24px 0}.entry-content th,.entry-content td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}.entry-content th{background:#f4f7fb}.entry-content pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:.88em;line-height:1.55;margin:20px 0}.entry-content pre code{background:none;color:inherit;padding:0}.entry-content :not(pre)>code{background:#eef2ff;color:#1e3a8a;border-radius:5px;padding:1px 5px;font-size:.9em}</style>';
 const faqSchema = faq.length >= 2 ? '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(x => ({ '@type': 'Question', name: x.pregunta, acceptedAnswer: { '@type': 'Answer', text: x.respuesta } })) }) + '</script>' : '';
 
-const contenido = estilos + esencial + indice + html + faqHtml + fuentesHtml + autor + faqSchema;
-const publicar = (ajustes.modo || 'publicar') === 'publicar' && F.score >= F.minimo;
+const contenido = estilos + entradilla + esencial + indice + html + faqHtml + fuentesHtml + firma + autor + faqSchema;
+let borradorApp = false; try { borradorApp = $('Enrutar entrada').first().json.borrador === true; } catch (e) {}
+const forzado = !!(r.brief.forzar_borrador || borradorApp);
+const bloq = F.bloqueantes || [];
+const publicar = (ajustes.modo || 'publicar') === 'publicar' && F.score >= F.minimo && !bloq.length && !forzado;
+const motivoBorrador = publicar ? '' : forzado ? 'se pidió borrador' : bloq.length ? 'quedan fallos bloqueantes del control SEO' : F.score < F.minimo ? 'no llega al mínimo de calidad (' + F.minimo + ')' : 'el modo de publicación es borrador';
 const seoTitle = (a.seo_title || a.title).length <= 40 ? (a.seo_title || a.title) + ' %sep% %sitename%' : (a.seo_title || a.title);
 const post = {
   title: a.title, content: contenido, excerpt: a.extracto, slug: a.slug,
@@ -447,7 +617,16 @@ const meta = { rank_math_title: seoTitle, rank_math_description: a.meta_descript
   rank_math_focus_keyword: [a.focus_keyword, ...(a.keywords_secundarias || []).slice(0, 4)].join(','),
   rank_math_facebook_title: a.title, rank_math_facebook_description: a.meta_description,
   rank_math_twitter_use_facebook: 'on' };
-return [{ json: { post, meta, publicar, imagenes: subidas.length, score: F.score, issues: F.issues, metricas: F.metricas, categoria: F.categoria_nombre, articulo: { title: a.title, focus_keyword: a.focus_keyword, slug: a.slug } } }];
+const x = F.metricas || {};
+const informe = (publicar ? '✅ <b>Publicado</b>' : '📝 <b>Guardado como borrador</b> (' + esc(motivoBorrador) + ')') + '\\n\\n' +
+  '<b>' + esc(a.title) + '</b>\\n__LINK__\\n\\n' +
+  '📊 SEO ' + F.score + '/100 · ' + (x.palabras || 0) + ' palabras (rango ' + esc(x.rango || '') + ') · ' + (x.h2 || 0) + ' H2 · ' + (x.internos || 0) + ' enlaces internos (' + (x.a_paginas || 0) + ' a servicios) · ' + (x.externos || 0) + ' fuentes · ' + (x.faq || 0) + ' FAQ\\n' +
+  '🔗 ' + (x.enlaces_comprobados || 0) + ' enlaces comprobados' + (x.enlaces_no_200 ? ' (' + x.enlaces_no_200 + ' sin 200)' : ', todos responden') + '\\n' +
+  '🖼 ' + subidas.length + '/3 imágenes WebP con alt · 📂 ' + esc(F.categoria_nombre) + '\\n🔑 <code>' + esc(a.focus_keyword) + '</code>\\n' +
+  '⚡ Rank Math configurado' + (publicar ? ' · IndexNow enviado' : '') +
+  (bloq.length ? '\\n\\n<b>⛔ Bloqueantes:</b>\\n• ' + bloq.slice(0, 5).map(esc).join('\\n• ') : '') +
+  ((F.avisos || []).length ? '\\n\\n<b>Detalles a pulir:</b>\\n• ' + F.avisos.slice(0, 5).map(esc).join('\\n• ') : '');
+return [{ json: { post, meta, publicar, motivo_borrador: motivoBorrador, imagenes: subidas.length, score: F.score, issues: F.issues, bloqueantes: bloq, avisos: F.avisos || [], canibal: F.canibal || [], metricas: F.metricas, categoria: F.categoria_nombre, informe: informe.slice(0, 3900), articulo: { title: a.title, focus_keyword: a.focus_keyword, slug: a.slug } } }];
 `), X(11, Y2));
 
 f.add('Crear post', 'n8n-nodes-base.httpRequest', 4.2, {
@@ -474,14 +653,7 @@ values ('n8n', case when $2='published' then 'publicar' else 'crear_borrador' en
   X(15, Y2), { credentials: CRED.pg, onError: 'continueRegularOutput' });
 f.add('Informe final', 'n8n-nodes-base.telegram', 1.2, {
   chatId: CHAT_ID,
-  text: `={{ (() => { const m = $('Montar HTML').first().json; const p = $('Crear post').first().json; const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const x = m.metricas || {};
-return (m.publicar ? '✅ <b>Publicado</b>' : '📝 <b>Guardado como borrador</b> (no llega al mínimo de calidad o el modo es borrador)') + '\\n\\n' +
- '<b>' + esc(m.articulo.title) + '</b>\\n' + esc(p.link) + '\\n\\n' +
- '📊 SEO ' + m.score + '/100 · ' + (x.palabras || 0) + ' palabras · ' + (x.h2 || 0) + ' H2 · ' + (x.internos || 0) + ' enlaces internos · ' + (x.externos || 0) + ' fuentes · ' + (x.faq || 0) + ' FAQ\\n' +
- '🖼 ' + m.imagenes + '/3 imágenes WebP con alt · 📂 ' + esc(m.categoria) + '\\n🔑 <code>' + esc(m.articulo.focus_keyword) + '</code>\\n' +
- '⚡ Rank Math configurado' + (m.publicar ? ' · IndexNow enviado (Bing, ChatGPT Search)' : '') +
- (m.issues.length ? '\\n\\n<b>Detalles a pulir:</b>\\n• ' + m.issues.slice(0, 5).map(esc).join('\\n• ') : ''); })() }}`,
+  text: "={{ $('Montar HTML').first().json.informe.replace('__LINK__', $('Crear post').first().json.link || '') }}",
   replyMarkup: 'inlineKeyboard',
   inlineKeyboard: { rows: [{ row: { buttons: [
     { text: '🔍 Auditar', additionalFields: { callback_data: "={{ 'app:auditar:' + $('Crear post').first().json.id }}" } },
