@@ -132,7 +132,7 @@ const SERVICIOS = [
   ['app', 'Herramientas a medida y SAP', 'Cualquier idea para mejorar vuestro programa, SAP o el que uséis, se puede implementar. Y lo que ningún programa estándar resuelve, a medida.', '/desarrollo-a-medida-ia/', 'desde <b>2.500 €</b>', 'Ver las herramientas a medida y SAP'],
   ['objetivo', 'Consultoría y diagnóstico', 'Analizamos vuestros procesos y te decimos qué automatizar primero, cómo y cuánto costaría. Por escrito.', '/contacto/', '<b>Gratis</b>', 'Reservar el diagnóstico gratuito'],
 ];
-const servCards = (cols = 3) => `<div class="tc-grid tc-grid--${cols}">${SERVICIOS.map(([i, t, p, u, pr, l], n) => `<article class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}">${icon(i)}<h3>${t}</h3><p>${p}</p><p class="tc-price">${/Gratis/.test(pr) ? '' : '<span>Orientativo</span> '}${pr}</p><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div>`;
+const servCards = (cols = 3, ultima = null) => `<div class="tc-grid tc-grid--${cols}">${SERVICIOS.map((x, n) => (ultima && n === SERVICIOS.length - 1 ? [x[0], x[1], x[2], ultima[0], x[4], ultima[1]] : x)).map(([i, t, p, u, pr, l], n) => `<article class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}">${icon(i)}<h3>${t}</h3><p>${p}</p><p class="tc-price">${/Gratis/.test(pr) ? '' : '<span>Orientativo</span> '}${pr}</p><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div>`;
 
 const SOLUCIONES_CONCRETAS = [
   ['Calculadora de costes y margen', '/erp-industria/'], ['Albaranes firmados en el móvil', '/erp-industria/'], ['Asistente técnico de catálogo', '/distribucion-industrial/'],
@@ -156,6 +156,16 @@ const ANTES_DESPUES = [
 ];
 const antesDespues = `<div class="tc-ad tc-reveal"><div class="tc-ad__h"><span>Hoy</span><span>Automatizado</span></div>${ANTES_DESPUES.map(([a, d]) => `<div class="tc-ad__row"><p class="tc-ad__antes">${a}</p><span class="tc-ad__arrow" aria-hidden="true">${ARROW}</span><p class="tc-ad__despues">${d}</p></div>`).join('')}</div>`;
 
+// Problema por departamento (solo la portada)
+const POR_DEP = [
+  ['Documentos tecleados a mano', 'Leídos y archivados solos, con revisión de los dudosos'],
+  ['Buscar referencias y fichas', 'Respuesta en segundos con tu catálogo'],
+  ['Presupuestos a mano', 'Coste y margen calculados en minutos'],
+  ['Papeles que llegan tarde a la oficina', 'Partes y albaranes desde el móvil'],
+];
+const antesDespuesDep = `<div class="tc-ad tc-reveal"><div class="tc-ad__h"><span>Hoy</span><span>Con IA</span></div>${POR_DEP.map(([a, d]) => `<div class="tc-ad__row"><p class="tc-ad__antes">${a}</p><span class="tc-ad__arrow" aria-hidden="true">${ARROW}</span><p class="tc-ad__despues">${d}</p></div>`).join('')}</div>`;
+const LIMITES = `<div class="tc-box tc-reveal" style="margin-top:28px"><h3>Lo que no te vamos a prometer</h3>${list(['<b>Porcentajes de ahorro antes de ver tus datos:</b> los calculamos contigo en el piloto.', '<b>Que la IA decida sola:</b> las acciones importantes siempre las confirma una persona de tu equipo.', '<b>Que cambies de ERP:</b> si tiene API lo conectamos; si no, valoramos cómo adaptarlo.', '<b>Sustituir a tu asesoría:</b> te preparamos el trimestre, la presentación la hace tu asesor.'])}<p class="tc-nota">Datos en servidores de la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. ERP sin permanencia: 30 días de aviso.</p></div>`;
+
 // Línea de proceso animada (ejemplo ilustrativo de una automatización)
 const LINEA = [
   ['sobre', 'Entra el pedido', 'Correo, PDF o WhatsApp del cliente'],
@@ -171,7 +181,7 @@ const linea = (titulo = 'Línea 01 · pedidos de clientes') => `<figure class="t
 <figcaption>Ejemplo ilustrativo: así fluye un pedido cuando el proceso está automatizado. El mismo esquema sirve para facturas de proveedor, avisos de avería o solicitudes de presupuesto.</figcaption></figure>`;
 
 const POR_QUE = [
-  ['fabrica', 'Conocemos el sector', 'Llevamos años trabajando en la industria. Sabemos qué es un plano, una referencia, un albarán y una urgencia de un viernes a las seis.'],
+  ['fabrica', 'Conocemos el sector', 'Llevamos más de 2 años aplicando IA en empresas industriales. Sabemos qué es un plano, una referencia, un albarán y una urgencia de un viernes a las seis.'],
   ['tuerca', 'Revisión humana en lo importante', 'La IA lee, clasifica y propone; las acciones importantes siempre piden confirmación a una persona de tu equipo.'],
   ['flujo', 'Sin cambiar tu ERP', 'Si tu ERP tiene API, nos conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. Cualquier mejora que se os ocurra se puede implementar en SAP o en el programa que uséis.'],
   ['objetivo', 'Lo pruebas antes de pagarlo todo', 'Piloto con tus datos reales en 1 a 3 semanas. Si no te ahorra tiempo, lo sabrás antes de invertir más.'],
@@ -179,23 +189,30 @@ const POR_QUE = [
   ['euro', 'Precios claros desde el principio', 'Precios orientativos publicados y presupuesto cerrado por escrito tras el diagnóstico. El ERP, sin permanencia.'],
 ];
 // Calculadora orientativa [tc_calculadora] (shortcode del snippet #13; la tarifa vive allí)
-const CALCULADORA = `<section class="tc-sec tc-sec--alt" id="calculadora"><div class="tc-wrap">${head('Haz la cuenta', 'Calcula cuánto papeleo podrías quitarte', 'Pon las horas que dedicáis a presupuestos, albaranes y facturas y mira el orden de magnitud. Es orientativo: parte de tus propias cifras.')}[tc_calculadora]</div></section>`;
+const calcu = (titulo = 'Calcula cuánto papeleo podrías quitarte') => `<section class="tc-sec tc-sec--alt" id="calculadora"><div class="tc-wrap">${head('Haz la cuenta', titulo, 'Pon las horas que dedicáis a presupuestos, albaranes y facturas y mira el orden de magnitud. Es orientativo: parte de tus propias cifras.')}[tc_calculadora]</div></section>`;
+const CALCULADORA = calcu();
 const porQue = `<div class="tc-grid tc-grid--3">${POR_QUE.map(([i, t, p]) => `<div class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></div>`).join('')}</div>`;
 
-const FORM_CONTACTO = `<form class="tc-form" data-tc-form="contacto" data-ok="¡Recibido! Te respondemos en menos de 24 horas laborables en tu correo." novalidate>
+const formContacto = (portada = false) => `<form class="tc-form" data-tc-form="contacto" data-ok="¡Recibido! Te respondemos en menos de 24 horas laborables en tu correo." novalidate>
 <div class="tc-form__row"><div class="tc-field"><label for="tc-nombre">Nombre</label><input id="tc-nombre" name="nombre" required autocomplete="name"></div>
 <div class="tc-field"><label for="tc-empresa">Empresa</label><input id="tc-empresa" name="empresa" autocomplete="organization"></div></div>
 <div class="tc-form__row"><div class="tc-field"><label for="tc-email">Correo</label><input id="tc-email" name="email" type="email" required autocomplete="email"></div>
-<div class="tc-field"><label for="tc-sector">Sector</label><select id="tc-sector" name="sector"><option value="">Elige uno</option><optgroup label="Industria">${SECTORES.map((s) => `<option>${s.t}</option>`).join('')}</optgroup><optgroup label="Otros sectores">${OTROS_SECTORES.map((s) => `<option>${s[1]}</option>`).join('')}<option>Otro</option></optgroup></select></div></div>
+<div class="tc-field">${portada ? `<label for="tc-sector">¿Dónde perdéis más horas?</label><select id="tc-sector" name="sector"><option value="">Elige uno</option>${['Documentos y facturas', 'Búsqueda de referencias', 'Presupuestos', 'Partes y albaranes', 'Otro'].map((o) => `<option>${o}</option>`).join('')}</select>` : `<label for="tc-sector">Sector</label><select id="tc-sector" name="sector"><option value="">Elige uno</option><optgroup label="Industria">${SECTORES.map((s) => `<option>${s.t}</option>`).join('')}</optgroup><optgroup label="Otros sectores">${OTROS_SECTORES.map((s) => `<option>${s[1]}</option>`).join('')}<option>Otro</option></optgroup></select>`}</div></div>
 <div class="tc-field"><label for="tc-mensaje">¿Qué tarea o consulta os repite más vuestro equipo?</label><textarea id="tc-mensaje" name="mensaje" required placeholder="Ej.: los presupuestos los calculamos a mano y tardamos días en contestar…"></textarea></div>
 <label class="tc-hp" aria-hidden="true">Web <input name="web" tabindex="-1" autocomplete="off"></label>
 <label class="tc-check"><input type="checkbox" required id="tc-acepto" name="acepto" value="si"> <span>He leído la <a href="/privacidad/">política de privacidad</a> y acepto que uséis mis datos para responderme.</span></label>
-<div><button class="tc-btn" type="submit">Enviar y pedir diagnóstico ${ARROW}</button></div>
+<div><button class="tc-btn" type="submit">${portada ? 'Pedir mi diagnóstico gratis' : 'Enviar y pedir diagnóstico'} ${ARROW}</button></div>
 <p class="tc-msg" role="status" aria-live="polite"></p></form>`;
+const FORM_CONTACTO = formContacto();
 
 const contactoSplit = (h2 = 'Cuéntanos qué proceso queréis automatizar') => `<section class="tc-sec" id="contacto"><div class="tc-wrap tc-split">
  <div class="tc-prose tc-reveal" style="gap:18px">${eyebrow('Diagnóstico gratis')}<h2>${h2}</h2><p>En menos de 24 horas laborables te respondemos con una primera valoración. Si tiene sentido, hacemos un diagnóstico gratuito de 30 minutos, en tu empresa si estás en la Región de Murcia o por videollamada, y te enviamos por escrito qué automatizaríamos, cómo y por cuánto.</p>${list(['Sin compromiso y sin permanencias', 'Precios orientativos desde el principio', 'Piloto con tus datos antes de pagar el total', 'En persona en Murcia, en remoto en toda España'])}<p>¿Prefieres el correo? <a class="tc-link" href="mailto:info@transformaconia.com">info@transformaconia.com</a></p></div>
  <div class="tc-box tc-reveal" style="padding:clamp(22px,3vw,36px)">${FORM_CONTACTO}</div>
+</div></section>`;
+
+const contactoPortada = () => `<section class="tc-sec" id="contacto"><div class="tc-wrap tc-split">
+ <div class="tc-prose tc-reveal" style="gap:18px">${eyebrow('Diagnóstico gratis')}<h2>Elige día y hora para tu diagnóstico de 30 minutos</h2><p>Lo hacemos en tu empresa si estás en la Región de Murcia o por videollamada, y te enviamos por escrito qué automatizaríamos, cómo y por cuánto.</p>${list(['Sin compromiso y sin permanencias', 'Precios orientativos desde el principio', 'Piloto con tus datos antes de comprometer el presupuesto completo', 'En persona en Murcia, en remoto en toda España'])}<div class="tc-btns">${btn('/contacto/#reserva', 'Reserva tu diagnóstico gratis')}</div></div>
+ <div class="tc-box tc-reveal" style="padding:clamp(22px,3vw,36px)"><p style="margin:0 0 16px"><b>¿Prefieres escribirnos?</b> Te respondemos en menos de 24 horas laborables.</p>${formContacto(true)}<p class="tc-nota" style="margin-top:12px">También en <a class="tc-link" href="mailto:info@transformaconia.com">info@transformaconia.com</a></p></div>
 </div></section>`;
 
 const MINI_CHAT = `<figure class="tc-chat tc-chat--mini" aria-label="Ejemplo de conversación con el asistente técnico"><div class="tc-chat__top"><span class="tc-chat__av">IA</span><div><b>Asistente técnico · Suministros Ejemplo</b><small><i></i>en línea · también de noche</small></div></div><div class="tc-chat__body">
@@ -308,25 +325,22 @@ P['transforma-con-ia'] = {
   html: page(`
 <header class="tc-hero tc-hero--home tc-hero--ind">${DECO('a')}<div class="tc-wrap tc-hero__grid">
  <div class="tc-hero__copy">
-  <span class="tc-live"><i></i>Consultoría de IA industrial · Murcia y toda España</span>
-  <h1 class="tc-h1-home"><span>Menos horas de papeleo</span> <span class="tc-grad tc-shine">en compras, almacén y facturación de tu industria</span></h1>
-  <p class="tc-lead">Conectamos el correo, tu ERP y tus Excel para que pedidos, albaranes, facturas y presupuestos no se tecleen dos veces. Presencial en la Región de Murcia y en remoto en toda España.</p>
-  <div class="tc-btns">${btn('/contacto/#reserva', 'Reserva el diagnóstico de 30 minutos')}${btn('/erp-industria/', 'Ver el ERP para la industria', true)}</div>
+  <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
+  <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
+  <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP. Presencial en la Región de Murcia y en remoto en toda España.</p>
+  <div class="tc-btns">${btn('/contacto/#reserva', 'Reserva tu diagnóstico gratis')}${btn('/erp-industria/', 'Ver el ERP para la industria', true)}</div>
   <ul class="tc-pilares">
-   <li><a href="/erp-industria/"><span class="tc-pilares__n">01</span>${icon('tuerca')}<span><b>ERP para la industria</b><small>Calcula costes, presupuesta y factura desde el móvil</small></span><span class="tc-pilares__a">${ARROW}</span></a></li>
-   <li><a href="/distribucion-industrial/"><span class="tc-pilares__n">02</span>${icon('chat')}<span><b>Asistentes técnicos</b><small>Referencias y equivalencias en segundos</small></span><span class="tc-pilares__a">${ARROW}</span></a></li>
-   <li><a href="/automatizacion-procesos-ia/"><span class="tc-pilares__n">03</span>${icon('flujo')}<span><b>Automatización y documentos</b><small>Pedidos, facturas y albaranes sin teclear</small></span><span class="tc-pilares__a">${ARROW}</span></a></li>
+   <li><a href="/erp-industria/"><span class="tc-pilares__n">01</span>${icon('tuerca')}<span><b>ERP para la industria</b><small>Calcula costes, presupuesta y factura desde el móvil</small></span></a></li>
+   <li><a href="/distribucion-industrial/"><span class="tc-pilares__n">02</span>${icon('chat')}<span><b>Asistentes técnicos</b><small>Referencias y equivalencias en segundos</small></span></a></li>
+   <li><a href="/automatizacion-procesos-ia/"><span class="tc-pilares__n">03</span>${icon('flujo')}<span><b>Automatización y documentos</b><small>Pedidos, facturas y albaranes sin teclear</small></span></a></li>
   </ul>
-  <ul class="tc-proof"><li><b>30 min</b> de diagnóstico, gratis</li><li><b>1-3 semanas</b> para un piloto con tus datos</li><li><b>Sin permanencia</b> en el ERP</li></ul>
+  <ul class="tc-proof"><li><span><b>30 min</b> de diagnóstico gratis</span></li><li><span><b>Piloto con tus datos</b> antes de comprometer el presupuesto completo</span></li><li><a class="tc-link" href="#calculadora">Haz la cuenta de tu papeleo</a></li></ul>
  </div>
  ${device(IMG.erp_inicio, 'ERP para la industria: lo pendiente de hoy, facturado, cobrado y vencido', '<span class="tc-device__ok">✓</span><span><b>Presupuesto calculado</b><small>Tu coste + tu margen · listo para enviar</small></span>')}
 </div>
 <div class="tc-wrap">${marquee}</div></header>
 
-<section class="tc-sec tc-sec--alt"><div class="tc-wrap tc-split tc-split--center">
- <div class="tc-prose tc-reveal" style="gap:18px">${eyebrow('El problema')}<h2>¿Tu equipo pasa el día buscando referencias, contestando lo mismo y haciendo presupuestos a mano?</h2><p>En una empresa industrial buena parte de las horas se van en tareas que no fabrican ni venden nada: calcular un presupuesto, pasar un pedido al programa, buscar una equivalencia, perseguir un albarán. Son tareas repetitivas, con reglas claras y muchos datos. Justo donde la IA funciona mejor.</p><p class="tc-quote">Si tu equipo técnico pasa más tiempo buscando información que resolviendo problemas, hay algo que automatizar.</p></div>
- ${antesDespues}
-</div></section>
+<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('El problema', '¿Cuánto tiempo se va en tareas que no fabrican ni venden?')}${antesDespuesDep}</div></section>
 
 <section class="tc-sec" id="erp"><div class="tc-wrap">
  <div class="tc-star tc-reveal">
@@ -344,32 +358,33 @@ P['transforma-con-ia'] = {
     <div>${icon('chat')}<b>Asistente de IA</b><small>Prepara documentos y pide confirmación</small></div>
    </div>
    <div class="tc-oferta"><div><span>Puesta en marcha (2 pagos de 345 €)</span><b><s>990 €</s> 690 €</b></div><div><span>Mantenimiento orientativo</span><b>69 €/mes</b></div><div><span>Primeros 3 meses</span><b>Gratis</b></div><div><span>Permanencia</span><b>Ninguna</b></div></div>
-   <div class="tc-btns">${btn('/erp-industria/', 'Conocer TransformaConIA Gestión')}${btn(DEMO_URL, DEMO_TXT, true)}</div>
+   <div class="tc-btns">${btn('/erp-industria/', 'Conocer TransformaConIA Gestión', true)}${btn(DEMO_URL, DEMO_TXT, true)}</div>
   </div>
   <div class="tc-star__vis">${shots([[IMG.erp_calculadora, 'Calculadora de costes del ERP con el margen aplicado'], [IMG.facturas, 'Facturas en el programa de gestión'], [IMG.cobros, 'Cobros y vencimientos'], [IMG.fiscal, 'Paquete trimestral para la asesoría']])}<p class="tc-nota">Pantallas reales del programa con datos de ejemplo. Precios sin IVA; oferta de lanzamiento. Usuario extra: 15 €/mes desde el primer mes.</p></div>
  </div>
 </div></section>
 
-<section class="tc-sec tc-sec--alt" id="soluciones"><div class="tc-wrap">${head('Soluciones y cómo trabajamos', 'Qué implantamos en tu empresa y cómo lo hacemos', 'Desde una automatización concreta hasta un programa de gestión completo. Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${servCards()}
-<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Cómo trabajamos</span><p>De la primera llamada a funcionando, en tres pasos y sin pagar a ciegas:</p></div>${PASOS}
+${calcu('Antes de hablar con nosotros, haz la cuenta')}
+
+<section class="tc-sec tc-sec--alt" id="soluciones"><div class="tc-wrap">${head('Soluciones y cómo trabajamos', 'Qué implantamos en tu empresa y cómo lo hacemos', 'Desde una automatización concreta hasta un programa de gestión completo. Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${servCards(3, ['/contacto/#reserva', 'Reserva tu diagnóstico gratis'])}
+<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Cómo trabajamos</span><p>De la primera llamada a funcionando, en tres pasos y sin pagar a ciegas:</p></div>${PASOS}${LIMITES}
 </div></section>
 
 <section class="tc-sec"><div class="tc-wrap">${head('Casos', 'Qué hemos montado y qué se puede montar', 'Sin nombres de clientes por confidencialidad. El caso marcado como ejemplo no es un proyecto concreto: muestra lo que se puede implementar.', '<a class="tc-link" href="/casos/">Ver todos los casos</a>')}
 <div class="tc-grid tc-grid--4">${['gestion', 'distribucion', 'documentacion', 'sap'].map(casoCard).join('')}</div>
-<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Sectores</span><p>Dónde más horas ahorramos:</p></div>
-<div class="tc-chips tc-reveal">${SECTORES.map((x) => `<a href="/industria/#${x.id}">${x.t.split(':')[0]}</a>`).join('')}<a href="/otros-sectores/">Otros sectores</a><a href="/consultor-ia-murcia/">Región de Murcia</a></div></div></section>
-
-<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Blog', 'IA en la industria y gestión de empresa', 'Casos de empresas industriales con IA y guías de gestión y automatización para aplicar en tu empresa.', '<a class="tc-link" href="/blog/">Ir al blog</a>')}[tc_categoria slug="ia-en-la-industria" n=4 relleno_ids="6768,6258"]</div></section>
+<div class="tc-chips tc-reveal" style="margin-top:24px"><a href="/otros-sectores/">Otros sectores</a><a href="/consultor-ia-murcia/">Región de Murcia</a></div></div></section>
 
 <section class="tc-sec"><div class="tc-wrap">${head('Preguntas frecuentes', 'Lo que suelen preguntarnos')}${faq([
-    ['¿Qué es Transforma con IA?', 'Una consultoría de inteligencia artificial y automatización de procesos con base en Murcia, especializada en la industria. Implantamos programas de gestión, asistentes técnicos, gestión documental y automatizaciones a medida en empresas de toda España.'],
+    ['¿Qué es Transforma con IA?', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia, especializados en la industria. Implantamos programas de gestión, asistentes técnicos, gestión documental y automatizaciones en empresas de toda España.'],
     ['¿Qué procesos industriales se pueden automatizar con IA?', 'Los repetitivos con documentos o datos: presupuestos y cálculo de costes, pedidos que llegan por correo, consultas de referencias y equivalencias, albaranes y partes de trabajo, facturas de proveedor, avisos de avería e informes. En el diagnóstico gratuito vemos cuáles compensan en tu caso.'],
     ['¿Tengo que cambiar de ERP?', 'No. Si tu ERP tiene API, lo conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. Con SAP, por ejemplo, cualquier idea para mejorarlo se puede valorar, y lo mismo con el programa que uséis. Si no tienes programa de gestión o se te ha quedado corto, te ofrecemos nuestro ERP para la industria.'],
     ['¿Cuánto cuesta automatizar un proceso?', 'Como referencia orientativa, una automatización parte de 450 € + IVA, un asistente técnico de 900 €, el ERP para la industria de 690 € de puesta en marcha (en dos pagos de 345 €) más un mantenimiento orientativo de 69 €/mes, con los tres primeros meses gratis, y una herramienta a medida de 2.500 €. Tras el diagnóstico recibes un presupuesto cerrado.'],
     ['¿Puedo probarlo antes de pagarlo todo?', 'Sí. Montamos un piloto con tus datos reales en 1 a 3 semanas y lo usáis en el día a día antes de pagar el total. Las acciones importantes siempre piden confirmación a una persona.'],
     ['¿Trabajáis fuera de Murcia?', 'Sí. En la Región de Murcia vamos a tu empresa y en el resto de España trabajamos en remoto por videollamada.'],
+    ['¿Dónde quedan mis datos?', 'Accesos mínimos, servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. Lo que montamos es tuyo.'],
   ])}</div></section>
-${contactoSplit()}
+<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Blog', 'IA en la industria y gestión de empresa', 'Casos de empresas industriales con IA y guías de gestión y automatización para aplicar en tu empresa.', '<a class="tc-link" href="/blog/">Ir al blog</a>')}[tc_categoria slug="ia-en-la-industria" n=3 relleno_ids="6768,6258"]</div></section>
+${contactoPortada()}
 `),
 };
 
