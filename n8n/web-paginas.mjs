@@ -317,30 +317,44 @@ const frase = (t) => t.split('. ')[0].replace(/\.+$/, '') + '.';
 const casoCard = (id) => { const c = CASOS.find((x) => x.id === id); return `<article class="tc-box tc-pc tc-reveal">${icon(c.ic)}${c.ejemplo ? '<span class="tc-nota-ej">Ejemplo de lo que se puede implementar</span>' : ''}<span class="tc-eyebrow tc-eyebrow--plain">${c.sector}</span><h3>${c.titulo}</h3><span class="tc-pc__l tc-pc__l--p">Problema</span><p>${frase(c.problema)}</p><span class="tc-pc__l">Solución</span><p>${frase(c.solucion)}</p><a class="tc-link" href="/casos/#${c.id}">${c.ejemplo ? 'Leer el ejemplo sobre SAP con IA' : 'Leer el caso de ' + c.sector.toLowerCase()}</a></article>`; };
 
 // ======================= PÁGINAS =======================
+// ---- Portada: rejillas de soluciones y de sectores (fondos propios en CSS, sin imágenes) ----
+const SOL_HOME = [
+  ['erp', 'ERP para la industria', 'Calcula lo que te cuesta cada trabajo, ponle tu margen y presupuesta, albarana y factura desde el móvil.', '/erp-industria/', 'Ver el ERP para la industria'],
+  ['flujo', 'Automatización de procesos', 'Pedidos, albaranes y facturas que hoy se pasan a mano empiezan a moverse solos entre tus programas.', '/automatizacion-procesos-ia/', 'Ver la automatización de procesos'],
+  ['doc', 'Gestión documental con IA', 'La IA lee facturas, albaranes y certificados, extrae los datos y los archiva donde toca.', '/gestion-documental-ia/', 'Ver la gestión documental con IA'],
+  ['chat', 'Asistentes técnicos y chatbots', 'Responden a clientes y a tu equipo con tu catálogo, tus fichas y tu stock, también fuera de horario.', '/agentes-chatbots-ia/', 'Ver los asistentes técnicos y chatbots'],
+  ['app', 'Desarrollo a medida y SAP', 'Mejoras sobre SAP o sobre tu ERP y herramientas hechas a la medida de tu forma de trabajar.', '/desarrollo-a-medida-ia/', 'Ver el desarrollo a medida y SAP'],
+  ['caja', 'Distribución industrial', 'Referencias, equivalencias y pedidos para distribuidores y suministros técnicos, con tu catálogo.', '/distribucion-industrial/', 'Ver las soluciones de distribución industrial'],
+];
+const solHome = `<div class="tc-sols">${SOL_HOME.map(([i, t, p, u, l], n) => `<article class="tc-sol tc-sol--${n + 1} tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div>`;
+const SECT_HOME = [
+  ['tuerca', 'IA para talleres industriales', 'Mecanizado, calderería y reparación: responde antes a los presupuestos, con tu margen aplicado.', ['Presupuestos con tu coste real y tu margen', 'Albaranes y partes firmados en el móvil', 'Órdenes de trabajo, entregas y cobros bajo control'], '/ia-talleres-industriales/', 'Ver soluciones para talleres industriales'],
+  ['llave', 'IA para mantenimiento industrial', 'Los avisos llegan clasificados por urgencia y con la orden de trabajo ya creada.', ['Avisos por Telegram o WhatsApp convertidos en órdenes', 'Asistente que consulta los manuales de tus máquinas', 'Informes de intervención que se redactan solos'], '/ia-mantenimiento-industrial/', 'Ver soluciones para mantenimiento industrial'],
+  ['rayo', 'IA para empresas instaladoras', 'Electricidad, climatización y frío: presupuestos y citas sin pasar la tarde al teléfono.', ['Presupuestos a partir de mediciones y listas de material', 'Facturas y albaranes de proveedor que se leen solos', 'Partes de trabajo dictados desde la obra'], '/ia-empresas-instaladoras/', 'Ver soluciones para empresas instaladoras'],
+  ['fabrica', 'IA para fabricación industrial', 'Datos de producción sin papel y sin teclear dos veces.', ['Partes de producción y trazabilidad desde el móvil', 'Informes de producción y calidad que llegan solos', 'Pedidos de clientes y proveedores conectados con el ERP'], '/ia-fabricacion-industrial/', 'Ver soluciones para fabricación industrial'],
+  ['caja', 'IA para distribución técnica', 'La referencia y la equivalencia correctas en segundos, también fuera de horario.', ['Asistente con tu catálogo, tus fichas y tu stock', 'Equivalencias entre marcas y referencias incompletas', 'Pedidos que llegan por correo directos al ERP'], '/distribucion-industrial/', 'Ver soluciones para distribución técnica'],
+  ['mapa', 'IA para empresas de la Región de Murcia', 'Consultoría de IA cercana: en tu empresa si estás en la Región de Murcia, por videollamada en el resto de España.', ['Diagnóstico gratuito de 30 minutos', 'Piloto con tus datos antes de comprometer el presupuesto', 'Soporte en persona y en remoto'], '/consultor-ia-murcia/', 'Ver soluciones para empresas de Murcia'],
+];
+const sectHome = `<div class="tc-sects">${SECT_HOME.map(([i, t, f, it, u, l], n) => `<article class="tc-sectc tc-sectc--${n + 1} tc-reveal">${icon(i)}<h3>${t}</h3><p>${f}</p><ul class="tc-checks">${it.map((x) => `<li>${x}</li>`).join('')}</ul><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div><p class="tc-sects__otros tc-reveal">¿Tu empresa es de otro sector? <a class="tc-link" href="/otros-sectores/">Mira los otros sectores</a></p>`;
+const CAL_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+
 const P = {};
 
 P['transforma-con-ia'] = {
   id: 5851, title: 'Transforma con IA',
   seo: ['Consultoría de IA industrial | Transforma con IA', 'Consultoría de IA industrial en Murcia y toda España: ERP para la industria, automatización de pedidos, albaranes y facturas, y asistentes técnicos.', 'consultoría de IA industrial'],
   html: page(`
-<header class="tc-hero tc-hero--home tc-hero--ind">${DECO('a')}<div class="tc-wrap tc-hero__grid">
- <div class="tc-hero__copy">
+<header class="tc-hero tc-hero--home tc-hero--c">${DECO('a')}<div class="tc-wrap"><div class="tc-hero__copy">
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
   <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP. Presencial en la Región de Murcia y en remoto en toda España.</p>
-  <div class="tc-btns">${btn('/contacto/#reserva', 'Reserva tu diagnóstico gratis')}${btn('/erp-industria/', 'Ver el ERP para la industria', true)}</div>
-  <ul class="tc-pilares">
-   <li><a href="/erp-industria/"><span class="tc-pilares__n">01</span>${icon('tuerca')}<span><b>ERP para la industria</b><small>Calcula costes, presupuesta y factura desde el móvil</small></span></a></li>
-   <li><a href="/distribucion-industrial/"><span class="tc-pilares__n">02</span>${icon('chat')}<span><b>Asistentes técnicos</b><small>Referencias y equivalencias en segundos</small></span></a></li>
-   <li><a href="/automatizacion-procesos-ia/"><span class="tc-pilares__n">03</span>${icon('flujo')}<span><b>Automatización y documentos</b><small>Pedidos, facturas y albaranes sin teclear</small></span></a></li>
-  </ul>
+  <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/#reserva">${CAL_ICO}Reserva tu diagnóstico gratis ${ARROW}</a></div>
   <ul class="tc-proof"><li><span><b>30 min</b> de diagnóstico gratis</span></li><li><span><b>Piloto con tus datos</b> antes de comprometer el presupuesto completo</span></li><li><a class="tc-link" href="#calculadora">Haz la cuenta de tu papeleo</a></li></ul>
- </div>
- ${device(IMG.erp_inicio, 'ERP para la industria: lo pendiente de hoy, facturado, cobrado y vencido', '<span class="tc-device__ok">✓</span><span><b>Presupuesto calculado</b><small>Tu coste + tu margen · listo para enviar</small></span>')}
-</div>
-<div class="tc-wrap">${marquee}</div></header>
+</div></div></header>
 
-<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('El problema', '¿Cuánto tiempo se va en tareas que no fabrican ni venden?')}${antesDespuesDep}</div></section>
+<section class="tc-sec" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${solHome}</div></section>
+
+<section class="tc-sec tc-sec--alt" id="sectores"><div class="tc-wrap">${head('Sectores', 'Sectores industriales en los que aplicamos IA', 'Conocemos cómo trabaja cada tipo de empresa industrial. Elige el tuyo y mira qué se puede automatizar.', '<a class="tc-link" href="/industria/">IA para la industria</a>')}${sectHome}</div></section>
 
 <section class="tc-sec" id="erp"><div class="tc-wrap">
  <div class="tc-star tc-reveal">
@@ -366,24 +380,25 @@ P['transforma-con-ia'] = {
 
 ${calcu('Antes de hablar con nosotros, haz la cuenta')}
 
-<section class="tc-sec tc-sec--alt" id="soluciones"><div class="tc-wrap">${head('Soluciones y cómo trabajamos', 'Qué implantamos en tu empresa y cómo lo hacemos', 'Desde una automatización concreta hasta un programa de gestión completo. Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${servCards(3, ['/contacto/#reserva', 'Reserva tu diagnóstico gratis'])}
-<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Cómo trabajamos</span><p>De la primera llamada a funcionando, en tres pasos y sin pagar a ciegas:</p></div>${PASOS}${LIMITES}
-</div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('El problema', '¿Cuánto tiempo se va en tareas que no fabrican ni venden?')}${antesDespuesDep}</div></section>
 
-<section class="tc-sec"><div class="tc-wrap">${head('Casos', 'Qué hemos montado y qué se puede montar', 'Sin nombres de clientes por confidencialidad. El caso marcado como ejemplo no es un proyecto concreto: muestra lo que se puede implementar.', '<a class="tc-link" href="/casos/">Ver todos los casos</a>')}
+<section class="tc-sec tc-sec--alt" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', 'Cómo trabajamos: de la primera llamada a funcionando, sin pagar a ciegas', 'Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Precios orientativos</a>')}${PASOS}${LIMITES}</div></section>
+
+<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Casos', 'Qué hemos montado y qué se puede montar', 'Sin nombres de clientes por confidencialidad. El caso marcado como ejemplo no es un proyecto concreto: muestra lo que se puede implementar.', '<a class="tc-link" href="/casos/">Ver todos los casos</a>')}
 <div class="tc-grid tc-grid--4">${['gestion', 'distribucion', 'documentacion', 'sap'].map(casoCard).join('')}</div>
 <div class="tc-chips tc-reveal" style="margin-top:24px"><a href="/otros-sectores/">Otros sectores</a><a href="/consultor-ia-murcia/">Región de Murcia</a></div></div></section>
 
-<section class="tc-sec"><div class="tc-wrap">${head('Preguntas frecuentes', 'Lo que suelen preguntarnos')}${faq([
-    ['¿Qué es Transforma con IA?', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia, especializados en la industria. Implantamos programas de gestión, asistentes técnicos, gestión documental y automatizaciones en empresas de toda España.'],
+<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Preguntas frecuentes sobre consultoría de IA industrial', 'Lo que suelen preguntarnos las empresas industriales antes del diagnóstico.')}${faq([
+    ['¿Qué es la consultoría de IA industrial?', 'Es analizar cómo trabaja una empresa industrial, decidir qué tareas compensa automatizar con inteligencia artificial y dejarlo funcionando: presupuestos, pedidos, albaranes, facturas, consultas técnicas o informes. Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia y empezamos siempre con un diagnóstico gratuito de 30 minutos.'],
     ['¿Qué procesos industriales se pueden automatizar con IA?', 'Los repetitivos con documentos o datos: presupuestos y cálculo de costes, pedidos que llegan por correo, consultas de referencias y equivalencias, albaranes y partes de trabajo, facturas de proveedor, avisos de avería e informes. En el diagnóstico gratuito vemos cuáles compensan en tu caso.'],
+    ['¿Cuánto cuesta el ERP para la industria?', 'TransformaConIA Gestión tiene una puesta en marcha de 690 € (en dos pagos de 345 €: al empezar y a los 3 meses) y un mantenimiento orientativo de 69 €/mes, con los tres primeros meses gratis. Cada usuario extra cuesta 15 €/mes desde el primer mes, no hay permanencia (30 días de aviso) y los precios no incluyen IVA.'],
+    ['¿Cuánto cuesta automatizar un proceso?', 'Como referencia orientativa, una automatización parte de 450 € + IVA, un asistente técnico de 900 € y una herramienta a medida de 2.500 €. Tras el diagnóstico recibes un presupuesto cerrado por escrito.'],
     ['¿Tengo que cambiar de ERP?', 'No. Si tu ERP tiene API, lo conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. Con SAP, por ejemplo, cualquier idea para mejorarlo se puede valorar, y lo mismo con el programa que uséis. Si no tienes programa de gestión o se te ha quedado corto, te ofrecemos nuestro ERP para la industria.'],
-    ['¿Cuánto cuesta automatizar un proceso?', 'Como referencia orientativa, una automatización parte de 450 € + IVA, un asistente técnico de 900 €, el ERP para la industria de 690 € de puesta en marcha (en dos pagos de 345 €) más un mantenimiento orientativo de 69 €/mes, con los tres primeros meses gratis, y una herramienta a medida de 2.500 €. Tras el diagnóstico recibes un presupuesto cerrado.'],
-    ['¿Puedo probarlo antes de pagarlo todo?', 'Sí. Montamos un piloto con tus datos reales en 1 a 3 semanas y lo usáis en el día a día antes de pagar el total. Las acciones importantes siempre piden confirmación a una persona.'],
-    ['¿Trabajáis fuera de Murcia?', 'Sí. En la Región de Murcia vamos a tu empresa y en el resto de España trabajamos en remoto por videollamada.'],
+    ['¿Ofrecéis IA para empresas en Murcia?', 'Sí. Somos de Murcia y vamos a tu empresa en la Región de Murcia; en el resto de España trabajamos en remoto por videollamada. Tenemos una página con las zonas en las que trabajamos y lo que hacemos en cada una.'],
+    ['¿Puedo probarlo antes de pagarlo todo?', 'Sí. Montamos un piloto con tus datos reales en 1 a 3 semanas y lo usáis en el día a día antes de comprometer el presupuesto completo. Las acciones importantes siempre piden confirmación a una persona.'],
     ['¿Dónde quedan mis datos?', 'Accesos mínimos, servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. Lo que montamos es tuyo.'],
   ])}</div></section>
-<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Blog', 'IA en la industria y gestión de empresa', 'Casos de empresas industriales con IA y guías de gestión y automatización para aplicar en tu empresa.', '<a class="tc-link" href="/blog/">Ir al blog</a>')}[tc_categoria slug="ia-en-la-industria" n=3 relleno_ids="6768,6258"]</div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('Blog', 'IA en la industria y gestión de empresa', 'Casos de empresas industriales con IA y guías de gestión y automatización para aplicar en tu empresa.', '<a class="tc-link" href="/blog/">Ir al blog</a>')}[tc_categoria slug="ia-en-la-industria" n=3 relleno_ids="6768,6258"]</div></section>
 ${contactoPortada()}
 `),
 };

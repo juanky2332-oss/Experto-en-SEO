@@ -361,16 +361,17 @@ add_action( 'get_footer', function () {
     <a class="tc-footer__mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a>
     <p>Murcia · En persona en la Región de Murcia y en remoto en toda España</p>
    </div>
-   <div><h4>Industria</h4><ul>
+   <div><h3>Industria</h3><ul>
     <li><a href="<?php echo $u( '/industria/' ); ?>">IA para la industria</a></li>
-    <li><a href="<?php echo $u( '/industria/#talleres' ); ?>">Talleres industriales</a></li>
+    <li><a href="<?php echo $u( '/ia-talleres-industriales/' ); ?>">IA para talleres industriales</a></li>
     <li><a href="<?php echo $u( '/distribucion-industrial/' ); ?>">Distribución industrial</a></li>
-    <li><a href="<?php echo $u( '/industria/#mantenimiento' ); ?>">Mantenimiento industrial</a></li>
-    <li><a href="<?php echo $u( '/industria/#instaladoras' ); ?>">Instaladoras</a></li>
+    <li><a href="<?php echo $u( '/ia-mantenimiento-industrial/' ); ?>">IA para mantenimiento industrial</a></li>
+    <li><a href="<?php echo $u( '/ia-empresas-instaladoras/' ); ?>">IA para empresas instaladoras</a></li>
+    <li><a href="<?php echo $u( '/ia-fabricacion-industrial/' ); ?>">IA para fabricación industrial</a></li>
     <li><a href="<?php echo $u( '/otros-sectores/' ); ?>">Otros sectores</a></li>
     <li><a href="<?php echo $u( '/consultor-ia-murcia/' ); ?>">Consultoría de IA en Murcia</a></li>
    </ul></div>
-   <div><h4>Soluciones</h4><ul>
+   <div><h3>Soluciones</h3><ul>
     <li><a href="<?php echo $u( '/erp-industria/' ); ?>">ERP para la industria</a></li>
     <li><a href="<?php echo $u( '/automatizacion-procesos-ia/' ); ?>">Automatización de procesos</a></li>
     <li><a href="<?php echo $u( '/agentes-chatbots-ia/' ); ?>">Asistentes técnicos y chatbots</a></li>
@@ -380,7 +381,7 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/diseno-web/' ); ?>">Diseño web</a></li>
     <li><a href="<?php echo $u( '/soluciones/' ); ?>">Cómo trabajamos y precios</a></li>
    </ul></div>
-   <div><h4>Transforma con IA</h4><ul>
+   <div><h3>Transforma con IA</h3><ul>
     <li><a href="<?php echo $u( '/casos/' ); ?>">Casos</a></li>
     <li><a href="<?php echo $u( '/quienes-somos/' ); ?>">Quiénes somos</a></li>
     <li><a href="<?php echo $u( '/blog/' ); ?>">Blog</a></li>
