@@ -2,7 +2,7 @@
 //   GET  /webhook/web-reserva-huecos[?dias=3]  → próximos huecos libres (2 por día: primero de mañana y de tarde)
 //   POST /webhook/web-reserva                  → valida, reserva en la BD, crea el evento (con videollamada si toca),
 //                                                avisa por Telegram y manda confirmación al cliente.
-// Horario: lunes a viernes 9:00-14:00 y 16:00-19:00 (Europe/Madrid), sin festivos. Antelación mínima 12 h.
+// Horario (Europe/Madrid, sin festivos ni fines de semana): lunes a jueves 19:00-20:30 y viernes 16:00-20:30, en tramos de 30 min. Antelación mínima 12 h.
 // Calendario: el principal de la cuenta de la credencial de Google Calendar (freeBusy + events).
 // Uso: node n8n/web-reserva.mjs   (crea o actualiza; el id queda en n8n/web-reserva-id.json)
 import fs from 'node:fs';
@@ -48,14 +48,14 @@ function festivo(y, m, d) {
   return false;
 }
 function laborable(y, m, d) { const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); return wd >= 1 && wd <= 5 && !festivo(y, m, d); }
-function horasDia() { const o = []; for (const h of [9, 10, 11, 12, 13, 16, 17, 18]) { o.push([h, 0]); o.push([h, 30]); } return o; }
+function horasDia(y, m, d) { const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); const desde = wd === 5 ? [16, 0] : [19, 0]; const o = []; for (let t = desde[0] * 60 + desde[1]; t <= 20 * 60; t += 30) o.push([Math.floor(t / 60), t % 60]); return o; }
 function hueco_ok(iso) {
   const t = new Date(iso);
   if (isNaN(t) || t.getUTCSeconds() !== 0 || t.getUTCMilliseconds() !== 0) return false;
   const ahora = Date.now();
   if (t.getTime() < ahora + MIN_H * 3600000 || t.getTime() > ahora + 30 * 86400000) return false;
   const p = partes(t);
-  return laborable(p.y, p.m, p.d) && horasDia().some(function (x) { return x[0] === p.h && x[1] === p.mi; });
+  return laborable(p.y, p.m, p.d) && horasDia(p.y, p.m, p.d).some(function (x) { return x[0] === p.h && x[1] === p.mi; });
 }
 function dosd(n) { return String(n).padStart(2, '0'); }
 function etiqueta(iso) {
@@ -95,15 +95,17 @@ let cursor = Date.UTC(hoy.y, hoy.m - 1, hoy.d);
 for (let i = 0; i < 22 && new Set(out.map(function (h) { return h.dia; })).size < dias; i++, cursor += 86400000) {
   const c = new Date(cursor), y = c.getUTCFullYear(), m = c.getUTCMonth() + 1, d = c.getUTCDate();
   if (!laborable(y, m, d)) continue;
-  let manana = null, tarde = null;
-  for (const hm of horasDia()) {
+  const libres = [];
+  for (const hm of horasDia(y, m, d)) {
     const ini = deMadrid(y, m, d, hm[0], hm[1]).getTime(), fin = ini + 1800000;
     if (ini < minimo) continue;
     if (busy.some(function (b) { return ini < b[1] && fin > b[0]; })) continue;
-    if (hm[0] < 14 && !manana) manana = ini;
-    if (hm[0] >= 16 && !tarde) tarde = ini;
+    libres.push(ini);
   }
-  for (const t of [manana, tarde]) if (t) { const iso = new Date(t).toISOString(); out.push({ iso, dia: y + '-' + dosd(m) + '-' + dosd(d), hora: etiqueta(iso).hora, texto: etiqueta(iso).dia }); }
+  // como mucho 4 por día, repartidos por la franja (viernes tiene 9 tramos)
+  const paso = libres.length > 4 ? (libres.length - 1) / 3 : 1;
+  const elegidos = libres.length > 4 ? [0, 1, 2, 3].map(function (k) { return libres[Math.round(k * paso)]; }) : libres;
+  for (const t of elegidos) if (t) { const iso = new Date(t).toISOString(); out.push({ iso, dia: y + '-' + dosd(m) + '-' + dosd(d), hora: etiqueta(iso).hora, texto: etiqueta(iso).dia }); }
 }
 return [{ json: { codigo: 200, cuerpo: { ok: true, tz: TZ, huecos: out } } }];
 `), X(3, 0));
