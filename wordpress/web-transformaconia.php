@@ -592,18 +592,6 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			'provider'            => array( '@id' => home_url( '/#person' ) ),
 		);
 	}
-	// Quiénes somos: la persona detrás de la consultoría (mismo nombre y cargo que en el texto de la página)
-	if ( is_page( 'quienes-somos' ) ) {
-		$data['TcPersona'] = array(
-			'@type'    => 'Person',
-			'@id'      => home_url( '/quienes-somos/#juan-carlos-ros' ),
-			'name'     => 'Juan Carlos Ros',
-			'jobTitle' => 'Consultor y desarrollador de IA',
-			'url'      => home_url( '/quienes-somos/' ),
-			'worksFor' => array( '@id' => home_url( '/#organization' ) ),
-			'knowsAbout' => array( 'Inteligencia artificial', 'Automatización de procesos', 'Integración con ERP', 'Desarrollo de aplicaciones web' ),
-		);
-	}
 	// FAQ declaradas en la propia página (<script type="application/json" class="tc-faq-data">)
 	if ( is_singular( 'page' ) ) {
 		$p = get_post();
