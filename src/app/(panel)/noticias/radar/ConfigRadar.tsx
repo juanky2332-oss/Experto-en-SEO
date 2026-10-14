@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { Loader2, Power, X, Plus, Globe } from "lucide-react";
 import { TIPO_CLAVES, type RadarConfig, type TipoClave } from "@/lib/guia-base";
 import { TIPO_UI } from "@/components/tipos";
-import { guardarRadar } from "../acciones";
+import { guardarRadar } from "../../acciones";
 
 const DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 const SUGERENCIAS = ["Claude Code", "n8n", "MCP", "agentes de IA", "OpenAI API", "Cursor", "Codex", "Gemini", "prompts avanzados", "Claude skills", "RAG", "AI Act"];

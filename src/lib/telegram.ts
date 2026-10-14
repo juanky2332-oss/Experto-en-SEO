@@ -111,7 +111,7 @@ async function comando(texto: string): Promise<Respuesta> {
       };
       if (cambios[op]) {
         const c = await guardarRadarConfig(cambios[op], { origin: "telegram" });
-        return { text: `📡 ${esc(describirRadar(c))}\n\nMás opciones (temas, tipos, hora): ${APP}/radar` };
+        return { text: `📡 ${esc(describirRadar(c))}\n\nMás opciones (temas, tipos, hora): ${APP}/noticias/radar` };
       }
       if (op === "ahora") {
         await lanzarRadar();
@@ -130,11 +130,11 @@ async function comando(texto: string): Promise<Respuesta> {
       return { text: `📘 <b>Guía editorial v${r.guia.version}</b>\n${esc(r.resumen)}\n\n${APP}/guia`, buttons: [{ text: "↩️ Deshacer", data: `app:undo:${r.accion}` }] };
     }
     case "/recomendaciones": {
-      const l = await sql<{ titulo: string; prioridad: string; tipo: string; post_id: number | null }[]>`
-        select titulo, prioridad, tipo, post_id from seo.recommendations where status = 'open'
-        order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id limit 8`;
-      if (!l.length) return { text: `No hay recomendaciones abiertas. Genera el plan en ${APP}/estrategia` };
-      return { text: `🧭 <b>Lo más urgente</b>\n\n${l.map((r) => `• [${r.prioridad}] ${esc(r.titulo)}${r.post_id ? ` (/post ${r.post_id})` : ""}`).join("\n")}\n\nPlan completo: ${APP}/estrategia` };
+      // «qué publicar» = recomendaciones del estratega (seo.qp_recs)
+      const { topRecs } = await import("./que-publicar/datos");
+      const l = await topRecs(6);
+      if (!l.length) return { text: `No hay recomendaciones. Genéralas en ${APP}/` };
+      return { text: `🧭 <b>Qué publicar</b>\n\n${l.map((r) => `• [${r.prioridad}] ${esc(r.titulo)} — <code>${esc(r.keyword)}</code>`).join("\n")}\n\nVota y mira el detalle en ${APP}/` };
     }
     case "/tema": {
       if (arg.trim().length < 3) return { text: "Uso: /tema tendencias Claude" };
@@ -151,7 +151,7 @@ async function comando(texto: string): Promise<Respuesta> {
       }
       const ideas = r.ideas.map((i) => `• ${esc(i.titulo_articulo)} — <code>${esc(i.keyword)}</code>`).join("\n");
       return {
-        text: `🧭 <b>${esc(r.consulta)}</b>\n\n${esc(r.panorama)}\n\n<b>Artículos que escribiría:</b>\n${ideas}\n\n${r.items.length} fuentes en el Radar de la app: ${APP}/radar`,
+        text: `🧭 <b>${esc(r.consulta)}</b>\n\n${esc(r.panorama)}\n\n<b>Artículos que escribiría:</b>\n${ideas}\n\n${r.items.length} fuentes en Noticias de la app: ${APP}/noticias`,
       };
     }
     case "/buscar": {

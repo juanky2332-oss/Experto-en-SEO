@@ -255,3 +255,46 @@ alter table seo.reservas add column if not exists procedencia text;
 update seo.contactos set es_prueba = true where not es_prueba and (lower(email) = 'info@transformaconia.com' or nombre ilike 'prueba%');
 update seo.reservas set es_prueba = true where not es_prueba and (lower(email) = 'info@transformaconia.com' or nombre ilike 'prueba%');
 create index if not exists visitas_evento_fecha on seo.visitas (evento, created_at);
+
+-- «Qué publicar» (2026-10-14): recomendaciones del panel y lo que el usuario vota de ellas.
+-- La prioridad se calcula en código (src/lib/que-publicar/prioridad.ts); la IA solo propone candidatos.
+-- Preferencias en seo.settings: qp_pesos (pesos aprendidos), qp_cache (huella de las entradas del último lote),
+-- qp_plazos (fechas y plazos editables). Temas a favor / en contra = radar.temas y radar.excluir.
+create table if not exists seo.qp_recs (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  lote text not null,                         -- huella del lote (se generan 12-15 por lote)
+  titulo text not null,
+  keyword text not null,
+  secundarias text[] not null default '{}',
+  intencion text,                             -- informacional | comercial | transaccional | local
+  publico text,                               -- a quién va dirigido
+  pilar text,
+  tipo text,                                  -- tipo de contenido de la guía (actualidad, guia, empresa…)
+  destino text not null default 'articulo' check (destino in ('articulo', 'ampliar_pagina', 'pagina_sector', 'pagina_local', 'faq')),
+  destino_ref text,                           -- /slug/ de la página que se amplía o enlaza
+  enlaces jsonb not null default '[]'::jsonb, -- enlaces internos sugeridos [{url, ancla}]
+  cta text,
+  por_que jsonb not null default '[]'::jsonb, -- [{senal, detalle}] «por qué ahora»
+  esfuerzo text,                              -- bajo | medio | alto
+  prioridad int not null default 0,
+  radar_id bigint,
+  brief_id uuid,
+  fecha_plan date,
+  estado text not null default 'abierta' check (estado in ('abierta', 'interesa', 'descartada', 'publicada', 'en_brief'))
+);
+create index if not exists qp_recs_estado_prio on seo.qp_recs (estado, prioridad desc, created_at desc);
+
+create table if not exists seo.qp_feedback (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  rec_id bigint references seo.qp_recs (id) on delete set null,
+  voto text not null check (voto in ('interesa', 'no_interesa', 'publicado', 'mas_como_esto')),
+  origen text not null default 'app',
+  pilar text,
+  destino text,
+  tipo text,
+  fuente text,                                -- señal principal de la recomendación (radar, hueco, sin_trafico, plazo…)
+  tokens text[] not null default '{}'         -- palabras significativas de la keyword
+);
+create index if not exists qp_feedback_fecha on seo.qp_feedback (created_at desc);

@@ -5,7 +5,7 @@ import { Card, PageHeader, Stat, Empty } from "@/components/ui";
 import { GraficaVisitas } from "@/components/Grafica";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Visitas" };
+export const metadata = { title: "Resultados" };
 
 type Fila = { clave: string; n: number };
 
@@ -70,7 +70,7 @@ export default async function Visitas({ searchParams }: { searchParams: Promise<
   return (
     <>
       <PageHeader title="Visitas" subtitle="Medición propia de transformaconia.com: sin cookies, sin guardar IP y sin contar tus propias visitas con la sesión de WordPress abierta ni a los robots.">
-        {[7, 30, 90].map((d) => <Link key={d} href={`/visitas?dias=${d}`} className={`btn ${d === dias ? "btn-primary" : "btn-ghost"}`}>{d} días</Link>)}
+        {[7, 30, 90].map((d) => <Link key={d} href={`/resultados?dias=${d}`} className={`btn ${d === dias ? "btn-primary" : "btn-ghost"}`}>{d} días</Link>)}
       </PageHeader>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <Stat label="Páginas vistas" value={t.visitas} hint={`últimos ${dias} días`} icon={<BarChart3 size={18} />} tone="blue" />

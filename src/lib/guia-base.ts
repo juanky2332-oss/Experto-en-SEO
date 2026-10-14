@@ -20,7 +20,7 @@ export type TipoContenido = {
   estilo_prompt: string; // sufijo en inglés que se añade al prompt de gpt-image-2
 };
 export type Audiencia = { nombre: string; peso: string; quien: string; que_busca: string; como_ganarla: string };
-export type Pilar = { nombre: string; categoria: string; descripcion: string; keywords: string[] };
+export type Pilar = { nombre: string; categoria: string; descripcion: string; keywords: string[]; destinos?: string[] }; // destinos = páginas de la web a las que lleva el pilar
 export type Propuesta = { titulo: string; tipo: TipoClave; keyword: string; pilar: string; por_que: string };
 export type Guia = {
   version: number;
@@ -57,7 +57,7 @@ export const RADAR_DEFECTO: RadarConfig = {
   frecuencia: "diario",
   dia_semana: 1,
   hora: 8,
-  temas: ["Claude Code", "n8n", "agentes de IA", "MCP", "OpenAI API"],
+  temas: ["IA en la industria casos de éxito", "inteligencia artificial fabricación España", "mantenimiento predictivo con IA", "visión artificial control de calidad", "digitalización pymes industriales", "ERP para la industria", "Verifactu facturación pymes", "industria Región de Murcia"],
   excluir: ["rondas de financiación", "criptomonedas"],
   tipos: [...TIPO_CLAVES],
   buscar_web: true,
@@ -72,7 +72,7 @@ export const TIPOS_BASE: TipoContenido[] = [
   {
     clave: "actualidad",
     nombre: "Actualidad",
-    categoria: "noticias-ia",
+    categoria: "actualidad-ia",
     objetivo: "Llegar el primero en español con lo que cambia de verdad tras un lanzamiento o anuncio, y captar el pico de búsquedas y Google Discover.",
     estructura: [
       "Respuesta directa (40-70 palabras): qué ha pasado, desde cuándo y a quién afecta",
@@ -94,8 +94,8 @@ export const TIPOS_BASE: TipoContenido[] = [
   {
     clave: "truco",
     nombre: "Trucos y consejos",
-    categoria: "trucos-y-consejos-ia",
-    objetivo: "Ganar búsquedas long-tail muy concretas («cómo hacer X en Claude Code») y ser la fuente que citan ChatGPT y Perplexity. Es el contenido que más se comparte entre técnicos.",
+    categoria: "actualidad-ia",
+    objetivo: "Ganar búsquedas long-tail muy concretas de la oficina técnica y la gestión del taller («cómo calcular el coste hora-máquina», «cómo numerar albaranes») y ser la fuente que citan los buscadores con IA.",
     estructura: [
       "El truco en dos frases y el resultado que consigues",
       "Cuándo merece la pena (y cuándo no)",
@@ -115,7 +115,7 @@ export const TIPOS_BASE: TipoContenido[] = [
   {
     clave: "guia",
     nombre: "Guías y rutas",
-    categoria: "guias-ia",
+    categoria: "gestion-y-facturacion",
     objetivo: "Posicionar búsquedas «cómo…» de volumen medio y ser el artículo pilar que enlazan los trucos y la actualidad. Rutas de aprendizaje para pasar de usuario a constructor.",
     estructura: [
       "Qué vas a conseguir, para quién es y requisitos",
@@ -135,7 +135,7 @@ export const TIPOS_BASE: TipoContenido[] = [
   {
     clave: "herramienta",
     nombre: "Herramientas y comparativas",
-    categoria: "servicios-y-herramientas-de-ia",
+    categoria: "actualidad-ia",
     objetivo: "Captar intención comercial («X vs Y», «mejor herramienta para…») con pruebas reales y un veredicto claro.",
     estructura: [
       "Veredicto en 40-70 palabras",
@@ -156,12 +156,12 @@ export const TIPOS_BASE: TipoContenido[] = [
   {
     clave: "automatizacion",
     nombre: "Automatización y agentes",
-    categoria: "automatizacion",
-    objetivo: "Recetas de flujos con n8n, agentes y MCP que funcionan en producción: lo que diferencia a quien monta sistemas de quien solo chatea con la IA.",
+    categoria: "gestion-y-facturacion",
+    objetivo: "Procesos de una empresa industrial automatizados de principio a fin (facturas, presupuestos, partes, pedidos, stock, informes): qué piezas lleva, cuánto cuesta y qué puede fallar. Sin nombrar herramientas internas por marca.",
     estructura: [
       "El problema que resuelve y el resultado (tiempo o dinero)",
-      "Arquitectura del flujo: nodos o piezas en una lista ordenada",
-      "Configuración paso a paso (prompts, JSON, código en <pre><code>)",
+      "Cómo es el proceso hoy y cómo queda automatizado (pasos en una lista ordenada)",
+      "Qué datos y documentos hacen falta y quién interviene en cada paso",
       "Coste real por ejecución y mantenimiento",
       "Cómo escalarlo y qué puede fallar",
       "Preguntas frecuentes",
@@ -176,7 +176,7 @@ export const TIPOS_BASE: TipoContenido[] = [
   {
     clave: "empresa",
     nombre: "IA en la empresa",
-    categoria: "sobre-la-ia",
+    categoria: "ia-en-la-industria",
     objetivo: "Convencer al que decide y paga: casos, retorno, riesgos y cumplimiento (AI Act, RGPD). Es la puerta directa a contratarnos.",
     estructura: [
       "Respuesta directa a la pregunta del directivo",
@@ -198,84 +198,96 @@ export const TIPOS_BASE: TipoContenido[] = [
 
 export const GUIA_INICIAL: Guia = {
   version: 1,
-  actualizada: "2026-09-25",
+  actualizada: "2026-10-14",
   posicionamiento:
-    "Transformaconia es la referencia en español para quien ya usa IA y quiere llevarla a producción: novedades con criterio, trucos, comandos, flujos y agentes que funcionan, contados por quien los monta en empresas reales. El blog demuestra que sabemos hacerlo; las empresas nos contratan para que lo hagamos por ellas.",
+    "Transforma con IA es un grupo de expertos en IA de Murcia que hace consultoría de inteligencia artificial y automatización para la industria: primero empresas industriales de toda España, después la Región de Murcia y, en tercer lugar, la IA en general sin diluir el foco. El blog cuenta casos reales de empresas industriales, procesos de gestión (facturas, presupuestos, partes, ERP, stock, calidad, informes) y la actualidad que importa, y lleva a cada lector a la solución que le encaja: ERP para la industria, asistentes técnicos, gestión documental o automatizaciones.",
   audiencias: [
     {
-      nombre: "El practicante avanzado",
-      peso: "≈70 % de los artículos",
-      quien: "Desarrolladores, técnicos, freelances, responsables de operaciones y usuarios intensivos que ya usan ChatGPT o Claude a diario y han tocado Claude Code, Cursor, n8n o la API.",
-      que_busca: "Qué ha cambiado y cómo aprovecharlo hoy, comandos y configuraciones copiables, prompts de sistema, flujos listos, comparativas honestas, costes reales y errores que evitar.",
-      como_ganarla: "Contenido que no encuentra en español en otro sitio, con ejemplos exactos. Nada de «qué es la IA». Son quienes enlazan, comparten y proponen proveedor dentro de su empresa.",
+      nombre: "El responsable técnico de la pyme industrial",
+      peso: "≈50 % de los artículos",
+      quien: "Jefes de taller, de producción, de mantenimiento y de oficina técnica de talleres, fabricantes, instaladoras y distribuidores técnicos que pelean cada día con papeles, hojas de cálculo y avisos.",
+      que_busca: "Cómo dejar de teclear facturas y albaranes, presupuestar con margen, controlar repuestos y stock, partes de trabajo en el móvil, calidad sin papel e informes que se hagan solos.",
+      como_ganarla: "Procesos explicados paso a paso con ejemplos ficticios marcados, plantillas y criterios para decidir. Nada de jerga ni de herramientas por marca: el proceso y el resultado.",
     },
     {
-      nombre: "El decisor de empresa",
-      peso: "≈30 % de los artículos",
-      quien: "Gerentes, directores de operaciones y CTO de pymes y medianas empresas españolas que saben que la IA les toca pero no tienen equipo para montarla.",
-      que_busca: "Casos de su sector, retorno, cuánto cuesta, por dónde empezar, riesgos y cumplimiento (AI Act, RGPD).",
-      como_ganarla: "Artículos de «IA en la empresa» con casos y cifras con fuente, y en cada artículo técnico un párrafo de «qué significa para tu empresa» con una llamada a la acción concreta.",
+      nombre: "El gerente o decisor de empresa industrial",
+      peso: "≈50 % de los artículos",
+      quien: "Gerentes y dueños de pymes industriales de la Región de Murcia y del resto de España que saben que la IA les toca pero no tienen equipo para montarla.",
+      que_busca: "Casos reales de su sector, cuánto cuesta, por dónde empezar, ayudas disponibles, qué ERP necesita y qué cambia con la normativa (Verifactu, AI Act).",
+      como_ganarla: "Casos con fuente, costes orientativos y una hoja de ruta concreta; en cada artículo el enlace a la página de su sector o a /erp-industria/ y la llamada al diagnóstico gratis.",
     },
   ],
   embudo: [
-    "Entrada: actualidad y trucos atraen tráfico (Google, Discover, citas en ChatGPT/Perplexity).",
-    "Profundidad: cada pieza enlaza a su guía pilar y a 2-3 artículos del mismo cluster.",
-    "Confianza: casos y artículos de empresa demuestran experiencia real (E-E-A-T).",
-    "Conversión: llamada a la acción según el tipo de artículo → contacto o diagnóstico gratuito.",
+    "Entrada: casos industriales, procesos y actualidad que importa traen tráfico (Google y buscadores con IA).",
+    "Profundidad: cada pieza enlaza a su pilar, a 2-3 artículos del mismo cluster y a la página de sector o local que le corresponde.",
+    "Confianza: casos y ejemplos ficticios bien marcados demuestran que sabemos cómo trabaja una empresa industrial (E-E-A-T).",
+    "Conversión: llamada a la acción según la categoría → diagnóstico gratis, /erp-industria/ o contacto.",
   ],
   pilares: [
-    { nombre: "Claude Code y agentes de programación", categoria: "guias-ia", descripcion: "Uso avanzado de Claude Code, Codex, Cursor y agentes que programan: comandos, hooks, subagentes, CLAUDE.md, MCP y flujos de trabajo.", keywords: ["claude code", "comandos claude code", "claude code hooks", "subagentes claude code", "claude.md", "claude code vs cursor", "codex cli"] },
-    { nombre: "Automatización con n8n", categoria: "automatizacion", descripcion: "Flujos n8n con IA listos para producción, integraciones, self-hosting y costes.", keywords: ["n8n", "n8n ia", "flujos n8n", "n8n vs make", "agentes n8n", "n8n self hosted", "plantillas n8n"] },
-    { nombre: "Agentes de IA y MCP", categoria: "automatizacion", descripcion: "Diseño de agentes, Model Context Protocol, herramientas, memoria, multiagente y seguridad.", keywords: ["agentes de ia", "model context protocol", "servidor mcp", "crear agente ia", "multiagente"] },
-    { nombre: "Modelos y novedades", categoria: "noticias-ia", descripcion: "Lanzamientos de OpenAI, Anthropic, Google y open source contados por su impacto práctico.", keywords: ["gpt-5.5", "claude opus", "gemini", "modelos open source", "comparativa modelos ia"] },
-    { nombre: "Prompts y productividad avanzada", categoria: "trucos-y-consejos-ia", descripcion: "Prompts de sistema, proyectos, skills, GPTs y hábitos para sacar más a la IA en el día a día.", keywords: ["prompts avanzados", "prompt de sistema", "skills de claude", "proyectos claude", "gpts personalizados"] },
-    { nombre: "IA en la empresa", categoria: "sobre-la-ia", descripcion: "Implantación, retorno, empleo y regulación.", keywords: ["implementar ia en empresas", "ia para pymes", "ai act", "casos de uso ia", "ia y empleo"] },
-    { nombre: "Cuánto cuesta y cómo empezar", categoria: "sobre-la-ia", descripcion: "Precios reales de chatbots, automatizaciones y herramientas con IA, por dónde empezar, ayudas (Kit Digital, Kit Consulting) y errores que evitar. Enlaza a /soluciones/ y al diagnóstico gratis.", keywords: ["cuánto cuesta un chatbot con ia", "precio automatizar procesos con ia", "cuánto cuesta implantar ia en una empresa", "kit consulting inteligencia artificial", "por dónde empezar con ia en la empresa"] },
-    { nombre: "IA en la industria", categoria: "ia-en-la-industria", descripcion: "Casos reales de empresas industriales que aplican IA y automatización (fabricación, metal y mecanizado, mantenimiento predictivo, visión artificial y calidad, logística, distribución industrial, agroindustria): qué problema tenían, qué hicieron, qué beneficios obtuvieron con cifras de la fuente y qué puede copiar una pyme española. Enlaza a /industria/, /erp-industria/ o /casos/.", keywords: ["ia en la industria", "casos de éxito ia industria", "inteligencia artificial en fabricación", "mantenimiento predictivo con ia", "vision artificial control de calidad", "ia en el sector metal", "automatización industrial con ia"] },
-    { nombre: "IA por sectores", categoria: "sobre-la-ia", descripcion: "Qué puede hacer la IA en cada sector (industria, mantenimiento, instaladores, distribución, clínicas, despachos, comercio) con ejemplos concretos. Enlaza a /industria/, /otros-sectores/ y a /casos/.", keywords: ["ia para empresas industriales", "ia en mantenimiento industrial", "ia para clínicas", "ia para despachos de abogados", "ia para instaladores", "ia en distribución"] },
-    { nombre: "Herramientas de IA para el trabajo", categoria: "servicios-y-herramientas-de-ia", descripcion: "ChatGPT, Gemini en Workspace, Copilot en Office, NotebookLM y similares: qué hacen, cuánto cuestan y cómo sacarles partido en una empresa.", keywords: ["chatgpt para empresas", "gemini en google workspace", "copilot excel", "notebooklm empresa", "mejores herramientas de ia para empresas"] },
+    { nombre: "IA en la industria", categoria: "ia-en-la-industria", descripcion: "Casos reales de empresas industriales que aplican IA y automatización: qué problema tenían, qué hicieron, qué beneficios obtuvieron con cifras de la fuente y qué puede copiar una pyme española.", keywords: ["ia en la industria", "inteligencia artificial en la industria", "casos de éxito ia industria", "automatización industrial con ia", "industria 4.0 pymes"], destinos: ["/industria/", "/casos/"] },
+    { nombre: "Gestión y facturación", categoria: "gestion-y-facturacion", descripcion: "Facturas, cobros, documentos y programa de gestión en una empresa industrial: cómo ordenarlo y automatizarlo, cuánto cuesta y qué normativa afecta.", keywords: ["programa de gestión para empresas industriales", "automatizar facturación", "control de cobros", "gestión administrativa taller"], destinos: ["/erp-industria/", "/gestion-documental-ia/"] },
+    { nombre: "Actualidad IA", categoria: "actualidad-ia", descripcion: "Lo que cambia de verdad en la IA para una empresa: normativa (AI Act), ayudas, tendencias y lanzamientos contados por su impacto práctico, sin hablar de nuestras herramientas internas.", keywords: ["ai act empresas", "novedades inteligencia artificial empresas", "regulación ia pymes", "ia para empresas"], destinos: ["/blog/", "/soluciones/"] },
+    { nombre: "Documentos y facturas con IA", categoria: "gestion-y-facturacion", descripcion: "Leer facturas, albaranes, pedidos y certificados con IA y pasarlos al programa sin teclear.", keywords: ["automatizar facturas de proveedores", "leer facturas con ia", "gestión documental con ia", "digitalizar albaranes", "ocr facturas"], destinos: ["/gestion-documental-ia/", "/automatizacion-procesos-ia/"] },
+    { nombre: "Presupuestos y costes", categoria: "gestion-y-facturacion", descripcion: "Calcular lo que cuesta cada trabajo o servicio para ponerle margen: coste hora-máquina, mano de obra, materiales y presupuestos más rápidos.", keywords: ["coste hora máquina", "cómo hacer presupuestos en un taller", "calcular margen de un trabajo", "programa de presupuestos"], destinos: ["/erp-industria/"] },
+    { nombre: "Partes de trabajo y albaranes", categoria: "gestion-y-facturacion", descripcion: "Partes de trabajo, albaranes firmados en el móvil, horas por obra y facturar el mismo día.", keywords: ["parte de trabajo digital", "albarán digital", "firma de albarán en el móvil", "control de horas por obra"], destinos: ["/erp-industria/", "/ia-mantenimiento-industrial/"] },
+    { nombre: "ERP para la industria", categoria: "gestion-y-facturacion", descripcion: "Qué ERP necesita una pyme industrial, cuánto cuesta, cómo se implanta y cómo se conecta con lo que ya usa.", keywords: ["erp para la industria", "erp para talleres", "erp pyme industrial", "programa de gestión para taller", "cuánto cuesta un erp"], destinos: ["/erp-industria/"] },
+    { nombre: "Stock y repuestos", categoria: "gestion-y-facturacion", descripcion: "Control de stock, repuestos y almacén: mínimos, ubicaciones, compras y pedidos sin duplicar.", keywords: ["control de stock", "gestión de repuestos", "inventario de almacén", "automatizar compras"], destinos: ["/ia-mantenimiento-industrial/", "/distribucion-industrial/"] },
+    { nombre: "Calidad", categoria: "ia-en-la-industria", descripcion: "Control de calidad, no conformidades, trazabilidad y visión artificial aplicada a la fabricación.", keywords: ["control de calidad con ia", "visión artificial control de calidad", "gestión de no conformidades", "trazabilidad en fabricación"], destinos: ["/ia-fabricacion-industrial/"] },
+    { nombre: "Informes e indicadores", categoria: "gestion-y-facturacion", descripcion: "Informes que se hacen solos: rentabilidad por trabajo, productividad, cuadros de mando e indicadores de taller y mantenimiento.", keywords: ["cuadro de mando para pymes", "indicadores de producción", "informes automáticos", "rentabilidad por trabajo"], destinos: ["/automatizacion-procesos-ia/", "/erp-industria/"] },
+    { nombre: "Murcia y Región de Murcia", categoria: "ia-en-la-industria", descripcion: "IA y automatización para la industria de la Región de Murcia y alrededores: ayudas regionales, polígonos, sectores locales y visitas en persona.", keywords: ["consultoría ia murcia", "automatización industrial murcia", "ayudas digitalización murcia", "inteligencia artificial cartagena", "empresas industriales murcia"], destinos: ["/consultor-ia-murcia/", "/automatizacion-industria-cartagena/", "/automatizacion-industria-molina-de-segura/", "/automatizacion-industria-lorca/", "/automatizacion-industria-alcantarilla/", "/automatizacion-industria-elche/", "/automatizacion-industria-albacete/"] },
+    { nombre: "Talleres industriales", categoria: "ia-en-la-industria", descripcion: "Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria e hidráulica: presupuestos, órdenes de trabajo y gestión.", keywords: ["software gestión taller industrial", "ia para talleres", "gestión de taller de mecanizado", "órdenes de trabajo taller"], destinos: ["/ia-talleres-industriales/", "/erp-industria/"] },
+    { nombre: "Mantenimiento industrial", categoria: "ia-en-la-industria", descripcion: "Mantenimiento preventivo y predictivo, avisos, órdenes de trabajo y repuestos con IA.", keywords: ["ia mantenimiento industrial", "mantenimiento predictivo con ia", "software de mantenimiento", "gestión de averías"], destinos: ["/ia-mantenimiento-industrial/"] },
+    { nombre: "Empresas instaladoras", categoria: "ia-en-la-industria", descripcion: "Instaladoras eléctricas, de climatización, fontanería y telecomunicaciones: avisos, partes, certificados y facturación.", keywords: ["software para empresas instaladoras", "ia para instaladores", "gestión de avisos", "partes de trabajo instaladores"], destinos: ["/ia-empresas-instaladoras/"] },
+    { nombre: "Fabricación", categoria: "ia-en-la-industria", descripcion: "Fabricación y producción: planificación, órdenes de fabricación, calidad y datos de máquina.", keywords: ["ia en fabricación", "planificación de la producción", "órdenes de fabricación", "inteligencia artificial en fabricación"], destinos: ["/ia-fabricacion-industrial/"] },
+    { nombre: "Distribución técnica", categoria: "ia-en-la-industria", descripcion: "Distribuidores industriales y técnicos: asistente de catálogo, equivalencias, pedidos y atención al cliente.", keywords: ["chatbot para distribuidores industriales", "asistente técnico de catálogo", "ia en distribución industrial", "equivalencias de referencias"], destinos: ["/distribucion-industrial/", "/agentes-chatbots-ia/"] },
   ],
   tipos: TIPOS_BASE,
   ritmo: [
-    "Base de 4 artículos por semana: 1 de «IA en la industria» (un caso real de una empresa industrial que aplica IA, con sus beneficios y la fuente enlazada), 1 actualidad fuerte, 1 truco, guía o herramienta (alternando) y 1 de empresa (alternando «cuánto cuesta y cómo empezar» e «IA por sectores»).",
-    "Cada mes: un artículo pilar nuevo o una actualización fuerte de un pilar existente.",
+    "Base de 4 artículos por semana: 1 de «IA en la industria» (un caso real con su fuente), 1 de proceso de «Gestión y facturación» (facturas, presupuestos, partes, ERP, stock, informes), 1 de sector o de la Región de Murcia y 1 de «Actualidad IA» solo si hay algo que cambie de verdad para una empresa.",
+    "Cada mes: un artículo pilar nuevo o una actualización fuerte de una página de sector o local.",
     "Cada trimestre: revisar los 10 artículos con más tráfico y actualizar versiones, precios y fechas.",
   ],
   reglas_seo: [
-    "Una keyword principal por URL. Si ya hay un artículo sobre lo mismo, se actualiza en lugar de duplicarlo.",
+    "Una keyword principal por URL. Si ya hay un artículo o una página sobre lo mismo, se amplía en lugar de duplicarlo.",
     "Title ≤60 caracteres con la keyword al principio; meta description de 130-155; slug corto sin año.",
     "Respuesta directa en las primeras 60 palabras.",
-    "3-5 enlaces internos: siempre al pilar del cluster y a 2 relacionados; si encaja, 1 enlace a la solución de la web (/automatizacion-procesos-ia/, /agentes-chatbots-ia/, /desarrollo-a-medida-ia/, /erp-industria/, /gestion-documental-ia/, /distribucion-industrial/, /industria/ o /casos/).",
+    "3-5 enlaces internos: siempre al pilar del cluster y a 2 relacionados, y 1 a la página que le toca: /erp-industria/, /industria/, /ia-talleres-industriales/, /ia-mantenimiento-industrial/, /ia-empresas-instaladoras/, /ia-fabricacion-industrial/, /distribucion-industrial/, /gestion-documental-ia/, /automatizacion-procesos-ia/, /consultor-ia-murcia/ o la página local de la ciudad.",
     "La actualidad caduca: a los 30-60 días se actualiza o se enlaza desde un artículo evergreen.",
-    "Cada dato con su fuente enlazada; versiones, precios y fechas exactos.",
+    "Cada dato con su fuente enlazada; versiones, precios y fechas exactos. Sin cifras de volumen de búsqueda inventadas.",
     "Imágenes WebP 1536×1024 con alt descriptivo y natural (sin meter keywords a la fuerza).",
     "Nada de contenido pobre: menos de 750 palabras solo si resuelve la duda por completo.",
+    "Títulos con mayúsculas correctas: la primera letra siempre en mayúscula y los nombres propios bien escritos, aunque la keyword vaya en minúscula.",
+    "No citar en los artículos cuántos artículos ha publicado el blog.",
   ],
   reglas_ia: [
-    "Frases autónomas y citables con sujeto explícito («Claude Code permite…», no «Esto permite…»).",
+    "Frases autónomas y citables con sujeto explícito («Un parte de trabajo digital permite…», no «Esto permite…»).",
     "Definición clara al empezar cada sección y datos numéricos con fuente atribuida.",
-    "Tablas, listas y bloques de código: es lo que más citan los buscadores con IA.",
+    "Tablas, listas y pasos numerados: es lo que más citan los buscadores con IA.",
     "Preguntas frecuentes con preguntas reales de usuarios.",
-    "Aportar lo que un modelo no puede sacar de otra parte: el comando exacto, el flujo probado, el coste medido.",
+    "Aportar lo que un modelo no puede sacar de otra parte: el proceso real de un taller, el criterio para decidir, el ejemplo ficticio bien construido.",
     "Mismo nombre de marca y autor en todo el sitio; llms.txt al día e IndexNow al publicar.",
   ],
   voz: [
     "Español de España, tuteo, directo y con criterio propio.",
-    "Primera persona del plural solo cuando aporta experiencia real («en los flujos que montamos…»). Nunca nombres propios del equipo: firma «Redacción Transforma con IA».",
+    "Primera persona del plural: somos un grupo de expertos en IA de Murcia. Nunca nombres propios del equipo: firma «Redacción Transforma con IA».",
     "Técnico sin ser críptico: se explica el porqué, no solo el cómo.",
     "Prohibidas las muletillas de IA («en el mundo actual», «sin duda», «revolucionario», «sumérgete»…).",
   ],
   no_publicar: [
+    "Herramientas internas por marca (n8n, OpenAI, Claude, Gemini, Zapier…) ni Flownexion: se habla del proceso y del resultado.",
+    "Nombres de persona, clientes, testimonios o cifras inventadas; los ejemplos van marcados como ficticios.",
     "Rondas de financiación, fichajes y cotizaciones sin impacto práctico.",
     "Rumores y filtraciones sin fuente primaria.",
-    "Papers académicos sin aplicación inmediata.",
-    "Básicos para principiantes («qué es ChatGPT») salvo que falte ese pilar.",
+    "Trucos de programación y novedades de modelos sin aplicación para una empresa industrial.",
     "Listas genéricas de «10 herramientas de IA» sin prueba real.",
-    "Novedades solo disponibles en EE. UU. sin fecha para España/UE (como mucho, una mención).",
+    "Afirmar que el ERP cumple Verifactu (todavía no es obligatorio ni lo cumple).",
   ],
   proximos: [],
   notas: [],
 };
+
+/** Texto comparable: minúsculas, sin tildes ni signos (para cruzar títulos y keywords). */
+export const normalizar = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9.]+/g, " ").trim();
 
 /** Versión compacta de la guía para meterla en los prompts de la IA. */
 export function guiaATexto(g: Guia): string {
@@ -283,7 +295,7 @@ export function guiaATexto(g: Guia): string {
   return [
     `POSICIONAMIENTO: ${g.posicionamiento}`,
     `AUDIENCIAS:\n${g.audiencias.map((a) => `- ${a.nombre} (${a.peso}): ${a.quien} Busca: ${a.que_busca}`).join("\n")}`,
-    `PILARES (clusters):\n${g.pilares.map((p) => `- ${p.nombre} [${p.categoria}]: ${p.descripcion} Keywords: ${p.keywords.join(", ")}`).join("\n")}`,
+    `PILARES (clusters):\n${g.pilares.map((p) => `- ${p.nombre} [${p.categoria}]: ${p.descripcion} Keywords: ${p.keywords.join(", ")}${p.destinos?.length ? ` Destinos: ${p.destinos.join(" ")}` : ""}`).join("\n")}`,
     `TIPOS DE CONTENIDO:\n${g.tipos.map((t) => `- ${t.clave} = ${t.nombre}: ${t.objetivo}`).join("\n")}`,
     `RITMO:\n${l(g.ritmo)}`,
     `NO PUBLICAR:\n${l(g.no_publicar)}`,

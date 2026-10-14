@@ -39,8 +39,11 @@ async function llamar(endpoint: "responses" | "images/generations", body: Record
 async function responses(body: Record<string, unknown>, timeoutMs = 280_000) {
   const { ok, status, j } = await llamar("responses", body, timeoutMs);
   if (!ok) throw new Error(`OpenAI ${status}: ${j?.error?.message ?? "error"}`);
-  return j as { output?: { type: string; content?: { type: string; text?: string }[]; name?: string; arguments?: string; call_id?: string }[]; output_text?: string; status?: string };
+  return j as { output?: { type: string; content?: { type: string; text?: string }[]; name?: string; arguments?: string; call_id?: string }[]; output_text?: string; status?: string; usage?: Uso };
 }
+
+/** Tokens consumidos por una llamada (para calcular el coste real). */
+export type Uso = { input_tokens?: number; output_tokens?: number; input_tokens_details?: { cached_tokens?: number } };
 
 function textoDe(r: Awaited<ReturnType<typeof responses>>) {
   if (r.output_text) return r.output_text;
@@ -52,7 +55,7 @@ function textoDe(r: Awaited<ReturnType<typeof responses>>) {
 /** Llamada con salida JSON estricta. */
 export async function json<T>(opts: {
   sistema: string; usuario: string | unknown[]; esquema: Esquema; nombre: string;
-  modelo?: string; esfuerzo?: "minimal" | "low" | "medium" | "high"; maxTokens?: number; web?: boolean;
+  modelo?: string; esfuerzo?: "minimal" | "low" | "medium" | "high"; maxTokens?: number; web?: boolean; alUsar?: (u: Uso) => void;
 }): Promise<T> {
   const r = await responses({
     model: opts.modelo ?? MODELO,
@@ -63,6 +66,7 @@ export async function json<T>(opts: {
     ...(opts.web ? { tools: [{ type: "web_search", search_context_size: "medium", user_location: { type: "approximate", country: "ES" } }] } : {}),
     text: { format: { type: "json_schema", name: opts.nombre, strict: true, schema: opts.esquema } },
   });
+  if (r.usage) opts.alUsar?.(r.usage);
   const t = textoDe(r);
   if (!t) throw new Error(`La IA no devolvió respuesta (${r.status})`);
   return JSON.parse(t) as T;
@@ -213,9 +217,9 @@ export type ResultadoTema = {
 export type IdeaTema = { titulo_articulo: string; keyword: string; angulo: string; por_que: string };
 export type Busqueda = { panorama: string; resultados: ResultadoTema[]; ideas: IdeaTema[] };
 
-export async function buscarTema(consulta: string, blog: string[], guia = "") {
+export async function buscarTema(consulta: string, blog: string[], guia = "", modelo = MODELO) {
   return json<Busqueda>({
-    nombre: "buscador_temas", web: true, esfuerzo: "low", maxTokens: 20000,
+    nombre: "buscador_temas", web: true, esfuerzo: "low", maxTokens: 20000, modelo,
     sistema: `${VOZ}
 Actúas como documentalista y editor SEO. Buscas en la web las noticias y publicaciones MÁS RECIENTES y fiables sobre el tema que te piden y eliges las que mejor sirven para escribir un artículo que posicione en Google España y sea citado por buscadores con IA.`,
     usuario: `Tema a investigar: «${consulta}»
@@ -251,7 +255,7 @@ const ESQ_PROPUESTA = obj({ titulo: str(), tipo: { type: "string", enum: TIPO_CL
 const PROPS_GUIA: Record<string, Esquema> = {
   posicionamiento: str(),
   audiencias: arr(obj({ nombre: str(), peso: str(), quien: str(), que_busca: str(), como_ganarla: str() })),
-  embudo: arr(str()), pilares: arr(obj({ nombre: str(), categoria: str(), descripcion: str(), keywords: arr(str()) })),
+  embudo: arr(str()), pilares: arr(obj({ nombre: str(), categoria: str(), descripcion: str(), keywords: arr(str()), destinos: arr(str("páginas de la web a las que lleva el pilar (/slug/)")) })),
   tipos: arr(ESQ_TIPO), ritmo: arr(str()), reglas_seo: arr(str()), reglas_ia: arr(str()), voz: arr(str()), no_publicar: arr(str()),
   proximos: arr(ESQ_PROPUESTA), notas: arr(str()),
 };

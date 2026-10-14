@@ -58,7 +58,8 @@ export async function deshacerAccion(accionId: number) {
     await telegram(`↩️ <b>Deshecho desde la app</b>: «${esc(r ? r.title : "ajuste de la guía o del radar")}»`);
     refrescar(r?.id);
     revalidatePath("/guia");
-    revalidatePath("/radar");
+    revalidatePath("/noticias/radar");
+    revalidatePath("/noticias");
   }, "Cambio deshecho");
 }
 
@@ -147,7 +148,8 @@ export async function prepararRadar(radarId: number) {
 export async function descartarRadar(radarId: number) {
   return seguro(async () => {
     await sql`update seo.radar set status = 'skipped' where id = ${radarId}`;
-    revalidatePath("/radar");
+    revalidatePath("/noticias/radar");
+    revalidatePath("/noticias");
   });
 }
 
@@ -310,7 +312,8 @@ export async function buscarTemaAccion(consulta: string) {
   return seguro(async () => {
     const { investigarTema } = await import("@/lib/temas");
     const r = await investigarTema(consulta, "app");
-    revalidatePath("/radar");
+    revalidatePath("/noticias/radar");
+    revalidatePath("/noticias");
     return r;
   });
 }
@@ -320,7 +323,8 @@ export async function guardarRadar(cfg: Partial<RadarConfig>) {
   return seguro(async () => {
     const c = await guardarRadarConfig(cfg, { origin: "app" });
     await telegram(`📡 <b>Radar actualizado desde la app</b>\n${esc(describirRadar(c))}`);
-    revalidatePath("/radar");
+    revalidatePath("/noticias/radar");
+    revalidatePath("/noticias");
     return c;
   }, "Guardado. El radar usará esta configuración en su próxima pasada");
 }
@@ -370,4 +374,30 @@ export async function marcarPendiente(id: string, hecho: boolean) {
     await marcar(id, hecho);
     revalidatePath("/");
   });
+}
+
+// ---------------------------------------------------------------- qué publicar
+export async function generarQuePublicarAccion(forzar = false) {
+  return seguro(async () => {
+    const { generarQuePublicar } = await import("@/lib/que-publicar/generar");
+    const r = await generarQuePublicar({ origin: "app", forzar });
+    revalidatePath("/", "layout");
+    return r;
+  });
+}
+
+export async function votarRec(id: number, voto: "interesa" | "no_interesa" | "publicado" | "mas_como_esto") {
+  return seguro(async () => {
+    const { votar } = await import("@/lib/que-publicar/datos");
+    await votar(id, voto);
+    revalidatePath("/", "layout");
+  });
+}
+
+/** Temas a favor / en contra de «Qué publicar» = temas y exclusiones del radar (misma configuración). */
+export async function guardarPreferenciasQp(favor: string[], contra: string[]) {
+  return seguro(async () => {
+    await guardarRadarConfig({ temas: favor, excluir: contra }, { origin: "app" });
+    revalidatePath("/", "layout");
+  }, "Preferencias guardadas");
 }

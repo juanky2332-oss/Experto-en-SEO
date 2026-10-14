@@ -2,7 +2,7 @@ import "server-only";
 import { sql } from "./db";
 import { registrar, type Origen } from "./acciones";
 import { sincronizarHoraRadar } from "./n8n";
-import { GUIA_INICIAL, RADAR_DEFECTO, TIPO_CLAVES, guiaATexto, type Guia, type RadarConfig, type TipoClave } from "./guia-base";
+import { GUIA_INICIAL, RADAR_DEFECTO, TIPO_CLAVES, guiaATexto, normalizar, type Guia, type RadarConfig, type TipoClave } from "./guia-base";
 
 export * from "./guia-base";
 
@@ -101,8 +101,6 @@ export type Cobertura = {
   total: number;
   mes: number;
 };
-
-const normalizar = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9.]+/g, " ").trim();
 
 export async function cobertura(g: Guia): Promise<Cobertura> {
   const { listar, categorias } = await import("./wp");

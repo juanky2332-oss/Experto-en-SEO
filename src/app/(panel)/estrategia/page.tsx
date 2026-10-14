@@ -28,20 +28,21 @@ export default async function Estrategia() {
     sql<{ created_at: Date; data: Plan }[]>`select created_at, data from seo.audits where kind = 'plan' order by created_at desc limit 1`,
     sql<Rec[]>`select * from seo.recommendations where status = 'open' order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id`,
   ]);
-  const calendario = [...recs.filter((r) => r.tipo === "publicar"), ...recs.filter((r) => r.tipo === "no_publicar")];
+  // «qué publicar» vive en Recomendaciones (seo.qp_recs); aquí solo queda lo que conviene evitar
+  const calendario = recs.filter((r) => r.tipo === "no_publicar");
   const grupos = Object.keys(TIPOS).filter((t) => t !== "publicar" && t !== "no_publicar").map((t) => [t, recs.filter((r) => r.tipo === t)] as const).filter(([, l]) => l.length);
   const kw = (d: string) => d.match(/[Kk]eyword «([^»]+)»/)?.[1] ?? "";
 
   return (
     <>
-      <PageHeader title="Estrategia" subtitle="Plan SEO a medida: la IA cruza tu inventario, la auditoría y el radar de noticias para decirte qué publicar, qué no, qué actualizar y qué fusionar.">
+      <PageHeader title="Estrategia" subtitle={<>Plan SEO a medida: la IA cruza tu inventario, la auditoría y el radar para decirte qué no publicar, qué actualizar y qué fusionar. Lo que conviene publicar está en <Link href="/" className="text-brand-600 hover:underline">Recomendaciones</Link>.</>}>
         <BotonAccion accion={generarPlan} className="btn btn-primary" confirmar="Voy a analizar todo el blog con IA (1-3 minutos). Las recomendaciones de IA abiertas se sustituyen por las nuevas. ¿Seguimos?">
           <Sparkles size={15} /> {plan ? "Regenerar plan" : "Generar plan"}
         </BotonAccion>
       </PageHeader>
 
       {calendario.length > 0 && (
-        <Card className="mb-6" title="Calendario editorial: qué publicar" subtitle="Ordenado por prioridad. «Buscar fuentes» abre el buscador del Radar con la keyword; desde ahí, «Preparar artículo» lo redacta y publica.">
+        <Card className="mb-6" title="Qué no publicar" subtitle="Temas que el plan recomienda evitar.">
           <ul className="divide-y divide-[var(--line)]">
             {calendario.map((r) => (
               <li key={r.id} className="flex flex-wrap items-start justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
@@ -50,7 +51,7 @@ export default async function Estrategia() {
                   <p className="mt-1 text-sm text-slate-600">{r.detalle}</p>
                 </div>
                 <div className="flex gap-2">
-                  {r.tipo === "publicar" && <Link href={`/radar?q=${encodeURIComponent(kw(r.detalle) || r.titulo.replace(/^Semana d+ · (Pilar: )?/, ""))}`} className="btn btn-primary">Buscar fuentes</Link>}
+                  {r.tipo === "publicar" && <Link href={`/noticias?q=${encodeURIComponent(kw(r.detalle) || r.titulo.replace(/^Semana d+ · (Pilar: )?/, ""))}`} className="btn btn-primary">Buscar fuentes</Link>}
                   <BotonAccion accion={resolverRecomendacion.bind(null, r.id, "applied")} className="btn btn-ghost">Hecho</BotonAccion>
                   <BotonAccion accion={resolverRecomendacion.bind(null, r.id, "dismissed")} className="btn btn-ghost">Descartar</BotonAccion>
                 </div>

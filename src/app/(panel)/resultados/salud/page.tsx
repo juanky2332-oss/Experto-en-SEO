@@ -1,35 +1,33 @@
 import Link from "next/link";
-import { Activity, AlertTriangle, FileText, Radar, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
+import { Activity, AlertTriangle, CalendarClock, FileText, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
 import { inventario, historialSalud, guardarFoto } from "@/lib/seo/inventario";
 import { NOMBRE_PROBLEMA } from "@/lib/seo/analizar";
 import { sql, type Accion } from "@/lib/db";
-import { Card, PageHeader, Stat, ScoreRing, Badge, GRAVEDAD, tonoScore, fecha, Empty } from "@/components/ui";
+import { Card, PageHeader, Stat, ScoreRing, Badge, GRAVEDAD, fecha, Empty } from "@/components/ui";
 import { GraficaSalud } from "@/components/Grafica";
 import { BotonAccion } from "@/components/BotonAccion";
-import { reanalizar, prepararRadar } from "./acciones";
+import { reanalizar } from "../../acciones";
 import { getPendientes } from "@/lib/pendientes";
 import { Pendientes } from "@/components/Pendientes";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
+export const metadata = { title: "Salud SEO" };
 
-export default async function Resumen() {
+export default async function SaludSeo() {
   const inv = await inventario();
-  const [historial, radar, digest, acciones, fotoHoy, calendario, pendientes] = await Promise.all([
+  // tandas de ≤3 consultas: el pool de Postgres tiene 3 conexiones
+  const [historial, digest, acciones] = await Promise.all([
     historialSalud(),
-    sql<{ id: number; title: string; source: string; score: number; resumen: string; status: string; keyword: string }[]>`
-      select id, title, source, score, resumen, status, keyword from seo.radar
-      where score is not null and status in ('sent','new') and created_at > now() - interval '3 days' order by score desc limit 5`,
     sql<{ fecha: string; data: { titular_dia?: string; puntos?: { titulo: string; explicacion: string }[] } }[]>`select to_char(fecha,'YYYY-MM-DD') fecha, data from seo.digests order by fecha desc limit 1`,
     sql<Accion[]>`select * from seo.actions order by created_at desc limit 8`,
-    sql`select 1 from seo.score_history where post_id = 0 and fecha = current_date`,
-    sql<{ id: number; titulo: string; prioridad: string; detalle: string }[]>`select id, titulo, prioridad, detalle from seo.recommendations where status = 'open' and tipo = 'publicar' order by case prioridad when 'alta' then 0 when 'media' then 1 else 2 end, id limit 5`,
-    getPendientes(),
   ]);
+  const [fotoHoy, pendientes] = await Promise.all([sql`select 1 from seo.score_history where post_id = 0 and fecha = current_date`, getPendientes()]);
   if (!fotoHoy.length) await guardarFoto(inv); // primera visita del día: se guarda la foto para la gráfica
 
   const pub = inv.posts.filter((p) => p.status === "publish");
   const borradores = inv.posts.filter((p) => p.status === "draft");
+  const programados = inv.posts.filter((p) => p.status === "future");
   const todos = pub.flatMap((p) => p.analisis.problemas.map((x) => ({ ...x, post: p })));
   const criticos = todos.filter((x) => x.gravedad === "critica").length;
   const altos = todos.filter((x) => x.gravedad === "alta").length;
@@ -48,9 +46,9 @@ export default async function Resumen() {
 
   return (
     <>
-      <PageHeader title="Resumen" subtitle={`Estado SEO de transformaconia.com a ${fecha(new Date())}. Todo se lee en directo de WordPress.`}>
+      <PageHeader title="Salud SEO" subtitle={`Estado SEO de transformaconia.com a ${fecha(new Date())}. Todo se lee en directo de WordPress.`}>
         <BotonAccion accion={reanalizar} className="btn btn-ghost"><RefreshCw size={15} /> Reanalizar</BotonAccion>
-        <Link href="/estrategia" className="btn btn-primary"><Sparkles size={15} /> Ver plan</Link>
+        <Link href="/" className="btn btn-primary"><Sparkles size={15} /> Qué publicar</Link>
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -64,29 +62,12 @@ export default async function Resumen() {
         </div>
         <Stat label="Problemas críticos" value={criticos} hint={`${altos} de prioridad alta`} icon={<AlertTriangle size={18} />} tone={criticos ? "rose" : "emerald"} />
         <Stat label="Publicados · borradores" value={`${pub.length} · ${borradores.length}`} hint={`${inv.categorias.length} categorías`} icon={<FileText size={18} />} tone="blue" />
-        <Stat label="Radar IA (3 días)" value={radar.length} hint="temas con potencial para publicar" icon={<Radar size={18} />} tone="violet" />
+        <Stat label="Programados" value={programados.length} hint={programados.length ? `el próximo, ${fecha(programados.map((p) => p.date).sort()[0])}` : "ninguno"} icon={<CalendarClock size={18} />} tone="violet" />
       </div>
 
       {pendientes.some((p) => !p.hecho) && (
         <Card className="mt-6" title="Pendientes para que nos encuentren" subtitle={`${pendientes.filter((p) => !p.hecho).length} por hacer de ${pendientes.length}. Márcalas al terminarlas; el informe del lunes te recuerda las abiertas.`}>
           <Pendientes lista={pendientes} />
-        </Card>
-      )}
-
-      {calendario.length > 0 && (
-        <Card className="mt-6" title="Tu calendario editorial" subtitle="Lo siguiente que conviene publicar, por prioridad" action={<Link href="/estrategia" className="text-sm text-brand-600 hover:underline">Ver todo</Link>}>
-          <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {calendario.map((c, i) => {
-              const kw = c.detalle.match(/[Kk]eyword «([^»]+)»/)?.[1] ?? "";
-              return (
-                <li key={c.id} className="rounded-xl border border-[var(--line)] p-4">
-                  <p className="text-xs text-slate-500">{i + 1}. <Badge tone={c.prioridad === "alta" ? "rose" : "amber"}>{c.prioridad}</Badge></p>
-                  <p className="mt-1.5 text-sm font-medium text-slate-900">{c.titulo}</p>
-                  {kw && <Link href={`/radar?q=${encodeURIComponent(kw)}`} className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline">Buscar fuentes para «{kw}» →</Link>}
-                </li>
-              );
-            })}
-          </ol>
         </Card>
       )}
 
@@ -110,21 +91,6 @@ export default async function Resumen() {
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
-        <Card title="Qué publicar hoy" subtitle={d ? `Radar del ${fecha(d.fecha)}: ${d.data.titular_dia ?? ""}` : "El radar se ejecuta cada día a las 8:30"} action={<Link href="/radar" className="text-sm text-brand-600 hover:underline">Radar completo</Link>}>
-          <ul className="divide-y divide-[var(--line)]">
-            {radar.map((r) => (
-              <li key={r.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900">{r.title}</p>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{r.resumen}</p>
-                  <p className="mt-1 flex flex-wrap gap-1.5"><Badge tone={tonoScore(r.score)}>{r.score}/100</Badge><Badge>{r.source}</Badge>{r.keyword && <Badge tone="blue">{r.keyword}</Badge>}</p>
-                </div>
-                <BotonAccion accion={prepararRadar.bind(null, r.id)} className="btn btn-soft">Preparar</BotonAccion>
-              </li>
-            ))}
-            {!radar.length && <Empty>No hay temas pendientes. Lanza el radar desde la sección Radar IA.</Empty>}
-          </ul>
-        </Card>
         <Card title="Artículos que más necesitan ayuda" action={<Link href="/articulos" className="text-sm text-brand-600 hover:underline">Todos</Link>}>
           <ul className="divide-y divide-[var(--line)]">
             {peores.map((p) => (

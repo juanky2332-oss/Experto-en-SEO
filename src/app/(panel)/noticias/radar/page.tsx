@@ -1,10 +1,8 @@
 import { sql } from "@/lib/db";
 import { Card, PageHeader, Badge, tonoScore, fecha, Empty, type Tono } from "@/components/ui";
 import { BotonAccion } from "@/components/BotonAccion";
-import { prepararRadar, descartarRadar, radarAhora } from "../acciones";
+import { prepararRadar, descartarRadar, radarAhora } from "../../acciones";
 import { Radar as RadarIcon } from "lucide-react";
-import { ultimasBusquedas } from "@/lib/temas";
-import { BuscadorTemas } from "./BuscadorTemas";
 import { ConfigRadar } from "./ConfigRadar";
 import Link from "next/link";
 import clsx from "clsx";
@@ -23,8 +21,8 @@ const EST: Record<string, { label: string; tone: Tono }> = {
   published: { label: "Publicada", tone: "emerald" }, skipped: { label: "Descartada", tone: "slate" },
 };
 
-export default async function Radar({ searchParams }: { searchParams: Promise<{ q?: string; tipo?: string }> }) {
-  const { q, tipo } = await searchParams;
+export default async function Radar({ searchParams }: { searchParams: Promise<{ tipo?: string }> }) {
+  const { tipo } = await searchParams;
   const filtro = TIPO_CLAVES.find((t) => t === tipo) ?? null;
   // en dos tandas de 3: el pool de Postgres tiene 3 conexiones (pooler de Supabase)
   const [digests, todos, fuentes] = await Promise.all([
@@ -33,7 +31,7 @@ export default async function Radar({ searchParams }: { searchParams: Promise<{ 
       from seo.radar where score is not null and created_at > now() - interval '14 days' order by digest_date desc, score desc limit 120`,
     sql<{ source: string; n: number }[]>`select source, count(*)::int n from seo.radar where created_at > now() - interval '14 days' group by 1 order by 2 desc`,
   ]);
-  const [busquedas, cfg, estado] = await Promise.all([ultimasBusquedas(), getRadarConfig(), getRadarEstado()]);
+  const [cfg, estado] = await Promise.all([getRadarConfig(), getRadarEstado()]);
   const items = filtro ? todos.filter((i) => i.tipo === filtro) : todos;
   const porTipo = new Map<string, number>();
   todos.forEach((i) => i.tipo && porTipo.set(i.tipo, (porTipo.get(i.tipo) ?? 0) + 1));
@@ -45,13 +43,11 @@ export default async function Radar({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <>
-      <PageHeader title="Radar IA" subtitle="Leo 21 fuentes de referencia (OpenAI, Anthropic y su blog de ingeniería, versiones de Claude Code, n8n, Cursor, Google, DeepMind, Simon Willison, Latent Space, Xataka…) y busco en la web tus temas preferidos. Clasifico cada noticia por tipo y puntúo qué merece artículo.">
-        <BotonAccion accion={radarAhora} className="btn btn-primary"><RadarIcon size={15} /> Lanzar radar ahora</BotonAccion>
+      <PageHeader title="Radar de noticias" subtitle="Leo las fuentes de referencia configuradas en el radar (IA, industria y actualidad) y busco en la web tus temas preferidos. Clasifico cada noticia por tipo y puntúo qué merece artículo. El radar automático diario está apagado: búscalo a mano cuando quieras.">
+        <BotonAccion accion={radarAhora} className="btn btn-primary"><RadarIcon size={15} /> Buscar ahora</BotonAccion>
       </PageHeader>
 
       <ConfigRadar inicial={cfg} estado={`${describirRadar(cfg)} ${ultima}`} />
-
-      <BuscadorTemas anteriores={busquedas} inicial={q ?? ""} />
 
       {hoy ? (
         <div className="mb-6 grid gap-6 xl:grid-cols-3">
@@ -66,14 +62,14 @@ export default async function Radar({ searchParams }: { searchParams: Promise<{ 
             <p className="mt-4 text-xs text-slate-500">Noticias leídas por fuente: {fuentes.map((f) => `${f.source} ${f.n}`).join(" · ")}</p>
           </Card>
         </div>
-      ) : <Empty>Todavía no hay radar. Pulsa «Lanzar radar ahora».</Empty>}
+      ) : <Empty>Todavía no hay radar. Pulsa «Buscar ahora».</Empty>}
 
       <Card title="Noticias puntuadas" subtitle="Solo las que el editor IA consideró relevantes, con el tipo de artículo que mejor les saca partido. Pulsa «Preparar» y te llega el brief para aprobar.">
         <nav className="mb-4 flex flex-wrap gap-1.5" aria-label="Filtrar por tipo">
-          <Link href="/radar" className={clsx("rounded-full px-3 py-1 text-xs ring-1 ring-inset", !filtro ? "bg-brand-600 text-white ring-brand-600" : "bg-white text-slate-600 ring-[var(--line)]")}>Todas · {todos.length}</Link>
+          <Link href="/noticias/radar" className={clsx("rounded-full px-3 py-1 text-xs ring-1 ring-inset", !filtro ? "bg-brand-600 text-white ring-brand-600" : "bg-white text-slate-600 ring-[var(--line)]")}>Todas · {todos.length}</Link>
           {TIPO_CLAVES.map((t) => {
             const T = TIPO_UI[t];
-            return <Link key={t} href={`/radar?tipo=${t}`} className={clsx("inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs ring-1 ring-inset", filtro === t ? "bg-brand-600 text-white ring-brand-600" : "bg-white text-slate-600 ring-[var(--line)]")}><T.Icon size={12} />{T.label} · {porTipo.get(t) ?? 0}</Link>;
+            return <Link key={t} href={`/noticias/radar?tipo=${t}`} className={clsx("inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs ring-1 ring-inset", filtro === t ? "bg-brand-600 text-white ring-brand-600" : "bg-white text-slate-600 ring-[var(--line)]")}><T.Icon size={12} />{T.label} · {porTipo.get(t) ?? 0}</Link>;
           })}
         </nav>
         {items.length ? (

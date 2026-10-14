@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { RefreshCw, Target, Users, Layers, Image as ImageIcon, ShieldCheck, Bot, Ban, CalendarDays, NotebookPen } from "lucide-react";
-import { getGuia, cobertura, ultimoDiagnostico } from "@/lib/guia";
+import { Compass, Target, Users, Layers, Image as ImageIcon, ShieldCheck, Bot, Ban, CalendarDays, NotebookPen } from "lucide-react";
+import { getGuia, cobertura } from "@/lib/guia";
+import { topRecs } from "@/lib/que-publicar/datos";
+import { SITE } from "@/lib/wp";
 import { Card, PageHeader, Badge, Empty, fecha } from "@/components/ui";
-import { BotonAccion } from "@/components/BotonAccion";
-import { BadgeTipo, TIPO_UI } from "@/components/tipos";
-import { recalcularProximosAccion } from "../acciones";
+import { TIPO_UI } from "@/components/tipos";
+import { Tarjeta } from "../que-publicar/Tarjeta";
 import { PedirCambio, Seccion } from "./Editables";
 
 export const dynamic = "force-dynamic";
@@ -15,35 +16,22 @@ const dias = (d: string | null) => (d ? Math.floor((Date.now() - Date.parse(d)) 
 
 export default async function GuiaEditorial() {
   const g = await getGuia();
-  const [cob, diag] = await Promise.all([cobertura(g), ultimoDiagnostico()]);
+  const [cob, top] = await Promise.all([cobertura(g), topRecs(3)]);
   const maxTipo = Math.max(1, ...cob.tipos.map((t) => t.trimestre));
 
   return (
     <>
       <PageHeader title="Guía editorial" subtitle={<>A quién escribimos, sobre qué, con qué formato y qué no publicar. Es la guía que siguen el <b>radar</b> (para puntuar y clasificar noticias) y el <b>redactor</b> (estructura, extensión, llamada a la acción y estilo de imagen de cada tipo). Versión {g.version} · actualizada el {fecha(g.actualizada)}.</>}>
-        <BotonAccion accion={recalcularProximosAccion} className="btn btn-primary" confirmar="Analizo lo publicado y el radar con IA para proponer los próximos artículos (30-60 s, unos céntimos). ¿Seguimos?">
-          <RefreshCw size={15} /> Recalcular qué publicar
-        </BotonAccion>
+        <Link href="/" className="btn btn-primary"><Compass size={15} /> Ver recomendaciones</Link>
       </PageHeader>
 
       <PedirCambio />
 
       <div className="mb-6 grid gap-6 xl:grid-cols-5">
-        <Card className="xl:col-span-3" title="Qué publicar después" subtitle={diag ? `${diag.data.diagnostico} (calculado el ${fecha(diag.created_at, true)})` : "Pulsa «Recalcular qué publicar» para que la IA cruce la guía con lo publicado y el radar. Se recalcula solo cada lunes."}>
-          {g.proximos.length ? (
-            <ol className="divide-y divide-[var(--line)]">
-              {g.proximos.map((p, i) => (
-                <li key={i} className="flex flex-wrap items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-slate-900"><span className="mr-1.5 text-slate-400">{i + 1}.</span>{p.titulo}</p>
-                    <p className="mt-0.5 text-sm text-slate-600">{p.por_que}</p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5"><BadgeTipo tipo={p.tipo} /><Badge tone="blue">{p.keyword}</Badge><Badge>{p.pilar}</Badge></div>
-                  </div>
-                  <Link href={`/radar?q=${encodeURIComponent(p.keyword)}`} className="btn btn-soft">Buscar fuentes</Link>
-                </li>
-              ))}
-            </ol>
-          ) : <Empty>Todavía no hay propuestas. Pulsa «Recalcular qué publicar».</Empty>}
+        <Card className="xl:col-span-3" title="Qué publicar después" subtitle="Las 3 recomendaciones con más prioridad del estratega (Qué publicar). Siguen esta guía: pilares, destinos y reglas." action={<Link href="/" className="text-sm text-brand-600 hover:underline">Ver todas</Link>}>
+          {top.length ? (
+            <div className="space-y-3">{top.map((r) => <Tarjeta key={r.id} rec={r} sitio={SITE} compacta />)}</div>
+          ) : <Empty>Todavía no hay recomendaciones. Genéralas en <Link href="/" className="text-brand-600 underline">Qué publicar</Link>.</Empty>}
         </Card>
 
         <div className="space-y-6 xl:col-span-2">

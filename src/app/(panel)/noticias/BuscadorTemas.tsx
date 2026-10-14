@@ -7,7 +7,8 @@ import { BotonAccion } from "@/components/BotonAccion";
 import { buscarTemaAccion, prepararRadar } from "../acciones";
 import type { ResultadoBusqueda } from "@/lib/temas";
 
-const SUGERENCIAS = ["trucos de Claude Code", "servidores MCP útiles", "agentes con n8n", "novedades de la API de OpenAI", "Cursor vs Claude Code", "prompts de sistema avanzados", "IA en la empresa: casos reales", "AI Act obligaciones"];
+const SUGERENCIAS = ["IA en la industria: casos reales", "mantenimiento predictivo", "visión artificial en fabricación", "Verifactu y facturación", "ayudas digitalización Región de Murcia", "ERP para pymes industriales", "AI Act obligaciones", "robótica en talleres"];
+export const COSTE_BUSQUEDA = "unos 0,03-0,08 € (una llamada al modelo rápido con búsqueda web)";
 
 export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: ResultadoBusqueda[]; inicial?: string }) {
   const [q, setQ] = useState(inicial);
@@ -17,6 +18,7 @@ export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: Result
 
   const buscar = (texto: string) => {
     if (texto.trim().length < 3) return;
+    if (!window.confirm(`Busco noticias recientes sobre «${texto.trim()}». Coste estimado: ${COSTE_BUSQUEDA}. ¿Seguimos?`)) return;
     setQ(texto);
     setErr("");
     start(async () => {
@@ -30,12 +32,12 @@ export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: Result
     <section className="card mb-6 overflow-hidden">
       <div className="bg-gradient-to-br from-ink-950 to-[#1c2a52] px-5 py-6 text-white sm:px-7">
         <p className="flex items-center gap-2 text-sm font-medium text-brand-100"><Sparkles size={16} /> Buscador de temas</p>
-        <h2 className="mt-1 text-xl font-semibold">¿Sobre qué quieres publicar?</h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-300">Escribe un tema y busco en la web las noticias y publicaciones más recientes y fiables, las puntúo por potencial SEO, te aviso si ya lo cubre tu blog y te propongo artículos.</p>
+        <h2 className="mt-1 text-xl font-semibold">¿Sobre qué tema buscamos noticias?</h2>
+        <p className="mt-1 max-w-2xl text-sm text-slate-300">Escribe un tema y busco en la web las noticias y publicaciones más recientes y fiables, las puntúo por potencial SEO, te aviso si ya lo cubre tu blog y te propongo artículos. Coste estimado por búsqueda: {COSTE_BUSQUEDA}.</p>
         <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); buscar(q); }}>
           <div className="relative flex-1">
             <Search size={17} className="absolute top-3 left-3 text-slate-400" />
-            <input autoFocus={!!inicial} value={q} onChange={(e) => setQ(e.target.value)} placeholder="p. ej. tendencias Claude, IA en clínicas, novedades de Gemini…" className="input py-2.5 pl-10 text-slate-900" />
+            <input autoFocus={!!inicial} value={q} onChange={(e) => setQ(e.target.value)} placeholder="p. ej. mantenimiento predictivo, ayudas a la industria, control de calidad…" className="input py-2.5 pl-10 text-slate-900" />
           </div>
           <button className="btn btn-primary justify-center py-2.5" disabled={pend}>{pend ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} {pend ? "Buscando en la web…" : "Buscar"}</button>
         </form>
@@ -68,7 +70,7 @@ export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: Result
                     </div>
                   </div>
                   {r.status === "new" || r.status === "sent" || r.status === "seen" ? (
-                    <BotonAccion accion={prepararRadar.bind(null, r.id)} className={clsx("btn", r.ya_cubierto ? "btn-ghost" : "btn-soft")}>Preparar artículo</BotonAccion>
+                    <BotonAccion accion={prepararRadar.bind(null, r.id)} className={clsx("btn", r.ya_cubierto ? "btn-ghost" : "btn-soft")}>Crear brief</BotonAccion>
                   ) : <Badge tone="emerald">{r.status === "published" ? "Publicado" : "En preparación"}</Badge>}
                 </li>
               ))}
@@ -86,7 +88,7 @@ export function BuscadorTemas({ anteriores, inicial = "" }: { anteriores: Result
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-xs text-slate-500">Para escribir una idea, pulsa «Preparar artículo» en la fuente que mejor la respalde: el publicador investiga más en la web antes de redactar.</p>
+              <p className="mt-3 text-xs text-slate-500">Para escribir una idea, pulsa «Crear brief» en la fuente que mejor la respalde: el publicador investiga más en la web antes de redactar.</p>
             </div>
             {anteriores.length > 1 && (
               <div className="rounded-xl border border-[var(--line)] p-4">
