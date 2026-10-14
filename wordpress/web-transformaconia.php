@@ -8,7 +8,7 @@
 
 /* Enlace de la demo del programa (cambiar solo aquí cuando exista demo.transformaconia.com; en n8n/web-paginas.mjs vive DEMO_URL) */
 if ( ! defined( 'TC_DEMO_URL' ) ) {
-	define( 'TC_DEMO_URL', 'https://transformaconia-gestion.vercel.app/' );
+	define( 'TC_DEMO_URL', 'https://demo.transformaconia.com/' );
 }
 
 /* ---------- 0. Verificación de Google Search Console (archivo HTML; no borrar nunca) ---------- */

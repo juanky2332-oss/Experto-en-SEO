@@ -10,7 +10,7 @@ import { wp } from './gw.mjs';
 
 const IMG = JSON.parse(fs.readFileSync(new URL('./web-capturas.json', import.meta.url), 'utf8'));
 // Demo del programa. Cuando exista el registro DNS (demo.transformaconia.com con certificado), cambiar SOLO esta constante.
-const DEMO_URL = 'https://transformaconia-gestion.vercel.app/';
+const DEMO_URL = 'https://demo.transformaconia.com/';
 const DEMO_TXT = 'Pide la demo con tus precios';
 const H = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
