@@ -394,6 +394,32 @@ export async function votarRec(id: number, voto: "interesa" | "no_interesa" | "p
   });
 }
 
+/** Crea el brief de una recomendación: con radar_id usa brief_radar; si no, brief_pista. Pasa la recomendación a 'en_brief'. */
+export async function crearBriefRec(id: number, soloBorrador: boolean) {
+  return seguro(async () => {
+    const { rec } = await import("@/lib/que-publicar/datos");
+    const r = await rec(id);
+    if (!r) throw new Error("No encuentro esa recomendación");
+    if (r.estado === "en_brief" || r.estado === "publicada") throw new Error("Esta recomendación ya tiene brief o está publicada");
+    let res: { ok: boolean; brief_id?: string };
+    if (r.radar_id) {
+      res = await publicador({ action: "brief_radar", radar_id: r.radar_id });
+    } else {
+      res = await publicador({
+        action: "brief_pista", rec_id: r.id, ...(soloBorrador ? { borrador: true } : {}),
+        pista: {
+          keyword: r.keyword, secundarias: r.secundarias, intencion: r.intencion, publico: r.publico, pilar: r.pilar, categoria: r.pilar,
+          destino: r.destino, destino_ref: r.destino_ref, enlaces: r.enlaces, cta: r.cta, titulo: r.titulo, tipo: r.tipo,
+        },
+      });
+    }
+    const briefId = typeof res?.brief_id === "string" && res.brief_id ? res.brief_id : null;
+    await sql`update seo.qp_recs set estado = 'en_brief', brief_id = coalesce(${briefId}, brief_id) where id = ${id}`;
+    revalidatePath("/", "layout");
+    return { brief_id: briefId };
+  }, "Preparando el brief… llegará a Telegram y a Publicar para que lo apruebes");
+}
+
 /** Temas a favor / en contra de «Qué publicar» = temas y exclusiones del radar (misma configuración). */
 export async function guardarPreferenciasQp(favor: string[], contra: string[]) {
   return seguro(async () => {

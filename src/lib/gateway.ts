@@ -55,13 +55,20 @@ export async function telegram(text: string, buttons: Boton[] = []) {
   }
 }
 
-/** Dispara el publicador de n8n (brief de una URL, brief de una noticia del radar, publicar o descartar). */
+/** Tema propuesto desde «Qué publicar» (se construye desde una fila de seo.qp_recs). */
+export type PistaBrief = {
+  keyword: string; secundarias: string[]; intencion: string | null; publico: string | null; pilar: string | null; categoria: string | null;
+  destino: string; destino_ref: string | null; enlaces: { url: string; ancla: string }[]; cta: string | null; titulo: string; tipo?: string | null; notas?: string;
+};
+
+/** Dispara el publicador de n8n (brief de una URL, de una pista, de una noticia del radar, publicar o descartar). */
 export async function publicador(body:
   | { action: "brief_url"; url: string }
+  | { action: "brief_pista"; pista: PistaBrief; borrador?: boolean; rec_id?: number }
   | { action: "brief_radar"; radar_id: number }
   | { action: "publish"; brief_id: string }
   | { action: "reject"; brief_id: string }) {
-  return call<{ ok: boolean }>("seo-publicador", body, 30_000);
+  return call<{ ok: boolean; brief_id?: string }>("seo-publicador", body, 30_000);
 }
 
 export async function lanzarRadar() {

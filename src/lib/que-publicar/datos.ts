@@ -21,6 +21,11 @@ export async function listarRecs() {
   return sql<Rec[]>`select ${COLS} from seo.qp_recs order by case estado when 'interesa' then 0 when 'abierta' then 1 when 'en_brief' then 2 when 'publicada' then 3 else 4 end, prioridad desc, id limit 120`;
 }
 
+export async function rec(id: number) {
+  const [r] = await sql<Rec[]>`select ${COLS} from seo.qp_recs where id = ${id}`;
+  return r ?? null;
+}
+
 /** Guarda el voto, cambia el estado de la recomendación y recalcula los pesos aprendidos. */
 export async function votar(id: number, voto: Voto, origen = "app") {
   if (!VOTOS.includes(voto)) throw new Error("Voto no válido");

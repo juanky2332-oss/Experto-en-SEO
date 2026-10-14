@@ -2,9 +2,9 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { ThumbsUp, ThumbsDown, CheckCircle2, Sparkles, ExternalLink, Loader2, Search, Link2, Megaphone, MapPin } from "lucide-react";
+import { ThumbsUp, ThumbsDown, CheckCircle2, Sparkles, ExternalLink, Loader2, Search, Link2, Megaphone, MapPin, FileText } from "lucide-react";
 import { Badge, ScoreRing, type Tono } from "@/components/ui";
-import { votarRec } from "../acciones";
+import { votarRec, crearBriefRec } from "../acciones";
 import type { Rec } from "@/lib/que-publicar/datos";
 
 export const DESTINO_UI: Record<string, string> = {
@@ -30,6 +30,15 @@ export function Tarjeta({ rec, sitio, compacta = false }: { rec: Rec; sitio: str
     const r = await votarRec(rec.id, v);
     if (!r.ok) setErr(r.error);
   });
+  const [borrador, setBorrador] = useState(false);
+  const crearBrief = () => {
+    if (!window.confirm(`Crear el brief de «${rec.titulo}»${borrador && !rec.radar_id ? " (solo borrador)" : ""}.\n\nCoste aproximado: ~0,05 € el brief. La redacción posterior (~0,6 €) solo se lanza si luego apruebas el brief en Telegram o en Publicar.\n\n¿Continuar?`)) return;
+    start(async () => {
+      setErr("");
+      const r = await crearBriefRec(rec.id, borrador);
+      if (!r.ok) setErr(r.error);
+    });
+  };
   const est = ESTADO_UI[rec.estado];
   const viva = rec.estado === "abierta" || rec.estado === "interesa";
 
@@ -82,6 +91,12 @@ export function Tarjeta({ rec, sitio, compacta = false }: { rec: Rec; sitio: str
           <button type="button" disabled={pend} onClick={() => votar("no_interesa")} className="btn btn-ghost"><ThumbsDown size={14} /> No me interesa</button>
           <button type="button" disabled={pend} onClick={() => votar("publicado")} className="btn btn-ghost"><CheckCircle2 size={14} /> Ya publicado</button>
           <button type="button" disabled={pend} onClick={() => votar("mas_como_esto")} className="btn btn-ghost"><Sparkles size={14} /> Más como esto</button>
+          {viva && (
+            <span className="flex items-center gap-2">
+              <button type="button" disabled={pend} onClick={crearBrief} className="btn btn-soft"><FileText size={14} /> Crear brief</button>
+              {!rec.radar_id && <label className="flex items-center gap-1 text-xs text-slate-500"><input type="checkbox" checked={borrador} onChange={(e) => setBorrador(e.target.checked)} /> Solo borrador</label>}
+            </span>
+          )}
           {rec.destino_ref && <a href={`${sitio}${rec.destino_ref}`} target="_blank" rel="noreferrer" className="btn btn-ghost"><ExternalLink size={14} /> Abrir destino</a>}
           <Link href={`/noticias?q=${encodeURIComponent(rec.keyword)}`} className="btn btn-ghost"><Search size={14} /> Buscar noticias</Link>
           {pend && <Loader2 size={15} className="animate-spin text-slate-400" />}
