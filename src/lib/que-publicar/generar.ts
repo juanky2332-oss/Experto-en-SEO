@@ -7,6 +7,7 @@ import { guiaATexto, normalizar, TIPO_CLAVES } from "../guia";
 import { recogerSenales, type Senales } from "./senales";
 import { DESTINOS, SENALES, motivoDescarte, puntuar, mismoTema, tokens, PESOS_VACIOS, type Candidato, type Contexto, type PorQue, type Pesos } from "./prioridad";
 import { calcularPesos, type Feedback } from "./aprender";
+import { mismaConsulta, redondea } from "./gsc-senal";
 
 // Tarifa aproximada de gpt-5.4-mini (USD por millón de tokens) para mostrar el coste; revisar si cambia.
 const PRECIO = { entrada: 0.75, cacheada: 0.075, salida: 4.5 };
@@ -41,6 +42,7 @@ Reglas obligatorias:
 - No hay datos de volumen de búsqueda: NO escribas cifras de búsquedas, visitas ni clics estimados.
 - Verifactu: el programa de gestión no lo cumple todavía y la fecha de obligación no está confirmada; no afirmes fechas que no estén en PLAZOS.
 - Nada que ya esté PROGRAMADO o PUBLICADO con la misma intención de búsqueda. Si una página existente ya trata el tema, propón «ampliar_pagina» con su ruta en destino_ref.
+- Search Console (GSC_CERCA y GSC_SIN_PAGINA) son datos reales de Google de los últimos 28 días. Para cada oportunidad de GSC_CERCA (hasta 3, las primeras) propón «ampliar_pagina» sobre la página indicada, con la consulta como keyword; para cada una de GSC_SIN_PAGINA (hasta 3, las primeras) propón un artículo nuevo o una página con la consulta como keyword. Cita la señal gsc_cerca o gsc_sin_pagina, pero NO escribas cifras de GSC: el sistema las añade.
 - Usa solo rutas que aparezcan en PÁGINAS o ARTÍCULOS para destino_ref y enlaces.
 
 Campos de cada candidato:
@@ -50,7 +52,7 @@ Campos de cada candidato:
 - pilar: nombre EXACTO de un pilar de la guía. tipo: ${TIPO_CLAVES.join(", ")}.
 - destino: articulo (post nuevo), ampliar_pagina (añadir sección a una página existente), pagina_sector, pagina_local o faq (preguntas frecuentes en una página existente). destino_ref: ruta /slug/ de la página afectada o, si es artículo, la página comercial a la que debe llevar.
 - enlaces: 2-4 enlaces internos {url: ruta /slug/, ancla}. cta: llamada a la acción (diagnóstico gratis, /erp-industria/…).
-- por_que: 1-3 señales «por qué ahora» de esta lista, citando el dato concreto que te doy: radar (noticia del radar, con su id en radar_id), hueco_pilar (pilar con 0-1 artículos), canibalizacion o huerfano (hueco de la auditoría), sin_trafico (la página destino no tiene visitas), plazo (un plazo de PLAZOS), conversion (la página destino convierte), tema_favor (coincide con un tema preferido). No inventes señales.
+- por_que: 1-3 señales «por qué ahora» de esta lista, citando el dato concreto que te doy: radar (noticia del radar, con su id en radar_id), hueco_pilar (pilar con 0-1 artículos), canibalizacion o huerfano (hueco de la auditoría), sin_trafico (la página destino no tiene visitas), plazo (un plazo de PLAZOS), conversion (la página destino convierte), tema_favor (coincide con un tema preferido), gsc_cerca o gsc_sin_pagina (oportunidades de Search Console). No inventes señales.
 - esfuerzo: bajo (FAQ o ampliar con 1 sección), medio (artículo normal) o alto (página nueva o pilar).
 - radar_id: id de la noticia del radar o 0.
 
@@ -91,6 +93,11 @@ function textoSenales(s: Senales) {
     `AUDITORÍA · artículos huérfanos (nadie los enlaza):\n${l(s.huerfanos.slice(0, 15).map((h) => `- /${h.slug}/ · ${h.titulo}`))}`,
     `PLAZOS:\n${l(s.plazos.map((p) => `- ${p.titulo}: ${p.fecha ?? "fecha por confirmar"} (${p.estado.replace("_", " ")}). ${p.nota}`))}`,
     `RADAR (últimos 14 días, id · puntuación · titular · keyword):\n${s.radar.length ? s.radar.map((r) => `- ${r.id} · ${r.score} · ${r.titulo} · ${r.keyword}`).join("\n") : "- radar apagado: no uses la señal «radar»"}`,
+    `SEARCH CONSOLE${s.gsc.fecha ? ` (28 días hasta ${s.gsc.fecha})` : " (sin datos)"}
+GSC_CERCA (consulta · página que posiciona · posición · impresiones; casi en página 1):
+${l(s.gsc.cerca.slice(0, 8).map((o) => `- ${o.consulta} · ${o.pagina} · ${redondea(o.posicion)} · ${o.impresiones}`))}
+GSC_SIN_PAGINA (consulta · página que posiciona · impresiones; ninguna página centrada en ella):
+${l(s.gsc.sinPagina.slice(0, 8).map((o) => `- ${o.consulta} · ${o.pagina} · ${o.impresiones}`))}`,
     `TEMAS PREFERIDOS: ${s.radarCfg.temas.join(", ") || "ninguno"}`,
     `TEMAS EN CONTRA (no proponer): ${s.radarCfg.excluir.join(", ") || "ninguno"}`,
   ].join("\n\n");
@@ -102,6 +109,7 @@ function huella(s: Senales) {
     pub: s.publicados.map((p) => p.keyword), pag: s.paginas.map((p) => [p.slug, p.keyword, p.visitas30 > 0, p.conversiones]),
     radar: s.radar.map((r) => r.id), plazos: s.plazos, temas: s.radarCfg.temas, excluir: s.radarCfg.excluir,
     canib: s.canibalizacion.length, huerf: s.huerfanos.length,
+    gsc: [s.gsc.cerca.map((o) => [o.consulta, o.pagina]), s.gsc.sinPagina.map((o) => [o.consulta, o.pagina])],
   };
   return createHash("sha256").update(JSON.stringify(datos)).digest("hex").slice(0, 16);
 }
@@ -132,6 +140,7 @@ function validar(c: Candidato, s: Senales, rutas: Set<string>): Candidato {
       case "sin_trafico": return s.sinVisitas.includes(ref);
       case "plazo": return !!plazo;
       case "conversion": return (s.conversiones[ref] ?? 0) > 0;
+      case "gsc_cerca": case "gsc_sin_pagina": return false; // se calculan en código más abajo, nunca las da la IA
       case "tema_favor": return s.radarCfg.temas.some((t) => mismoTema(texto, t) || tokens(t).every((w) => tokens(texto).includes(w)));
     }
   };
@@ -141,8 +150,17 @@ function validar(c: Candidato, s: Senales, rutas: Set<string>): Candidato {
   if (!tiene("hueco_pilar") && total === 0 && pilar) por_que.push({ senal: "hueco_pilar", detalle: `El pilar «${pilar.nombre}» aún no tiene artículos.` });
   if (!tiene("sin_trafico") && ref && s.sinVisitas.includes(ref)) por_que.push({ senal: "sin_trafico", detalle: `${ref} no ha tenido visitas en 30 días.` });
   if (!tiene("plazo") && plazo) por_que.push({ senal: "plazo", detalle: `${plazo.titulo} (${plazo.fecha ?? "fecha por confirmar"}).` });
+  // Search Console: dato real, calculado aquí (nunca el texto de la IA)
+  const cerca = s.gsc.cerca.find((o) => mismaConsulta(c.keyword, o.consulta));
+  const sinPag = cerca ? undefined : s.gsc.sinPagina.find((o) => mismaConsulta(c.keyword, o.consulta));
+  const gscPorQue: PorQue[] = [];
+  if (cerca) gscPorQue.push({ senal: "gsc_cerca", detalle: `«${cerca.consulta}» sale en Google en la posición ${redondea(cerca.posicion).toString().replace(".", ",")} con ${cerca.impresiones} impresiones en 28 días (página ${cerca.pagina}): ampliarla puede llevarla a la primera página.`, gsc: { impresiones: cerca.impresiones, posicion: redondea(cerca.posicion) } });
+  if (sinPag) gscPorQue.push({ senal: "gsc_sin_pagina", detalle: `«${sinPag.consulta}» tiene ${sinPag.impresiones} impresiones en 28 días y la página que sale (${sinPag.pagina}) no está centrada en esa búsqueda.`, gsc: { impresiones: sinPag.impresiones, posicion: redondea(sinPag.posicion) } });
+  por_que.unshift(...gscPorQue);
   // una «página de sector/local» cuya ruta ya existe es, en realidad, ampliar esa página
-  const destino = (c.destino === "pagina_sector" || c.destino === "pagina_local") && ref && s.paginas.some((p) => p.ruta === ref) ? "ampliar_pagina" : c.destino;
+  // una consulta casi en página 1 se resuelve ampliando la página que ya posiciona, no con un artículo duplicado
+  if (cerca && rutas.has(cerca.pagina) && (c.destino === "articulo" || c.destino === "faq")) ref = cerca.pagina;
+  const destino = cerca && rutas.has(cerca.pagina) && (c.destino === "articulo" || c.destino === "faq") ? "ampliar_pagina" : (c.destino === "pagina_sector" || c.destino === "pagina_local") && ref && s.paginas.some((p) => p.ruta === ref) ? "ampliar_pagina" : c.destino;
   return {
     ...c, destino, titulo: c.titulo.trim(), keyword: c.keyword.trim().toLowerCase(), secundarias: c.secundarias.map((x) => x.trim()).filter(Boolean).slice(0, 4),
     pilar: pilar?.nombre ?? c.pilar, destino_ref: ref, enlaces, por_que: por_que.slice(0, 4), radar_id: radar?.id ?? null,

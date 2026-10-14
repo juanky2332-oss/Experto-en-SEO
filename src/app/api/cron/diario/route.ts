@@ -6,6 +6,7 @@ import { telegram, esc } from "@/lib/gateway";
 import { generarQuePublicar } from "@/lib/que-publicar/generar";
 import { topRecs } from "@/lib/que-publicar/datos";
 import { getPendientes } from "@/lib/pendientes";
+import { guardarGsc, ultimaGsc } from "@/lib/gsc";
 
 export const maxDuration = 300;
 
@@ -14,6 +15,13 @@ export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization")?.replace(/^Bearer /, "");
   if (!mismaClave(auth, process.env.CRON_SECRET)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   const inv = await inventario();
+  // foto diaria de Search Console (28 días); si falla o no está configurado, el resto sigue igual
+  let gsc: number | null = null;
+  try {
+    gsc = await guardarGsc();
+  } catch (e) {
+    console.error("gsc", e);
+  }
   const [ayer] = await sql<{ score: number }[]>`select score from seo.score_history where post_id = 0 and fecha < current_date order by fecha desc limit 1`;
   const antes = new Map((await sql<{ post_id: number; score: number }[]>`select post_id, score from seo.post_scores`).map((r) => [r.post_id, r.score]));
   await guardarFoto(inv);
@@ -22,10 +30,20 @@ export async function GET(req: NextRequest) {
   // ?plan=1 fuerza el plan editorial semanal fuera del lunes (lo usa el despliegue para estrenar la guía)
   const forzar = req.nextUrl.searchParams.get("plan") === "1";
   const lunes = forzar || new Date().toLocaleDateString("en-GB", { timeZone: "Europe/Madrid", weekday: "long" }) === "Monday";
+  let lineaGsc = "";
+  if (lunes) {
+    try {
+      const g = await ultimaGsc();
+      if (g) lineaGsc = `\n🔎 Google (28 días hasta ${g.fecha}): <b>${g.clics}</b> clics · <b>${g.impresiones}</b> impresiones\n`;
+    } catch (e) {
+      console.error("gsc-resumen", e);
+    }
+  }
   if (caidas.length || lunes) {
     const delta = ayer ? inv.salud - ayer.score : 0;
     await telegram(
       `📈 <b>${lunes ? "Informe semanal SEO" : "Aviso SEO"}</b>\nSalud media: <b>${inv.salud}/100</b>${ayer ? ` (${delta >= 0 ? "+" : ""}${delta})` : ""}\n` +
+        lineaGsc +
         (caidas.length ? `\n⬇️ Han empeorado:\n${caidas.slice(0, 5).map((p) => `• ${esc(p.title)} → ${p.analisis.score} (/post ${p.id})`).join("\n")}\n` : "") +
         (criticos.length ? `\n⚠️ ${criticos.length} artículos con enlaces rotos o años erróneos (/articulos)\n` : "") +
         `\n${process.env.APP_URL ?? ""}`,
@@ -43,5 +61,5 @@ export async function GET(req: NextRequest) {
       console.error("que-publicar", e);
     }
   }
-  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, proximos });
+  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, proximos, gsc });
 }

@@ -298,3 +298,16 @@ create table if not exists seo.qp_feedback (
   tokens text[] not null default '{}'         -- palabras significativas de la keyword
 );
 create index if not exists qp_feedback_fecha on seo.qp_feedback (created_at desc);
+
+-- Search Console: foto diaria de los últimos 28 días (fecha = final del rango). consulta = '' es la fila de la página entera.
+create table if not exists seo.gsc (
+  fecha date not null,
+  pagina text not null,                       -- ruta /slug/
+  consulta text not null default '',
+  clics int not null default 0,
+  impresiones int not null default 0,
+  ctr real not null default 0,
+  posicion real not null default 0,
+  primary key (fecha, pagina, consulta)
+);
+create index if not exists gsc_consulta on seo.gsc (fecha desc, impresiones desc);

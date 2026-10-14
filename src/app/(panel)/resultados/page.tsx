@@ -3,6 +3,8 @@ import { BarChart3, MousePointerClick, Mail, Smartphone, CalendarCheck } from "l
 import { sql } from "@/lib/db";
 import { Card, PageHeader, Stat, Empty } from "@/components/ui";
 import { GraficaVisitas } from "@/components/Grafica";
+import { ultimaGsc } from "@/lib/gsc";
+import { agruparConsultas, casiPagina1 } from "@/lib/que-publicar/gsc-senal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Resultados" };
@@ -20,6 +22,27 @@ function Lista({ filas, vacio, enlace }: { filas: Fila[]; vacio: string; enlace?
         ))}
       </ul>
     ) : <Empty>{vacio}</Empty>;
+}
+
+type FilaG = { k: string; clics: number; impresiones: number; posicion: number };
+function TablaGsc({ filas, vacio, enlace }: { filas: FilaG[]; vacio: string; enlace?: boolean }) {
+  if (!filas.length) return <Empty>{vacio}</Empty>;
+  return (
+    <table className="w-full text-sm">
+      <thead><tr className="text-left text-xs text-slate-500"><th className="py-1 font-medium">&nbsp;</th><th className="px-2 text-right font-medium">Clics</th><th className="px-2 text-right font-medium">Impr.</th><th className="px-2 text-right font-medium">CTR</th><th className="pl-2 text-right font-medium">Pos.</th></tr></thead>
+      <tbody className="divide-y divide-[var(--line)]">
+        {filas.map((f) => (
+          <tr key={f.k}>
+            <td className="break-words py-1.5 text-slate-700" title={f.k}>{enlace ? <a href={`https://transformaconia.com${f.k}`} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">{f.k}</a> : f.k}</td>
+            <td className="px-2 text-right tabular-nums">{f.clics}</td>
+            <td className="px-2 text-right tabular-nums">{f.impresiones}</td>
+            <td className="px-2 text-right tabular-nums">{f.impresiones ? (Math.round((f.clics / f.impresiones) * 1000) / 10).toString().replace(".", ",") : 0} %</td>
+            <td className="pl-2 text-right tabular-nums">{(Math.round(f.posicion * 10) / 10).toString().replace(".", ",")}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }
 
 // Medición propia de transformaconia.com (sin cookies ni IP): flujo n8n «WEB TRANSFORMACONIA → visitas» → seo.visitas
@@ -65,6 +88,10 @@ export default async function Visitas({ searchParams }: { searchParams: Promise<
   const cEstadoVista = cEstado.map((f) => ({ clave: ETIQ[f.clave] ?? f.clave, n: f.n }));
   const totalMes = cEntrada.reduce((a, f) => a + f.n, 0);
   const t = tot[0];
+  const gsc = await ultimaGsc().catch(() => null);
+  const topConsultas = gsc ? agruparConsultas(gsc.consultas).sort((a, b) => b.impresiones - a.impresiones || b.clics - a.clics).slice(0, 15) : [];
+  const topPaginas = gsc ? [...gsc.paginas].sort((a, b) => b.impresiones - a.impresiones).slice(0, 10) : [];
+  const oportunidades = gsc ? casiPagina1(gsc.consultas).slice(0, 10) : [];
   const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
   return (
@@ -79,6 +106,26 @@ export default async function Visitas({ searchParams }: { searchParams: Promise<
         <Stat label="Reservas del diagnóstico" value={t.reservas} hint="confirmadas, sin pruebas" icon={<CalendarCheck size={18} />} tone="blue" />
         <Stat label="Desde el móvil" value={`${pct(t.movil, t.visitas)} %`} hint={`${t.movil} páginas vistas`} icon={<Smartphone size={18} />} tone="amber" />
       </div>
+      <Card className="mt-6" title="Búsquedas en Google (28 días)" subtitle={gsc ? `Search Console, hasta el ${gsc.fecha}: ${gsc.clics} clics y ${gsc.impresiones} impresiones. Google solo da las consultas con suficientes búsquedas, así que el total de páginas es mayor que la suma de consultas.` : "Search Console aún no ha enviado datos."}>
+        {gsc ? (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-medium tracking-wide text-slate-500 uppercase">Top 15 consultas</p>
+              <TablaGsc filas={topConsultas.map((f) => ({ k: f.consulta, ...f }))} vacio="Sin consultas todavía." />
+            </div>
+            <div className="space-y-6">
+              <div>
+                <p className="mb-1 text-xs font-medium tracking-wide text-slate-500 uppercase">Páginas con más impresiones</p>
+                <TablaGsc filas={topPaginas.map((f) => ({ k: f.pagina, ...f }))} vacio="Sin páginas todavía." enlace />
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium tracking-wide text-slate-500 uppercase">Oportunidades (posición 8-30)</p>
+                <TablaGsc filas={oportunidades.map((f) => ({ k: f.consulta, ...f }))} vacio="Ninguna consulta entre las posiciones 8 y 30 con impresiones suficientes." />
+              </div>
+            </div>
+          </div>
+        ) : <Empty>Sin datos de Search Console todavía.</Empty>}
+      </Card>
       <Card className="mt-6" title="Embudo del mes" subtitle="Mes natural, sin pruebas: páginas vistas → formularios enviados → reservas del diagnóstico">
         <div className="grid gap-3 sm:grid-cols-3">
           {[

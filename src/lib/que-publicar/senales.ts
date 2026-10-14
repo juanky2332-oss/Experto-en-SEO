@@ -3,6 +3,8 @@ import { sql } from "../db";
 import { inventario } from "../seo/inventario";
 import { getGuia, getRadarConfig, normalizar, type Guia, type RadarConfig } from "../guia";
 import { RE_MARCAS } from "./prioridad";
+import { ultimaGsc } from "../gsc";
+import { casiPagina1, sinPaginaDedicada, type OportunidadGsc } from "./gsc-senal";
 
 // Señales que alimentan «Qué publicar». Todo se lee en directo; consultas a Postgres en tandas de ≤3 (pool max 3).
 
@@ -25,6 +27,8 @@ export type Senales = {
   medicionDesde: string | null;
   conversiones: Record<string, number>; // por página de entrada
   plazos: Plazo[];
+  /** Search Console (última foto de 28 días); vacío si no está conectado o aún no hay datos */
+  gsc: { fecha: string | null; cerca: OportunidadGsc[]; sinPagina: OportunidadGsc[] };
 };
 
 // Páginas que no se recomiendan como destino (legales o productos antiguos en noindex)
@@ -65,6 +69,21 @@ export async function recogerSenales(): Promise<Senales> {
     .map((p) => ({ slug: p.slug, ruta: `/${p.slug}/`, titulo: p.title, keyword: kw(p.meta), visitas30: visitasDe.get(`/${p.slug}/`) ?? 0, conversiones: conversiones[`/${p.slug}/`] ?? 0 }));
   const desde = visitas.map((v) => v.desde).filter(Boolean).sort((a, b) => +a! - +b!)[0];
 
+  // Search Console: un fallo aquí nunca debe tumbar «Qué publicar»
+  const gsc: Senales["gsc"] = { fecha: null, cerca: [], sinPagina: [] };
+  try {
+    const g = await ultimaGsc();
+    if (g) {
+      const texto = new Map<string, string>();
+      for (const p of [...inv.paginas, ...inv.posts].filter((x) => x.status === "publish")) texto.set(`/${p.slug}/`, `${p.title} ${kw(p.meta)} ${p.slug.replace(/-/g, " ")}`);
+      gsc.fecha = g.fecha;
+      gsc.cerca = casiPagina1(g.consultas).slice(0, 15);
+      gsc.sinPagina = sinPaginaDedicada(g.consultas, (r) => texto.get(r)).slice(0, 15);
+    }
+  } catch (e) {
+    console.error("gsc-senales", e);
+  }
+
   const pilares = guia.pilares.map((pl) => {
     const kws = pl.keywords.map(normalizar).filter(Boolean);
     const ps = pub.filter((p) => kws.some((k) => normalizar(`${p.title} ${kw(p.meta)} ${p.slug.replace(/-/g, " ")}`).includes(k)));
@@ -83,6 +102,6 @@ export async function recogerSenales(): Promise<Senales> {
     huerfanos: problema("huerfano").map((p) => ({ titulo: p.title, slug: p.slug })),
     sinVisitas: paginas.filter((p) => p.visitas30 === 0).map((p) => p.ruta),
     medicionDesde: desde ? desde.toISOString().slice(0, 10) : null,
-    conversiones, plazos,
+    conversiones, plazos, gsc,
   };
 }

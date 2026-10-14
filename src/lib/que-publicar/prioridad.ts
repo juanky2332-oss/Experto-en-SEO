@@ -4,9 +4,10 @@ import { normalizar } from "../guia-base.ts";
 
 export type Destino = "articulo" | "ampliar_pagina" | "pagina_sector" | "pagina_local" | "faq";
 export const DESTINOS: Destino[] = ["articulo", "ampliar_pagina", "pagina_sector", "pagina_local", "faq"];
-export type Senal = "radar" | "hueco_pilar" | "canibalizacion" | "huerfano" | "sin_trafico" | "plazo" | "conversion" | "tema_favor";
-export const SENALES: Senal[] = ["radar", "hueco_pilar", "canibalizacion", "huerfano", "sin_trafico", "plazo", "conversion", "tema_favor"];
-export type PorQue = { senal: Senal; detalle: string };
+export type Senal = "radar" | "hueco_pilar" | "canibalizacion" | "huerfano" | "sin_trafico" | "plazo" | "conversion" | "tema_favor" | "gsc_cerca" | "gsc_sin_pagina";
+export const SENALES: Senal[] = ["radar", "hueco_pilar", "canibalizacion", "huerfano", "sin_trafico", "plazo", "conversion", "tema_favor", "gsc_cerca", "gsc_sin_pagina"];
+/** gsc: dato real de Search Console (impresiones y posición en 28 días) para el chip de la tarjeta. */
+export type PorQue = { senal: Senal; detalle: string; gsc?: { impresiones: number; posicion: number } };
 
 export type Candidato = {
   titulo: string; keyword: string; secundarias: string[]; intencion: string; publico: string;
@@ -21,7 +22,7 @@ export const PESOS_VACIOS: Pesos = { pilar: {}, destino: {}, tipo: {}, fuente: {
 // ---------------------------------------------------------------- filtros
 /** Herramientas internas y marcas de IA que nunca salen en texto público. */
 export const RE_MARCAS = /\b(n8n|openai|chat ?gpt|gpt[- ]?\d[\w.]*|gpt|claude|anthropic|gemini|copilot|cursor|zapier|make\.com|mcp|flownexion|perplexity|mistral|deepseek|notebooklm|codex|sora|midjourney)\b/i;
-/** Cifras de volumen de búsqueda: no hay dato real (Search Console sin conectar), así que no se aceptan. */
+/** Cifras de volumen de búsqueda: las que escribe la IA no se aceptan (solo valen las de Search Console que añade el código). */
 export const RE_VOLUMEN = /(\d[\d.,]*\s*(k\s*)?(b[uú]squedas|busquedas|visitas|clics)(\s*(al|\/|por)\s*mes|\s*mensuales)?)|(volumen[^.]{0,20}\d)/i;
 // Palabras con mayúscula que no son nombres de persona (lugares, normativa, producto)
 const NO_PERSONA = new Set(["region", "murcia", "molina", "segura", "cartagena", "lorca", "alcantarilla", "elche", "albacete", "espana", "europa", "union", "europea", "ai", "act", "kit", "digital", "consulting", "cheque", "tic", "verifactu", "transformaconia", "gestion", "transforma", "con", "ia", "erp", "borm", "boe", "aeat", "hacienda", "pyme", "pymes", "industria", "excel", "sap", "info", "camara", "comercio", "next", "generation", "fondos", "feder", "cdti", "enisa", "rgpd", "iso", "ce", "la", "el", "los", "las", "de", "del", "y", "en", "qr"]);
@@ -102,7 +103,7 @@ export function encaje(c: Pick<Candidato, "titulo" | "keyword" | "pilar" | "dest
   return 10;
 }
 
-const VALOR_SENAL: Record<Senal, number> = { radar: 10, hueco_pilar: 12, canibalizacion: 8, huerfano: 6, sin_trafico: 10, plazo: 12, conversion: 0, tema_favor: 6 };
+const VALOR_SENAL: Record<Senal, number> = { radar: 10, hueco_pilar: 12, canibalizacion: 8, huerfano: 6, sin_trafico: 10, plazo: 12, conversion: 0, tema_favor: 6, gsc_cerca: 10, gsc_sin_pagina: 8 };
 /** Puntos por las señales comprobadas (tope 35). Conversiones de la página destino: hasta +5 con 30 conversiones. */
 export function puntosSenal(c: Pick<Candidato, "por_que" | "destino_ref">, conversiones: Record<string, number>, radarScore?: number): number {
   let p = 0;

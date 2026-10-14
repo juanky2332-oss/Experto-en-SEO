@@ -42,9 +42,7 @@ Hecho y publicado (tandas 1-7 del plan): portada y menú nuevos, páginas locale
 
 Pendiente:
 - Artículos programados (martes 9:00): 7720 ERP taller (20-10), 7724 stock repuestos (27-10), 7727 Verifactu (3-11), 7731 compras (10-11), 7734 albarán digital (17-11), 7737 ayudas Murcia (24-11). **Repasar 7727 antes del 3-11** (calendario Verifactu: hay previsión de aplazamiento a 2028 aún no normativa) y **7737 antes del 24-11** (extracto BORM del Cheque TIC y estado de cada ayuda).
-- DNS de la demo: registro `A demo → 76.76.21.21` en Hostinger (lo hace el usuario). Después cambiar `DEMO_URL` (`n8n/web-paginas.mjs`) y `TC_DEMO_URL` (`wordpress/web-transformaconia.php`) a `https://demo.transformaconia.com/`. El dominio ya está asociado en Vercel y la landing lleva canonical a `/erp-industria/`.
 - Aviso legal completo (LSSI): faltan NIF y domicilio; el usuario no los dará por ahora. No inventarlos.
 - Asistente de la web: código aparcado en la rama local `asistente-web` (falta widget y pruebas). Gasto nuevo (tope 5 €/mes) pendiente de aprobación.
 - LinkedIn: rama del publicador preparada y apagada (`seo.settings.linkedin_activo`); falta página de empresa y credencial.
-- Fragmento 15 de WordPress («TEMP · quitar Flownexion del CSS»): desactivado; borrarlo a mano desde el panel de WordPress.
 - Autor de los artículos: «Redacción Transforma con IA» (no hay usuario personal y no debe haberlo con nombre).

@@ -14,6 +14,7 @@ export const SENAL_UI: Record<string, { label: string; tone: Tono }> = {
   radar: { label: "Radar", tone: "violet" }, hueco_pilar: { label: "Pilar sin cubrir", tone: "rose" }, canibalizacion: { label: "Canibalización", tone: "amber" },
   huerfano: { label: "Artículos huérfanos", tone: "amber" }, sin_trafico: { label: "Página sin visitas", tone: "amber" }, plazo: { label: "Plazo", tone: "rose" },
   conversion: { label: "Página que convierte", tone: "emerald" }, tema_favor: { label: "Tema preferido", tone: "blue" },
+  gsc_cerca: { label: "Casi en página 1", tone: "emerald" }, gsc_sin_pagina: { label: "Sin página dedicada", tone: "violet" },
 };
 const ESTADO_UI: Record<string, { label: string; tone: Tono }> = {
   interesa: { label: "Te interesa", tone: "emerald" }, descartada: { label: "No interesa", tone: "slate" }, publicada: { label: "Ya publicado", tone: "blue" }, en_brief: { label: "En brief", tone: "violet" },
@@ -40,6 +41,7 @@ export function Tarjeta({ rec, sitio, compacta = false }: { rec: Rec; sitio: str
     });
   };
   const est = ESTADO_UI[rec.estado];
+  const gsc = rec.por_que.find((p) => p.gsc)?.gsc;
   const viva = rec.estado === "abierta" || rec.estado === "interesa";
 
   return (
@@ -51,7 +53,7 @@ export function Tarjeta({ rec, sitio, compacta = false }: { rec: Rec; sitio: str
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             <Badge tone="blue">{rec.keyword}</Badge>
             {rec.secundarias.map((s) => <Badge key={s}>{s}</Badge>)}
-            <Badge className="text-slate-400">sin dato de volumen</Badge>
+            {gsc ? <Badge tone="emerald">GSC: {gsc.impresiones} impresiones · posición {String(gsc.posicion).replace(".", ",")}</Badge> : <Badge className="text-slate-400">sin dato de volumen</Badge>}
           </div>
         </div>
         {est && <Badge tone={est.tone}>{est.label}</Badge>}
