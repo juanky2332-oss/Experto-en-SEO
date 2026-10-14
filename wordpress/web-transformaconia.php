@@ -821,6 +821,24 @@ add_filter( 'style_loader_tag', function ( $tag, $handle ) {
 	}
 	return $tag;
 }, 10, 2 );
+/* Emojis: el navegador ya los pinta; se quita el script de detección (5 KB + 3 KB en línea) y su hoja */
+add_action( 'init', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+	remove_action( 'wp_print_styles', 'print_emoji_styles' );
+}, 20 );
+/* Móvil: la maqueta del teléfono de la portada queda bajo el pliegue; en diferido deja todo el ancho de banda a CSS y texto.
+ * (La captura grande del escritorio conserva eager + fetchpriority=high.) */
+add_filter( 'the_content', function ( $c ) {
+	if ( is_admin() || false === strpos( $c, 'erp-industria-movil.webp' ) ) {
+		return $c;
+	}
+	return preg_replace_callback( '#<img[^>]*erp-industria-movil\.webp[^>]*>#', function ( $m ) {
+		return str_replace( array( ' fetchpriority="high"', 'loading="eager"' ), array( '', 'loading="lazy"' ), $m[0] );
+	}, $c );
+}, 99 );
 /* Zoom con dos dedos permitido (Salient lo bloquea: penaliza accesibilidad y molesta a quien ve mal) */
 add_action( 'template_redirect', function () {
 	if ( is_admin() || wp_doing_ajax() || is_feed() ) {
@@ -857,7 +875,7 @@ body.single-post .content-inner table th,body.single-post .content-inner table t
 @media (max-width:768px){
 .tc-sticky{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:9990;transform:translateY(140%);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .tc-sticky.is-on{transform:none}
-.tc-sticky a{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 18px;border-radius:14px;background:#b020ff;color:#fff!important;font-family:"Poppins",system-ui,sans-serif;font-weight:600;font-size:15.5px;line-height:1;box-shadow:0 14px 34px -10px rgba(176,32,255,.6),0 0 0 1px rgba(255,255,255,.12) inset;text-decoration:none!important}
+.tc-sticky a{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 18px;border-radius:14px;background:#b020ff;color:#fff!important;font-family:"Poppins",system-ui,sans-serif;font-weight:600;font-size:15.5px;line-height:1.28;box-shadow:0 14px 34px -10px rgba(176,32,255,.6),0 0 0 1px rgba(255,255,255,.12) inset;text-decoration:none!important}
 body.tc-con-sticky #to-top{bottom:84px!important}
 }
 </style>
@@ -870,12 +888,12 @@ add_action( 'wp_footer', function () {
 	}
 	?>
 <?php $tc_erp = is_page( 'erp-industria' ); ?>
-<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Pide la demo con tus precios' : 'Pide tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/#reserva' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Pide la demo con tus precios' : 'Reserva tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
 <script id="tc-sticky-js">
 (function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
   var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};
   if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){tapan+=e.isIntersecting?1:-1;});tapan=Math.max(0,tapan);mostrar();});
-    document.querySelectorAll('form[data-tc-form],.tc-band,.tc-webband,.tc-footer,.tca-cta').forEach(function(el){io.observe(el);});}
+    document.querySelectorAll('form[data-tc-form],.tc-band,.tc-webband,.tc-footer,.tca-cta,.tc-sec table,.tc-table,.tc-ba').forEach(function(el){io.observe(el);});}
   window.addEventListener('scroll',mostrar,{passive:true});mostrar();})();
 </script>
 	<?php
