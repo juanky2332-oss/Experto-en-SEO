@@ -14,3 +14,4 @@ n8n/*.build.json
 # Scripts de usar y tirar (los ya versionados siguen versionados)
 n8n/_*.mjs
 n8n/_t4/
+n8n/_t4b/
