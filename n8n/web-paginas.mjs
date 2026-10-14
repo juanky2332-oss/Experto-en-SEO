@@ -101,22 +101,22 @@ const flow = (pasos) => `<ol class="tc-flow">${pasos.map((p) => `<li>${p}</li>`)
 
 // ======================= CONTENIDO COMÚN =======================
 const SECTORES = [
-  { id: 'talleres', ic: 'tuerca', t: 'Talleres industriales: mecanizado, calderería y reparación', frase: 'Responde antes a los presupuestos, con tu margen aplicado.',
+  { id: 'talleres', pag: ['/ia-talleres-industriales/', 'Ver IA para talleres industriales'], ic: 'tuerca', t: 'Talleres industriales: mecanizado, calderería y reparación', frase: 'Responde antes a los presupuestos, con tu margen aplicado.',
     items: ['Presupuestos con lo que te cuesta cada trabajo y tu margen aplicado', 'Albaranes y partes firmados en el móvil', 'Órdenes de trabajo, entregas y cobros bajo control', 'Ofertas preparadas a partir del plano o de la petición del cliente'],
     sol: ['/erp-industria/', 'Ver el ERP para la industria'] },
-  { id: 'distribucion', ic: 'caja', t: 'Distribución y suministro industrial', frase: 'La referencia y la equivalencia correctas en segundos, también fuera de horario.',
+  { id: 'distribucion', pag: ['/distribucion-industrial/', 'Ver IA para distribución industrial'], ic: 'caja', t: 'Distribución y suministro industrial', frase: 'La referencia y la equivalencia correctas en segundos, también fuera de horario.',
     items: ['Asistente técnico que responde con tu catálogo, tus fichas y tu stock', 'Equivalencias entre marcas: rodamientos, transmisión, neumática, hidráulica, tornillería', 'Pedidos que llegan por correo directos al ERP', 'Búsqueda que entiende referencias incompletas o mal escritas'],
     sol: ['/distribucion-industrial/', 'Ver el asistente de catálogo'] },
-  { id: 'mantenimiento', ic: 'llave', t: 'Mantenimiento y servicios industriales', frase: 'Los avisos llegan clasificados por urgencia y con la orden de trabajo hecha.',
+  { id: 'mantenimiento', pag: ['/ia-mantenimiento-industrial/', 'Ver IA para mantenimiento industrial'], ic: 'llave', t: 'Mantenimiento y servicios industriales', frase: 'Los avisos llegan clasificados por urgencia y con la orden de trabajo hecha.',
     items: ['Avisos por Telegram o WhatsApp convertidos en órdenes de trabajo', 'Asistente que consulta los manuales de tus máquinas', 'Informes de intervención que se redactan solos', 'Preventivos y revisiones planificados sin hojas de cálculo'],
     sol: ['/automatizacion-procesos-ia/', 'Ver automatización de procesos'] },
-  { id: 'instaladoras', ic: 'rayo', t: 'Instaladoras: electricidad, climatización y frío', frase: 'Presupuestos y citas sin pasar la tarde al teléfono.',
+  { id: 'instaladoras', pag: ['/ia-empresas-instaladoras/', 'Ver IA para empresas instaladoras'], ic: 'rayo', t: 'Instaladoras: electricidad, climatización y frío', frase: 'Presupuestos y citas sin pasar la tarde al teléfono.',
     items: ['Presupuestos a partir de mediciones y listas de material', 'Facturas y albaranes de proveedor que se leen solos', 'Partes de trabajo dictados desde la obra', 'Certificados y revisiones periódicas automáticas'],
     sol: ['/automatizacion-procesos-ia/', 'Ver automatización de procesos'] },
   { id: 'integradores', ic: 'chip', t: 'Automatización industrial e integradores', frase: 'Menos horas de oficina técnica en cada proyecto.',
     items: ['Ofertas técnicas apoyadas en el histórico de proyectos', 'Documentación de proyecto generada a partir de lo ya hecho', 'Asistente de soporte para técnicos en campo'],
     sol: ['/desarrollo-a-medida-ia/', 'Ver herramientas a medida'] },
-  { id: 'fabricacion', ic: 'fabrica', t: 'Fabricación y agroindustria', frase: 'Datos de producción sin papel y sin teclear dos veces.',
+  { id: 'fabricacion', pag: ['/ia-fabricacion-industrial/', 'Ver IA para fabricación industrial'], ic: 'fabrica', t: 'Fabricación y agroindustria', frase: 'Datos de producción sin papel y sin teclear dos veces.',
     items: ['Partes de producción y trazabilidad desde el móvil', 'Informes de producción y calidad que llegan solos', 'Pedidos de clientes y proveedores conectados con el ERP'],
     sol: ['/automatizacion-procesos-ia/', 'Ver automatización de procesos'] },
 ];
@@ -391,8 +391,8 @@ ${contactoPortada()}
 P['industria'] = {
   title: 'IA para la industria',
   seo: ['Inteligencia artificial para la industria', 'Qué automatizamos con inteligencia artificial en talleres, distribución industrial, mantenimiento, instaladoras e integradores. Diagnóstico inicial gratis.', 'inteligencia artificial para la industria'],
-  html: page(`${pagehead('<span>Industria</span>', 'IA para la industria', 'Automatización e inteligencia artificial para empresas industriales', 'Venimos de la industria y la mayor parte de lo que construimos es para ella. Estas son las tareas que más horas ahorran en cada tipo de empresa.', btn('/contacto/', 'Cuéntanos tu caso') + btn('/casos/', 'Ver casos', true), facts('Sectores', SECTORES.map((s, i) => [String(i + 1).padStart(2, '0'), `<a href="#${s.id}">${s.t}</a>`])))}
-<section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-casos">${SECTORES.map((s, i) => `<article class="tc-sectorbig tc-reveal" id="${s.id}"><div class="tc-sectorbig__h">${icon(s.ic)}<span class="tc-sectorbig__n">${String(i + 1).padStart(2, '0')}</span></div><div class="tc-prose"><h2>${s.t}</h2><p class="tc-sect__frase">«${s.frase}»</p>${list(s.items)}<div class="tc-btns">${btn(s.sol[0], s.sol[1], true)}</div></div></article>`).join('')}</div></section>
+  html: page(`${pagehead('<span>Industria</span>', 'IA para la industria', 'Automatización e inteligencia artificial para empresas industriales', 'Venimos de la industria y la mayor parte de lo que construimos es para ella. Estas son las tareas que más horas ahorran en cada tipo de empresa.', btn('/contacto/', 'Cuéntanos tu caso') + btn('/casos/', 'Ver casos', true), facts('Sectores', SECTORES.map((s, i) => [String(i + 1).padStart(2, '0'), `<a href="${s.pag ? s.pag[0] : '#' + s.id}">${s.t}</a>`])))}
+<section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-casos">${SECTORES.map((s, i) => `<article class="tc-sectorbig tc-reveal" id="${s.id}"><div class="tc-sectorbig__h">${icon(s.ic)}<span class="tc-sectorbig__n">${String(i + 1).padStart(2, '0')}</span></div><div class="tc-prose"><h2>${s.t}</h2><p class="tc-sect__frase">«${s.frase}»</p>${list(s.items)}<div class="tc-btns">${s.pag && s.pag[0] !== s.sol[0] ? btn(s.pag[0], s.pag[1]) : ''}${btn(s.sol[0], s.sol[1], true)}</div></div></article>`).join('')}</div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Así funciona', 'Una automatización trabaja como una línea de producción')}${linea()}</div></section>
 <section class="tc-sec"><div class="tc-wrap">${head('Casos', 'Casos y ejemplos para la industria', 'El caso marcado como ejemplo no es un proyecto concreto: muestra lo que se puede implementar.', '<a class="tc-link" href="/casos/">Todos los casos</a>')}<div class="tc-grid tc-grid--4">${['gestion', 'distribucion', 'documentacion', 'sap'].map(casoCard).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Por qué nosotros', 'Venimos de la industria')}${porQue}</div></section>

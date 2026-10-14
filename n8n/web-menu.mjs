@@ -7,7 +7,7 @@ const viejos = (await wp('GET', `/wp/v2/menu-items?menus=${MENU}&per_page=100&_f
 for (const v of viejos) await wp('DELETE', `/wp/v2/menu-items/${v.id}?force=true`);
 const S = 'https://transformaconia.com';
 const arbol = [
-  ['Industria', '/industria/', [['IA para la industria', '/industria/'], ['Talleres industriales', '/industria/#talleres'], ['Distribución industrial', '/distribucion-industrial/'], ['Mantenimiento industrial', '/industria/#mantenimiento'], ['Instaladoras', '/industria/#instaladoras'], ['Consultoría de IA en Murcia', '/consultor-ia-murcia/'], ['Dónde trabajamos', '/consultor-ia-murcia/#donde-trabajamos']]],
+  ['Industria', '/industria/', [['IA para la industria', '/industria/'], ['Talleres industriales', '/ia-talleres-industriales/'], ['Distribución industrial', '/distribucion-industrial/'], ['Mantenimiento industrial', '/ia-mantenimiento-industrial/'], ['Instaladoras', '/ia-empresas-instaladoras/'], ['Fabricación industrial', '/ia-fabricacion-industrial/'], ['Consultoría de IA en Murcia', '/consultor-ia-murcia/'], ['Dónde trabajamos', '/consultor-ia-murcia/#donde-trabajamos']]],
   ['Soluciones', '/soluciones/', [['ERP para la industria', '/erp-industria/'], ['Automatización de procesos', '/automatizacion-procesos-ia/'], ['Asistentes técnicos y chatbots', '/agentes-chatbots-ia/'], ['Gestión documental con IA', '/gestion-documental-ia/'], ['Herramientas a medida y SAP', '/desarrollo-a-medida-ia/'], ['Cómo trabajamos y precios', '/soluciones/']]],
   ['ERP industria', '/erp-industria/'],
   ['Casos', '/casos/', [['Casos', '/casos/'], ['Otros sectores', '/otros-sectores/'], ['Quiénes somos', '/quienes-somos/']]],
