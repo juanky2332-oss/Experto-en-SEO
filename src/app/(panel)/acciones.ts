@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { editar, enviarAPapelera, deshacer, limpiarContenido, registrar } from "@/lib/acciones";
-import { obtener, listar, medio, actualizarMedio, crearEtiqueta, olvidarCache, type Cambios } from "@/lib/wp";
+import { obtener, listar, medio, actualizarMedio, crearEtiqueta, olvidarCache, ahoraWp, type Cambios } from "@/lib/wp";
 import { subirMedio, publicador, lanzarRadar, telegram, esc } from "@/lib/gateway";
 import { sugerirMeta, mejorarContenido, altDeImagen, generarImagen, promptImagen, planEstrategico } from "@/lib/ai";
 import { inventario, guardarFoto } from "@/lib/seo/inventario";
@@ -40,7 +40,9 @@ export async function guardarEntrada(id: number, tipo: Tipo, cambios: Cambios & 
 
 export async function cambiarEstado(id: number, tipo: Tipo, status: "publish" | "draft") {
   return seguro(async () => {
-    await editar(id, { status }, { origin: "app", tipo, motivo: status === "publish" ? "Publicado" : "Pasado a borrador" });
+    // Al publicar, con la fecha de AHORA: un borrador con fecha futura (los que estaban programados)
+    // WordPress lo volvería a programar en vez de publicarlo.
+    await editar(id, status === "publish" ? { status, date: ahoraWp() } : { status }, { origin: "app", tipo, motivo: status === "publish" ? "Publicado" : "Pasado a borrador" });
     refrescar(id);
   }, status === "publish" ? "Publicado" : "Pasado a borrador");
 }
@@ -426,4 +428,43 @@ export async function guardarPreferenciasQp(favor: string[], contra: string[]) {
     await guardarRadarConfig({ temas: favor, excluir: contra }, { origin: "app" });
     revalidatePath("/", "layout");
   }, "Preferencias guardadas");
+}
+
+// ---------------------------------------------------------------- «Dame una idea» (publicar AHORA, sin programar)
+export async function darIdeaAccion(descartarActual?: "saltada" | "no_interesa") {
+  return seguro(async () => {
+    const { darIdea } = await import("@/lib/que-publicar/idea");
+    await darIdea({ origin: "app", descartarActual });
+    revalidatePath("/", "layout");
+  });
+}
+
+export async function redactarIdeaAccion(recId: number) {
+  return seguro(async () => {
+    const { redactarIdea } = await import("@/lib/que-publicar/idea");
+    await redactarIdea(recId);
+    revalidatePath("/", "layout");
+  }, "Redactando el borrador… tarda 4-7 minutos. Te aviso por Telegram y aquí aparecerá el botón para publicarlo");
+}
+
+export async function publicarIdeaAccion(recId: number) {
+  return seguro(async () => {
+    const { publicarIdea } = await import("@/lib/que-publicar/idea");
+    const id = await publicarIdea(recId, "app");
+    try {
+      const e = await obtener(id, "post");
+      await telegram(`✅ <b>Publicado en transformaconia.com</b>\n${esc(e.title)}\n${e.link}`);
+    } catch (e) {
+      console.error("aviso publicar idea", e); // ya está publicado: el aviso no puede tumbar la acción
+    }
+    refrescar(id);
+  }, "Publicado en transformaconia.com");
+}
+
+export async function cerrarIdeaAccion() {
+  return seguro(async () => {
+    const { cerrarIdea } = await import("@/lib/que-publicar/idea");
+    await cerrarIdea();
+    revalidatePath("/", "layout");
+  });
 }

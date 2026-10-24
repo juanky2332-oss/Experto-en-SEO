@@ -3,9 +3,6 @@ import { mismaClave } from "@/lib/sesion";
 import { inventario, guardarFoto } from "@/lib/seo/inventario";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
-import { generarQuePublicar } from "@/lib/que-publicar/generar";
-import { topRecs } from "@/lib/que-publicar/datos";
-import { getPendientes } from "@/lib/pendientes";
 import { guardarGsc, ultimaGsc } from "@/lib/gsc";
 
 export const maxDuration = 300;
@@ -49,17 +46,7 @@ export async function GET(req: NextRequest) {
         `\n${process.env.APP_URL ?? ""}`,
     );
   }
-  // los lunes, «Qué publicar» genera un lote nuevo (una llamada al modelo rápido; 0 € si nada ha cambiado)
-  let proximos = "";
-  if (lunes) {
-    try {
-      const r = await generarQuePublicar({ origin: "sistema" });
-      const top = await topRecs(5);
-      proximos = `${r.n} recomendaciones${r.reutilizado ? " (sin cambios)" : ""}`;
-      await telegram(`📘 <b>Qué publicar esta semana</b>\n\n${top.map((p, i) => `${i + 1}. ${esc(p.titulo)} — <code>${esc(p.keyword)}</code>`).join("\n")}\n\nVota en ${process.env.APP_URL ?? ""}/`);
-    } catch (e) {
-      console.error("que-publicar", e);
-    }
-  }
-  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, proximos, gsc });
+  // Ya no hay plan semanal ni lote automático de «Qué publicar» (24-10-2026): las ideas se piden
+  // cuando él quiere («Dame una idea») y se publican en ese momento.
+  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, gsc });
 }

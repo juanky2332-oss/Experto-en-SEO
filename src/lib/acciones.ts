@@ -20,7 +20,7 @@ export async function registrar(a: {
 
 const ETIQUETA_CAMPO: Record<string, string> = {
   title: "título", content: "contenido", excerpt: "extracto", slug: "URL", status: "estado", categories: "categoría",
-  tags: "etiquetas", featured_media: "imagen destacada", meta: "SEO (Rank Math)",
+  tags: "etiquetas", featured_media: "imagen destacada", meta: "SEO (Rank Math)", date: "fecha",
 };
 const ESTADO: Record<string, string> = { publish: "publicado", draft: "borrador", pending: "pendiente", private: "privado", future: "programado", trash: "papelera" };
 

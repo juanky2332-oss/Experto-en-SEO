@@ -281,7 +281,7 @@ create table if not exists seo.qp_recs (
   radar_id bigint,
   brief_id uuid,
   fecha_plan date,
-  estado text not null default 'abierta' check (estado in ('abierta', 'interesa', 'descartada', 'publicada', 'en_brief'))
+  estado text not null default 'abierta' check (estado in ('abierta', 'interesa', 'descartada', 'publicada', 'en_brief', 'saltada'))
 );
 create index if not exists qp_recs_estado_prio on seo.qp_recs (estado, prioridad desc, created_at desc);
 
@@ -311,3 +311,7 @@ create table if not exists seo.gsc (
   primary key (fecha, pagina, consulta)
 );
 create index if not exists gsc_consulta on seo.gsc (fecha desc, impresiones desc);
+
+-- 2026-10-24 · «Dame una idea»: una idea que se salta («Otra idea») queda como 'saltada' y no se vuelve a proponer.
+alter table seo.qp_recs drop constraint if exists qp_recs_estado_check;
+alter table seo.qp_recs add constraint qp_recs_estado_check check (estado in ('abierta', 'interesa', 'descartada', 'publicada', 'en_brief', 'saltada'));

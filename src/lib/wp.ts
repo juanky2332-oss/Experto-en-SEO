@@ -88,7 +88,7 @@ export async function obtener(id: number, tipo: "post" | "page" = "post"): Promi
 }
 
 export type Cambios = Partial<{
-  title: string; content: string; excerpt: string; slug: string; status: Entrada["status"];
+  title: string; content: string; excerpt: string; slug: string; status: Entrada["status"]; date: string;
   categories: number[]; tags: number[]; featured_media: number; meta: SeoMeta;
 }>;
 
@@ -161,3 +161,6 @@ export function tituloSeo(e: Entrada) {
 export function metaDescripcion(e: Entrada) {
   return e.meta.rank_math_description?.trim() || e.excerpt || "";
 }
+
+/** Ahora en la hora de WordPress (Europe/Madrid), formato de la API: «2026-10-24T12:35:00». */
+export const ahoraWp = () => new Date().toLocaleString("sv-SE", { timeZone: "Europe/Madrid" }).replace(" ", "T");

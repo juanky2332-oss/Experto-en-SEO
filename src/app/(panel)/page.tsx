@@ -11,6 +11,8 @@ import { BotonAccion } from "@/components/BotonAccion";
 import { generarQuePublicarAccion } from "./acciones";
 import { Tarjeta } from "./que-publicar/Tarjeta";
 import { Preferencias } from "./que-publicar/Preferencias";
+import { IdeaAhora } from "./que-publicar/IdeaAhora";
+import { ideaActual } from "@/lib/que-publicar/idea";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -26,15 +28,16 @@ export default async function QuePublicar() {
     getRadarConfig(),
     sql<{ value: { fecha: string; coste_eur: number; lote: string } }[]>`select value from seo.settings where key = 'qp_cache'`,
   ]);
-  const [propuestas, [ultima]] = await Promise.all([
+  const [propuestas, [ultima], idea] = await Promise.all([
     exclusionesPropuestas(radar.excluir),
     sql<{ summary: string; after: { descartados?: { titulo: string; motivo: string }[] } | null }[]>`select summary, after from seo.actions where action = 'que_publicar' order by created_at desc limit 1`,
+    ideaActual(),
   ]);
 
   const pub = inv.posts.filter((p) => p.status === "publish");
   const programados = inv.posts.filter((p) => p.status === "future").sort((a, b) => a.date.localeCompare(b.date));
   const criticos = pub.reduce((a, p) => a + p.analisis.problemas.filter((x) => x.gravedad === "critica").length, 0);
-  const vivas = recs.filter((r) => r.estado === "abierta" || r.estado === "interesa");
+  const vivas = recs.filter((r) => (r.estado === "abierta" || r.estado === "interesa") && String(r.id) !== String(idea?.rec.id));
   const otras = recs.filter((r) => !(r.estado === "abierta" || r.estado === "interesa"));
   const c = cache?.value;
   const confirmar = `Genero un lote nuevo de 12-15 recomendaciones con una llamada al modelo rápido, sin búsqueda web. Coste estimado: ${COSTE_ESTIMADO}${c ? ` (el último costó ${euros(c.coste_eur)})` : ""}. Si nada ha cambiado desde el último lote no llamo a la IA y solo reordeno con tus votos (0 €). ¿Seguimos?`;
@@ -45,6 +48,8 @@ export default async function QuePublicar() {
         <BotonAccion accion={generarQuePublicarAccion.bind(null, false)} className="btn btn-primary" confirmar={confirmar}><Wand2 size={15} /> Generar recomendaciones</BotonAccion>
         <BotonAccion accion={generarQuePublicarAccion.bind(null, true)} className="btn btn-ghost" confirmar={`Pido temas nuevos a la IA aunque nada haya cambiado. Coste estimado: ${COSTE_ESTIMADO}. ¿Seguimos?`}><RefreshCw size={15} /> Temas nuevos</BotonAccion>
       </PageHeader>
+
+      <IdeaAhora idea={idea} sitio={SITE} />
 
       {/* cabecera compacta de salud: el detalle está en Resultados › Salud SEO */}
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
@@ -63,7 +68,7 @@ export default async function QuePublicar() {
       </div>
 
       {programados.length > 0 && (
-        <Card className="mb-6" title="Ya programado" subtitle="Martes a las 9:00. Las recomendaciones nunca repiten estos temas.">
+        <Card className="mb-6" title="Programados en WordPress" subtitle="Quedan de antes: ya no se programa nada nuevo. Las recomendaciones nunca repiten estos temas.">
           <ol className="flex gap-3 overflow-x-auto pb-1 scroll-thin">
             {programados.map((p) => (
               <li key={p.id} className="min-w-[210px] flex-1 rounded-xl border border-[var(--line)] p-3">
@@ -94,7 +99,7 @@ export default async function QuePublicar() {
             {otras.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
                 <span className="text-slate-700">{r.titulo} <span className="text-slate-400">· {r.keyword}</span></span>
-                <Badge tone={r.estado === "publicada" ? "blue" : "slate"}>{r.estado === "descartada" ? "No interesa" : r.estado === "publicada" ? "Ya publicado" : r.estado}</Badge>
+                <Badge tone={r.estado === "publicada" ? "blue" : "slate"}>{r.estado === "descartada" ? "No interesa" : r.estado === "publicada" ? "Ya publicado" : r.estado === "saltada" ? "Saltada" : r.estado}</Badge>
               </li>
             ))}
           </ul>

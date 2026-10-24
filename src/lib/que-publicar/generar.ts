@@ -167,18 +167,6 @@ function validar(c: Candidato, s: Senales, rutas: Set<string>): Candidato {
   };
 }
 
-/** Martes libres después del último programado (los artículos salen los martes a las 9:00). */
-function martesLibres(programados: { fecha: string }[], n: number) {
-  const ultimo = programados.map((p) => p.fecha).sort().at(-1);
-  const d = new Date(`${ultimo ?? new Date().toISOString().slice(0, 10)}T12:00:00Z`);
-  const out: string[] = [];
-  while (out.length < n) {
-    d.setUTCDate(d.getUTCDate() + 1);
-    if (d.getUTCDay() === 2) out.push(d.toISOString().slice(0, 10));
-  }
-  return out;
-}
-
 export type ResultadoLote = { lote: string; n: number; descartados: { titulo: string; motivo: string }[]; coste_eur: number; reutilizado: boolean };
 
 /**
@@ -220,7 +208,7 @@ export async function generarQuePublicar(o: { origin: Origen; forzar?: boolean }
     const c = validar(bruto, s, rutas);
     const motivo = motivoDescarte(c)
       ?? (s.radarCfg.excluir.find((e) => normalizar(`${c.titulo} ${c.keyword}`).includes(normalizar(e))) ? "tema en contra" : null)
-      ?? (previas.find((p) => (p.estado === "descartada" || p.estado === "publicada" || p.estado === "interesa") && mismoTema(c.keyword, p.keyword)) ? "ya votada antes" : null)
+      ?? (previas.find((p) => ["descartada", "publicada", "interesa", "saltada", "en_brief"].includes(p.estado) && mismoTema(c.keyword, p.keyword)) ? "ya votada antes" : null)
       ?? (validos.find((v) => mismoTema(v.keyword, c.keyword)) ? "repetida en el lote" : null);
     if (motivo) { descartados.push({ titulo: c.titulo, motivo }); continue; }
     const p = puntuar(c, ctx, s.radar.find((r) => r.id === c.radar_id)?.score);
@@ -228,7 +216,6 @@ export async function generarQuePublicar(o: { origin: Origen; forzar?: boolean }
     validos.push({ ...c, prioridad: p.prioridad });
   }
   validos.sort((a, b) => b.prioridad - a.prioridad);
-  const fechas = martesLibres(s.programados, validos.filter((v) => v.destino === "articulo").length);
   const lote = `${new Date().toISOString().slice(0, 10)}-${hash.slice(0, 6)}`;
 
   // las abiertas sin votar de lotes anteriores se sustituyen (los votos y lo que interesa se conservan)
@@ -236,12 +223,11 @@ export async function generarQuePublicar(o: { origin: Origen; forzar?: boolean }
   await sql.begin(async (tx) => {
     await tx`select pg_advisory_xact_lock(4242001)`;
     await tx`delete from seo.qp_recs where estado = 'abierta' and id not in (select rec_id from seo.qp_feedback where rec_id is not null)`;
-    let i = 0;
+    // Sin fecha: no se programa nada para más adelante (se publica cuando él lo decide, 24-10-2026).
     for (const v of validos) {
-      const fecha = v.destino === "articulo" ? fechas[i++] : null;
       await tx`insert into seo.qp_recs (lote, titulo, keyword, secundarias, intencion, publico, pilar, tipo, destino, destino_ref, enlaces, cta, por_que, esfuerzo, prioridad, radar_id, fecha_plan)
         values (${lote}, ${v.titulo}, ${v.keyword}, ${v.secundarias}, ${v.intencion}, ${v.publico}, ${v.pilar}, ${v.tipo}, ${v.destino}, ${v.destino_ref || null},
-          ${sql.json(v.enlaces as never)}, ${v.cta}, ${sql.json(v.por_que as never)}, ${v.esfuerzo}, ${v.prioridad}, ${v.radar_id}, ${fecha})`;
+          ${sql.json(v.enlaces as never)}, ${v.cta}, ${sql.json(v.por_que as never)}, ${v.esfuerzo}, ${v.prioridad}, ${v.radar_id}, null)`;
     }
   });
   const cache: Cache = { hash, lote, fecha: new Date().toISOString(), candidatos, coste_eur: reutilizado ? cacheRow.value.coste_eur : coste, tokens: reutilizado ? cacheRow.value.tokens : uso };

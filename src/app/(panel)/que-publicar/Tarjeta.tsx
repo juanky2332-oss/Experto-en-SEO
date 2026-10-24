@@ -19,7 +19,6 @@ export const SENAL_UI: Record<string, { label: string; tone: Tono }> = {
 const ESTADO_UI: Record<string, { label: string; tone: Tono }> = {
   interesa: { label: "Te interesa", tone: "emerald" }, descartada: { label: "No interesa", tone: "slate" }, publicada: { label: "Ya publicado", tone: "blue" }, en_brief: { label: "En brief", tone: "violet" },
 };
-const fechaCorta = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
 
 type Voto = "interesa" | "no_interesa" | "publicado" | "mas_como_esto";
 
@@ -66,7 +65,7 @@ export function Tarjeta({ rec, sitio, compacta = false }: { rec: Rec; sitio: str
           <dt className="font-medium text-slate-500">Para quién</dt>
           <dd className="text-slate-700">{rec.publico}{rec.intencion ? <span className="text-slate-400"> · intención {rec.intencion}</span> : null}</dd>
           <dt className="font-medium text-slate-500">Pilar</dt>
-          <dd className="text-slate-700">{rec.pilar}{rec.esfuerzo ? <span className="text-slate-400"> · esfuerzo {rec.esfuerzo}</span> : null}{rec.fecha_plan ? <span className="text-slate-400"> · hueco sugerido {fechaCorta(rec.fecha_plan)}</span> : null}</dd>
+          <dd className="text-slate-700">{rec.pilar}{rec.esfuerzo ? <span className="text-slate-400"> · esfuerzo {rec.esfuerzo}</span> : null}</dd>
           {rec.enlaces.length > 0 && <>
             <dt className="font-medium text-slate-500"><Link2 size={13} className="inline" /> Enlaces</dt>
             <dd className="flex flex-wrap gap-x-3 gap-y-0.5 text-slate-700">{rec.enlaces.map((e) => <span key={e.url}>«{e.ancla}» → <span className="text-brand-700">{e.url}</span></span>)}</dd>
