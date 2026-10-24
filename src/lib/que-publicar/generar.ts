@@ -85,7 +85,7 @@ function textoSenales(s: Senales) {
   const l = (xs: string[]) => (xs.length ? xs.join("\n") : "- (ninguno)");
   return [
     `PILARES Y COBERTURA (artículos publicados · último):\n${l(s.pilares.map((p) => `- ${p.nombre} [${p.categoria}]: ${p.total}${p.ultimo ? ` · ${p.ultimo.slice(0, 10)}` : " · nunca"}`))}`,
-    `PROGRAMADOS (no repetir):\n${l(s.programados.map((p) => `- ${p.fecha} · ${p.titulo} · ${p.keyword}`))}`,
+    `PROGRAMADOS O YA REDACTADOS EN BORRADOR (no repetir):\n${l(s.programados.map((p) => `- ${p.fecha} · ${p.titulo} · ${p.keyword}`))}`,
     `ARTÍCULOS PUBLICADOS (ruta · título · keyword):\n${l(s.publicados.map((p) => `- /${p.slug}/ · ${p.titulo} · ${p.keyword.split(",")[0]}`))}`,
     `PÁGINAS (ruta · título · keyword · visitas 30 días · conversiones):\n${l(s.paginas.map((p) => `- ${p.ruta} · ${p.titulo} · ${p.keyword} · ${p.visitas30} · ${p.conversiones}`))}`,
     `PÁGINAS SIN VISITAS EN 30 DÍAS${s.medicionDesde ? ` (medición desde ${s.medicionDesde})` : ""}: ${s.sinVisitas.join(" ") || "ninguna"}`,

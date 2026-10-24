@@ -95,7 +95,8 @@ export async function recogerSenales(): Promise<Senales> {
     guia, radarCfg,
     radar: radar.filter((r) => !RE_MARCAS.test(`${r.titulo} ${r.keyword}`)),
     publicados: pub.map((p) => ({ titulo: p.title, keyword: kw(p.meta), slug: p.slug, fecha: p.date.slice(0, 10) })),
-    programados: inv.posts.filter((p) => p.status === "future").sort((a, b) => a.date.localeCompare(b.date))
+    // los borradores ya redactados también cuentan: no se propone otra vez un tema que ya está escrito
+    programados: inv.posts.filter((p) => p.status === "future" || p.status === "draft").sort((a, b) => a.date.localeCompare(b.date))
       .map((p) => ({ id: p.id, titulo: p.title, keyword: kw(p.meta), fecha: p.date.slice(0, 10), slug: p.slug })),
     paginas, pilares,
     canibalizacion: problema("canibalizacion").map((p) => ({ titulo: p.title, con: p.analisis.problemas.find((x) => x.codigo === "canibalizacion")?.detalle ?? "" })),

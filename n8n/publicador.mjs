@@ -174,7 +174,7 @@ return [{ json: { title: p.titulo || p.keyword, source: 'Panel · Qué publicar'
 `), X(6, 3));
 // Publicados y programados con su foco de Rank Math (canibalización). Con usuario: los programados no son públicos.
 f.add('Inventario blog', 'n8n-nodes-base.httpRequest', 4.2, {
-  url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish,future&_fields=id,title,link,status,meta.rank_math_focus_keyword`,
+  url: `${WP}/wp-json/wp/v2/posts?per_page=100&status=publish,future,draft&_fields=id,title,link,status,meta.rank_math_focus_keyword`,
   authentication: 'genericCredentialType', genericAuthType: 'httpBasicAuth',
   options: { timeout: 30000, response: { response: { fullResponse: true, neverError: true } } },
 }, X(8, 1), { credentials: CRED.wp });
@@ -203,7 +203,7 @@ const L = $('Preparar lectura').first().json;
 const g = $('Leer guia').first().json || {};
 const body = $('Inventario blog').first().json.body;
 const posts = Array.isArray(body) ? body : [];
-const inventario = posts.map(p => '- [' + p.id + (p.status === 'future' ? ', programado' : '') + '] ' + decode(p.title && p.title.rendered) + ((p.meta && p.meta.rank_math_focus_keyword) ? ' — foco: ' + p.meta.rank_math_focus_keyword.split(',').slice(0, 3).join(', ') : '')).join('\\n');
+const inventario = posts.map(p => '- [' + p.id + (p.status === 'future' ? ', programado' : p.status === 'draft' ? ', borrador ya redactado' : '') + '] ' + decode(p.title && p.title.rendered) + ((p.meta && p.meta.rank_math_focus_keyword) ? ' — foco: ' + p.meta.rank_math_focus_keyword.split(',').slice(0, 3).join(', ') : '')).join('\\n');
 const cats = ${JSON.stringify(Object.entries(CATEGORIAS).map(([k, v]) => `- ${k}: ${v}`).join('\n'))};
 const conFuente = !!String(d.content_markdown || '').trim();
 const usuario = 'FECHA DE HOY: ' + hoyMadrid() + '\\n\\n' +
