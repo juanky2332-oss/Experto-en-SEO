@@ -261,20 +261,35 @@ let t = (d.link ? '📰 ' : '🧭 ') + '<b>' + esc(b.titular) + '</b>\\n' + (d.l
   '👤 ' + esc(b.publico) + '\\n' +
   '❓ ' + b.preguntas.slice(0, 3).map(esc).join(' · ') +
   (b.forzar_borrador ? '\\n📝 Se guardará como BORRADOR' : '');
+// Cómo quedará: lo que va a buscar el redactor y el listón SEO que tiene que pasar para publicarse solo.
+const TT = tipoDe(g, b.tipo);
+const secs = (Array.isArray(b.preguntas) && b.preguntas.length ? b.preguntas : TT.estructura || []).slice(0, 6);
+const sec = (b.keywords_secundarias || []).slice(0, 4);
+t += '\\n' + '\\n' + '📐 <b>Así quedará</b>\\n' +
+  '🔑 Principal: <code>' + esc(b.keyword_principal) + '</code>' + (sec.length ? '\\n🔎 Secundarias: ' + sec.map(x => '<code>' + esc(x) + '</code>').join(' · ') : '') + '\\n' +
+  '🧱 Secciones previstas:\\n' + secs.map((x, i) => '   ' + (i + 1) + '. ' + esc(x)).join('\\n') + '\\n' +
+  '🎯 Objetivo SEO <b>100/100</b>: ' + esc(TT.extension || '1.200-1.800 palabras') + ' · 6-8 H2 · keyword en título, URL, meta y entradilla · 3+ enlaces internos' +
+  (P && P.cta ? ' (lleva a ' + esc(P.cta) + ')' : '') + ' · fuentes enlazadas · FAQ con schema · 3 imágenes WebP con alt · Rank Math e IndexNow' + '\\n' +
+  '<i>Si no llega al listón, te aviso y decides tú si se publica.</i>';
 if (b.canibaliza && b.canibaliza.post_id) t += '\\n\\n⚠️ <b>Ya tienes algo parecido:</b> ' + esc(b.canibaliza.titulo) + ' (#' + b.canibaliza.post_id + '). ' + esc(b.canibaliza.recomendacion);
 if (t.length > 3900) t = t.slice(0, 3890) + '…';
 return [{ json: { brief: b, telegram: t, origin: p.origin, radar_id: p.radar_id ? String(p.radar_id) : '', url: d.link || '', titulo: d.title, fuente: d.source, texto: String(d.content_markdown || '').slice(0, 16000) } }];
 `), X(11, 1));
 
 f.add('Guardar brief', 'n8n-nodes-base.postgres', 2.5, { operation: 'executeQuery',
-  query: `insert into seo.briefs(origin, source_url, source_title, source_name, source_text, brief, radar_id)
-values ($1, $2, $3, $4, $5, $6::jsonb, nullif($7,'')::bigint) returning id`,
-  options: { queryReplacement: '={{ [ $json.origin, $json.url, $json.titulo, $json.fuente, $json.texto, JSON.stringify($json.brief), $json.radar_id ] }}' } }, X(12, 1), { credentials: CRED.pg });
+  query: `with b as (insert into seo.briefs(origin, source_url, source_title, source_name, source_text, brief, radar_id)
+values ($1, $2, $3, $4, $5, $6::jsonb, nullif($7,'')::bigint) returning id),
+r as (update seo.qp_recs set brief_id = (select id from b), estado = 'en_brief' where id = nullif($8,'')::bigint)
+select id from b`,
+  // rec_id = la idea de «Dame una idea» del panel: así panel y Telegram ven el mismo brief
+  options: { queryReplacement: "={{ [ $json.origin, $json.url, $json.titulo, $json.fuente, $json.texto, JSON.stringify($json.brief), $json.radar_id, String((() => { try { return $('Enrutar entrada').first().json.rec_id || ''; } catch (e) { return ''; } })()) ] }}" } }, X(12, 1), { credentials: CRED.pg });
 
 f.add('Enviar brief', 'n8n-nodes-base.telegram', 1.2, {
   chatId: CHAT_ID, text: "={{ $('Parsear brief').first().json.telegram }}", replyMarkup: 'inlineKeyboard',
   inlineKeyboard: { rows: [{ row: { buttons: [
-    { text: '✅ Redactar y publicar', additionalFields: { callback_data: '={{ "publish:" + $json.id }}' } },
+    { text: '✍️ Redactar y publicar ahora', additionalFields: { callback_data: '={{ "publish:" + $json.id }}' } },
+  ] } }, { row: { buttons: [
+    { text: '🔄 Otra idea', additionalFields: { callback_data: '={{ "app:idea:" + $json.id }}' } },
     { text: '❌ Descartar', additionalFields: { callback_data: '={{ "reject:" + $json.id }}' } },
   ] } }] },
   additionalFields: HTML,
@@ -618,7 +633,7 @@ const meta = { rank_math_title: seoTitle, rank_math_description: a.meta_descript
   rank_math_facebook_title: a.title, rank_math_facebook_description: a.meta_description,
   rank_math_twitter_use_facebook: 'on' };
 const x = F.metricas || {};
-const informe = (publicar ? '✅ <b>Publicado</b>' : '📝 <b>Guardado como borrador</b> (' + esc(motivoBorrador) + ')') + '\\n\\n' +
+const informe = (publicar ? '✅ <b>Publicado en transformaconia.com</b>' : '📝 <b>Se ha quedado en borrador</b> (' + esc(motivoBorrador) + '). Míralo y, si te vale, pulsa 🚀 Publicar ahora.') + '\\n\\n' +
   '<b>' + esc(a.title) + '</b>\\n__LINK__\\n\\n' +
   '📊 SEO ' + F.score + '/100 · ' + (x.palabras || 0) + ' palabras (rango ' + esc(x.rango || '') + ') · ' + (x.h2 || 0) + ' H2 · ' + (x.internos || 0) + ' enlaces internos (' + (x.a_paginas || 0) + ' a servicios) · ' + (x.externos || 0) + ' fuentes · ' + (x.faq || 0) + ' FAQ\\n' +
   '🔗 ' + (x.enlaces_comprobados || 0) + ' enlaces comprobados' + (x.enlaces_no_200 ? ' (' + x.enlaces_no_200 + ' sin 200)' : ', todos responden') + '\\n' +
@@ -656,8 +671,8 @@ f.add('Informe final', 'n8n-nodes-base.telegram', 1.2, {
   text: "={{ $('Montar HTML').first().json.informe.replace('__LINK__', $('Crear post').first().json.link || '') }}",
   replyMarkup: 'inlineKeyboard',
   inlineKeyboard: { rows: [{ row: { buttons: [
+    { text: "={{ $('Montar HTML').first().json.publicar ? '↩️ Pasar a borrador' : '🚀 Publicar ahora' }}", additionalFields: { callback_data: "={{ ($('Montar HTML').first().json.publicar ? 'app:borrador:' : 'app:publicar:') + $('Crear post').first().json.id }}" } },
     { text: '🔍 Auditar', additionalFields: { callback_data: "={{ 'app:auditar:' + $('Crear post').first().json.id }}" } },
-    { text: '↩️ Pasar a borrador', additionalFields: { callback_data: "={{ 'app:borrador:' + $('Crear post').first().json.id }}" } },
   ] } }] },
   additionalFields: HTML,
 }, X(16, Y2), { credentials: tg });

@@ -43,6 +43,7 @@ export async function cambiarEstado(id: number, tipo: Tipo, status: "publish" | 
     // Al publicar, con la fecha de AHORA: un borrador con fecha futura (los que estaban programados)
     // WordPress lo volvería a programar en vez de publicarlo.
     await editar(id, status === "publish" ? { status, date: ahoraWp() } : { status }, { origin: "app", tipo, motivo: status === "publish" ? "Publicado" : "Pasado a borrador" });
+    if (status === "publish" && tipo === "post") await (await import("@/lib/que-publicar/idea")).marcarIdeaPublicada(id);
     refrescar(id);
   }, status === "publish" ? "Publicado" : "Pasado a borrador");
 }
@@ -444,7 +445,7 @@ export async function redactarIdeaAccion(recId: number) {
     const { redactarIdea } = await import("@/lib/que-publicar/idea");
     await redactarIdea(recId);
     revalidatePath("/", "layout");
-  }, "Redactando el borrador… tarda 4-7 minutos. Te aviso por Telegram y aquí aparecerá el botón para publicarlo");
+  }, "Redactando y publicando… tarda 4-7 minutos. Te aviso por Telegram al terminar");
 }
 
 export async function publicarIdeaAccion(recId: number) {

@@ -2,7 +2,7 @@ import "server-only";
 import crypto from "node:crypto";
 import { sql } from "./db";
 import { telegram, esc, publicador, lanzarRadar, type Boton } from "./gateway";
-import { obtener, listar, categorias, type Cambios } from "./wp";
+import { obtener, listar, categorias, ahoraWp, type Cambios } from "./wp";
 import { editar, enviarAPapelera, deshacer, limpiarContenido, registrar } from "./acciones";
 import { analizar } from "./seo/analizar";
 import { inventario, anioActual } from "./seo/inventario";
@@ -40,7 +40,10 @@ async function ficha(id: number): Promise<Respuesta> {
 async function cambiar(id: number, cambios: Cambios, motivo: string): Promise<Respuesta> {
   const e = await obtener(id).catch(() => null);
   const tipo = e ? "post" : "page";
+  // al publicar, con la fecha de AHORA: un borrador con fecha futura WordPress lo volvería a programar
+  if (cambios.status === "publish" && !cambios.date) cambios = { ...cambios, date: ahoraWp() };
   const r = await editar(id, cambios, { origin: "telegram", tipo, motivo });
+  if (cambios.status === "publish" && tipo === "post") await (await import("./que-publicar/idea")).marcarIdeaPublicada(id);
   await recordar(id);
   const a = analizar(r.entrada, { anio: anioActual() });
   return { text: `✅ ${esc(motivo)} en «${esc(r.entrada.title)}»\nSEO ahora: <b>${a.score}/100</b>\n${esc(r.entrada.link)}`, buttons: [{ text: "↩️ Deshacer", data: `app:undo:${r.accion}` }] };
@@ -75,7 +78,10 @@ async function comando(texto: string): Promise<Respuesta> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+    case "/idea":
+    case "/ideas":
+      return pedirIdea(false);
     case "/estado":
       return estado();
     case "/articulos": {
@@ -171,6 +177,14 @@ async function arreglar(id: number): Promise<Respuesta> {
   return cambiar(id, { content: contenido }, cambios.join(", "));
 }
 
+// ---------------------------------------------------------------- «Dame una idea» desde Telegram
+async function pedirIdea(saltarActual: boolean): Promise<Respuesta> {
+  const { darIdea } = await import("./que-publicar/idea");
+  await darIdea({ origin: "telegram", descartarActual: saltarActual ? "saltada" : undefined });
+  return { text: "💡 Miro cómo está la web y hacia dónde vamos… En un minuto te llega la propuesta con cómo quedará (titular, palabras clave, secciones y objetivo SEO)." };
+}
+
+
 // ---------------------------------------------------------------- botones
 async function boton(data: string): Promise<Respuesta | null> {
   const [, accion, valor] = data.split(":");
@@ -182,6 +196,14 @@ async function boton(data: string): Promise<Respuesta | null> {
     }
     case "auditar":
       return ficha(id);
+    case "idea": {
+      // «🔄 Otra idea» en un brief: se descarta ese brief y llega otra propuesta
+      const { ideaActual } = await import("./que-publicar/idea");
+      const i = await ideaActual();
+      const esLaActual = !!i?.brief && i.brief.id === valor;
+      if (!esLaActual && /^[0-9a-f-]{36}$/.test(valor ?? "")) await publicador({ action: "reject", brief_id: valor }).catch(() => null);
+      return pedirIdea(esLaActual);
+    }
     case "fix":
       return arreglar(id);
     case "borrador":
