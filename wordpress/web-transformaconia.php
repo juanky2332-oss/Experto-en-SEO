@@ -345,8 +345,8 @@ add_action( 'get_footer', function () {
 		?>
 <aside class="tc-webband tc-webband--erp" aria-label="Diagnóstico gratuito">
  <div class="tc-wrap tc-webband__in">
-  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Te enseñamos en 30 minutos qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, IndunexIA.</p>
-  <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/contacto/#reserva' ); ?>">Reservar diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
+  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Cuéntanos cómo trabajáis y te enviamos por escrito qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, IndunexIA.</p>
+  <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/contacto/' ); ?>">Pedir diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
  </div>
 </aside>
 		<?php
@@ -428,8 +428,8 @@ add_filter( 'the_content', function ( $c ) {
 		),
 		'actualidad-ia'         => array(
 			'¿Qué puede hacer esto por tu empresa?',
-			'Somos una consultoría de IA y automatización especializada en la industria. En 30 minutos, gratis y sin compromiso, te decimos qué se puede automatizar en tu caso y cuánto costaría.',
-			array( array( '/contacto/#reserva', 'Reserva tu diagnóstico gratis →', true ) ),
+			'Somos una consultoría de IA y automatización especializada en la industria. Gratis y sin compromiso, te enviamos por escrito qué se puede automatizar en tu caso y cuánto costaría.',
+			array( array( '/contacto/', 'Pide tu diagnóstico gratis →', true ) ),
 		),
 	);
 	$clave = 'actualidad-ia';
@@ -762,7 +762,7 @@ add_action( 'template_redirect', function () {
 		echo '<p class="tc-lead">Todavía no hay artículos aquí.</p>';
 	}
 	echo '</div></section>';
-	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-band"><div><h2>¿Quieres aplicar la IA en tu empresa?</h2><p>Somos una consultoría de automatización especializada en la industria. Cuéntanos qué tarea os quita más tiempo y en 30 minutos sabrás qué se puede automatizar y cuánto costaría.</p></div><div class="tc-btns"><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pide tu diagnóstico gratis</a></div></div></div></section>';
+	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-band"><div><h2>¿Quieres aplicar la IA en tu empresa?</h2><p>Somos una consultoría de automatización especializada en la industria. Cuéntanos qué tarea os quita más tiempo y te enviamos por escrito qué se puede automatizar y cuánto costaría.</p></div><div class="tc-btns"><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pide tu diagnóstico gratis</a></div></div></div></section>';
 	echo '</div>';
 	get_footer();
 	exit;
@@ -920,7 +920,7 @@ add_action( 'wp_footer', function () {
 	}
 	?>
 <?php $tc_erp = is_page( 'erp-industria' ); ?>
-<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/#reserva' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA por dentro' : 'Reserva tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA por dentro' : 'Pide tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
 <script id="tc-sticky-js">
 (function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
   var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};
@@ -967,7 +967,7 @@ add_action( 'template_redirect', function () {
 	foreach ( $ir as $u => $t ) {
 		echo '<a href="' . esc_url( home_url( $u ) ) . '">' . esc_html( $t ) . '</a>';
 	}
-	echo '</nav></div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>¿Buscabas cómo automatizar algo?</span></div><p style="margin:4px 0 16px">Cuéntanos qué tarea os quita más tiempo y en 30 minutos te decimos qué se puede automatizar y cuánto costaría.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico gratis</a></aside></div></header>';
+	echo '</nav></div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>¿Buscabas cómo automatizar algo?</span></div><p style="margin:4px 0 16px">Cuéntanos qué tarea os quita más tiempo y te enviamos por escrito qué se puede automatizar y cuánto costaría.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico gratis</a></aside></div></header>';
 	$ult = get_posts( array( 'numberposts' => 3, 'post_status' => 'publish' ) );
 	if ( $ult ) {
 		echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><h2 style="margin-bottom:22px">Lo último del blog</h2><div class="tc-rejilla">';

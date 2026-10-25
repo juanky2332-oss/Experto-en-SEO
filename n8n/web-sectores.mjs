@@ -36,7 +36,7 @@ const band = (h, p, b) => sec(`<div class="tc-band tc-reveal"><div><h2>${h}</h2>
 const shot = (src, alt, cap = '') => `<figure class="tc-shot"><div class="tc-shot__bar" aria-hidden="true"><i></i><i></i><i></i></div><img src="${src}" width="1440" height="900" alt="${alt}" loading="lazy" decoding="async">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
 const CAP = JSON.parse(fs.readFileSync(new URL('./web-capturas-industria.json', import.meta.url), 'utf8'));
 
-const CTA = '/contacto/#reserva';
+const CTA = '/contacto/';
 const S = {};
 
 /* ============================================================ TALLERES */
@@ -46,7 +46,7 @@ S.talleres = {
   eb: 'Mecanizado, calderería y reparación',
   h1: 'Software de gestión para taller industrial, con IA que te quita el papeleo',
   lead: 'Un taller vive de dos cosas: cobrar lo que de verdad cuesta cada trabajo y entregarlo a tiempo. Ordenamos presupuestos, partes, albaranes y facturas para que el jefe vuelva a estar en la nave y no en el despacho.',
-  datos: [['Para quién', 'Mecanizado, calderería, reparación'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con tus propios trabajos, 1 a 3 semanas'], ['Dónde', 'Región de Murcia y remoto en toda España']],
+  datos: [['Para quién', 'Mecanizado, calderería, reparación'], ['Primer paso', 'Diagnóstico gratis por escrito'], ['Piloto', 'Con tus propios trabajos, 1 a 3 semanas'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'El problema de siempre', introH: 'Se fabrica bien y se cobra mal',
   boxH: 'Encaja si te suena',
   box: ['Presupuestas «a ojo» o con una hoja propia', 'Los albaranes se pierden entre el taller y la oficina', 'Facturas que salen tarde y cobros que se olvidan', 'Quien sabe calcular un trabajo es siempre la misma persona'],
@@ -59,7 +59,7 @@ S.talleres = {
     ['Histórico por cliente y por pieza', 'Si el cliente repite, encuentras en segundos cómo se hizo, cuánto costó y a qué precio se vendió. El conocimiento deja de estar en la cabeza de una persona.']],
   gridCls: 'tc-grid--3',
   comoH: 'Cómo lo hacemos en tu taller',
-  pasos: [['Diagnóstico · 30 minutos', 'Nos cuentas cómo sale hoy un trabajo, desde la petición hasta el cobro. Marcamos dónde se pierde más tiempo y qué parte del flujo conviene atacar primero.'],
+  pasos: [['Diagnóstico por escrito', 'Nos cuentas cómo sale hoy un trabajo, desde la petición hasta el cobro, y te enviamos dónde se pierde más tiempo y qué parte del flujo conviene atacar primero.'],
     ['Piloto con tus trabajos', 'Metemos tus últimos presupuestos y albaranes en el programa y rehacemos algunos para comparar. Tú decides si el cálculo coincide con tu criterio.'],
     ['Implantación en el día a día', 'Configuramos máquinas, tarifas, clientes y usuarios, formamos al encargado y al personal de oficina y dejamos los partes funcionando en los móviles.'],
     ['Mantenimiento y mejoras', 'Seguimos de cerca las primeras semanas, resolvemos dudas y añadimos lo que el uso va pidiendo, siempre acordado antes.']],
@@ -76,7 +76,7 @@ S.talleres = {
     ['¿Sirve para talleres de calderería o de reparación, no solo de mecanizado?', 'Sí. El programa nació en talleres de mecanizado, pero la calculadora sirve para cualquier trabajo o servicio: calcula lo que te cuesta a ti para que le pongas tu margen. En calderería se añaden kilos y soldadura; en reparación, horas de técnico y repuestos.'],
     ['¿Puedo seguir usando mi programa de facturación actual?', 'Depende del programa. Si tiene API, nos conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. En el diagnóstico lo miramos con tu caso real, sin compromiso.'],
     ['¿Cuánto cuesta y qué compromiso hay?', 'Los precios orientativos están publicados en la página del ERP, en su apartado de precio, y el presupuesto definitivo se te da por escrito tras el diagnóstico. No hay permanencia: se avisa con 30 días.']],
-  band: ['¿Quieres saber cuánto te cuesta de verdad cada trabajo?', 'Reserva el diagnóstico gratis y trae un presupuesto reciente: lo repasamos contigo.'],
+  band: ['¿Quieres saber cuánto te cuesta de verdad cada trabajo?', 'Pide el diagnóstico gratis y mándanos un presupuesto reciente: te enviamos por escrito cómo quedaría.'],
 };
 
 /* ============================================================ MANTENIMIENTO */
@@ -86,7 +86,7 @@ S.mantenimiento = {
   eb: 'Mantenimiento y servicio técnico',
   h1: 'IA para mantenimiento industrial: de la avería a la orden de trabajo sin llamadas ni papeles',
   lead: 'Un servicio técnico mide su trabajo en tiempo de respuesta. Hacemos que el aviso llegue ya clasificado, que el técnico encuentre el manual y el repuesto y que el informe de intervención no se escriba dos veces.',
-  datos: [['Para quién', 'Mantenimiento y servicios técnicos'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con tus avisos y tus equipos reales'], ['Dónde', 'Región de Murcia y remoto en toda España']],
+  datos: [['Para quién', 'Mantenimiento y servicios técnicos'], ['Primer paso', 'Diagnóstico gratis por escrito'], ['Piloto', 'Con tus avisos y tus equipos reales'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'Entre la urgencia y el papel', introH: 'El mantenimiento sufre cuando la información llega tarde',
   boxH: 'Encaja si te pasa',
   box: ['Los avisos llegan por varias vías y se pierden', 'El técnico no sabe qué se hizo antes en esa máquina', 'Faltan repuestos justo cuando se necesitan', 'Los informes se redactan a mano al volver'],
@@ -116,7 +116,7 @@ S.mantenimiento = {
     ['¿Cómo evita la IA errores al crear una orden desde un mensaje?', 'Propone, no decide: el equipo, la prioridad y el cliente se sugieren y una persona confirma lo importante. Lo dudoso se marca para revisar. Lo probamos en el piloto con avisos reales antes de ampliar.'],
     ['¿Funciona si los técnicos trabajan sin cobertura?', 'Los partes pueden empezarse en el móvil y completarse cuando haya conexión. En el diagnóstico revisamos tus rutas habituales para ver si es un problema real y cómo resolverlo.'],
     ['¿Podéis cargar nuestros manuales y fichas técnicas?', 'Sí. Se organizan por equipo y el asistente responde citando el documento y la página. Los manuales siguen siendo tuyos y no se utilizan para entrenar modelos de terceros.']],
-  band: ['¿Tus técnicos pierden tiempo buscando datos?', 'Reserva el diagnóstico gratis y cuéntanos cómo llega hoy un aviso hasta que se cierra la orden.'],
+  band: ['¿Tus técnicos pierden tiempo buscando datos?', 'Pide el diagnóstico gratis y cuéntanos cómo llega hoy un aviso hasta que se cierra la orden.'],
 };
 
 /* ============================================================ INSTALADORAS */
@@ -126,7 +126,7 @@ S.instaladoras = {
   eb: 'Electricidad, climatización y fontanería industrial',
   h1: 'Software para empresas instaladoras: presupuestos, obra y documentación sin tardes de oficina',
   lead: 'Una instaladora cierra obras, pero las obras no se cierran del todo hasta que el papel está en orden. Ayudamos a presupuestar más rápido, a documentar mientras se trabaja y a recordar cada revisión periódica.',
-  datos: [['Para quién', 'Eléctricas, climatización, fontanería y frío'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con una obra o un presupuesto real'], ['Dónde', 'Región de Murcia y remoto en toda España']],
+  datos: [['Para quién', 'Eléctricas, climatización, fontanería y frío'], ['Primer paso', 'Diagnóstico gratis por escrito'], ['Piloto', 'Con una obra o un presupuesto real'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'Obra por la mañana, papeles por la tarde', introH: 'El trabajo está en la obra y el desgaste, en la oficina',
   boxH: 'Te sonará si',
   box: ['Presupuestas por la tarde lo que mediste por la mañana', 'Los albaranes de proveedor se acumulan sin imputar a obra', 'La documentación final se monta a última hora', 'Las revisiones de clientes dependen de una agenda'],
@@ -139,7 +139,7 @@ S.instaladoras = {
     ['Seguimiento de obra y cobros', 'Qué se ha facturado de cada obra, qué falta por certificar y qué está pendiente de cobro, en una sola pantalla y no en tres hojas.']],
   gridCls: 'tc-grid--3',
   comoH: 'Cómo encaja en una instaladora',
-  pasos: [['Entrevista sobre una obra reciente', 'Repasamos una obra de principio a fin: cómo se presupuestó, qué material se compró, qué papeles se generaron. De ahí sale el mapa de lo que se puede ahorrar.'],
+  pasos: [['Diagnóstico sobre una obra reciente', 'Nos cuentas una obra de principio a fin y te enviamos por escrito el análisis: cómo se presupuestó, qué material se compró, qué papeles se generaron. De ahí sale el mapa de lo que se puede ahorrar.'],
     ['Piloto en un presupuesto o una obra', 'Escogemos una sola pieza, normalmente el presupuesto o la documentación, y la probamos con datos tuyos antes de tocar nada más.'],
     ['Implantación por oficios', 'Cada oficio tiene sus partidas y su vocabulario; configuramos el programa con el de tu empresa y formamos al personal de oficina y a los jefes de obra.'],
     ['Mejora continua', 'Con el uso aparecen nuevas necesidades: otras tarifas, más tipos de revisión, conexión con tu programa de contabilidad. Se añaden de forma acordada.']],
@@ -156,7 +156,7 @@ S.instaladoras = {
     ['¿Se adapta a nuestras tarifas y a las partidas de cada oficio?', 'Sí. Las partidas, tarifas y márgenes se cargan con los de tu empresa y se pueden tener varios oficios en el mismo programa. En el piloto se contrasta con presupuestos que ya hiciste.'],
     ['¿Y si ya tengo programa de presupuestos o de contabilidad?', 'Si tiene API, la conexión es directa; si no, se valora cómo adaptarlo. A veces basta con generar un archivo que tu programa ya sabe importar.'],
     ['¿Se puede probar con una sola obra?', 'Sí, y es lo que recomendamos. Elegimos una obra reciente o en curso, la gestionamos con el sistema y comparas con cómo la habrías llevado antes.']],
-  band: ['¿Te llevan las tardes los presupuestos y los papeles?', 'Reserva el diagnóstico gratis y trae una obra reciente: vemos qué parte del papeleo se puede evitar.'],
+  band: ['¿Te llevan las tardes los presupuestos y los papeles?', 'Pide el diagnóstico gratis y cuéntanos una obra reciente: te enviamos qué parte del papeleo se puede evitar.'],
 };
 
 /* ============================================================ FABRICACION */
@@ -166,7 +166,7 @@ S.fabricacion = {
   eb: 'Fabricación y agroindustria',
   h1: 'IA en fabricación industrial: datos de producción y calidad sin teclear dos veces',
   lead: 'En planta, el dato se genera una vez y se escribe tres: en el parte, en la hoja de calidad y en el ERP. Conectamos esos puntos para que producción, calidad y oficina trabajen con la misma información.',
-  datos: [['Para quién', 'Fabricantes y agroindustria'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con una línea o un proceso concreto'], ['Dónde', 'Región de Murcia y remoto en toda España']],
+  datos: [['Para quién', 'Fabricantes y agroindustria'], ['Primer paso', 'Diagnóstico gratis por escrito'], ['Piloto', 'Con una línea o un proceso concreto'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'De la línea a la oficina', introH: 'La planta produce datos que nadie aprovecha a tiempo',
   boxH: 'Piensa en fabricación si',
   box: ['Los partes de producción se pasan a mano al sistema', 'Los controles de calidad viven en hojas aparte', 'Buscar un lote antiguo lleva media tarde', 'El informe mensual se monta copiando datos'],
@@ -179,7 +179,7 @@ S.fabricacion = {
     ['Informes y reporting', 'Producción, calidad y cumplimiento de plazos se resumen automáticamente cada semana o cada mes para dirección, sin copiar y pegar entre hojas.']],
   gridCls: 'tc-grid--3',
   comoH: 'Cómo avanzamos en una planta',
-  pasos: [['Recorrido por la línea', 'Visitamos la planta o hacemos una videollamada con un recorrido: dónde se genera cada dato, quién lo apunta y dónde se vuelve a escribir.'],
+  pasos: [['Mapa de la línea', 'Nos cuentas dónde se genera cada dato, quién lo apunta y dónde se vuelve a escribir, y te enviamos por escrito el mapa de lo que se puede ahorrar.'],
     ['Piloto con una línea o un proceso', 'Elegimos un único proceso, por ejemplo el parte de producción de una línea, y lo probamos con operarios reales durante unas semanas.'],
     ['Implantación y conexión con el ERP', 'Si tu ERP tiene API, la conexión es directa; si no, valoramos cómo adaptarlo. SAP u otro: cualquier mejora que se os ocurra se puede implementar.'],
     ['Seguimiento con calidad y producción', 'Cada mes repasamos con los responsables qué datos faltan, qué informes se usan y qué se puede añadir, sin ampliar nada que no se vaya a usar.']],
@@ -196,7 +196,7 @@ S.fabricacion = {
     ['¿Es realista la visión artificial en una pyme?', 'Depende de la pieza, la luz, la velocidad y el tipo de defecto. Hay casos que funcionan muy bien y otros que no compensan. Lo primero es probar con fotos de tus piezas y decirte con franqueza si merece la pena.'],
     ['¿Se conecta con nuestro ERP o con SAP?', 'Si el ERP tiene API, la conexión es directa; si no la tiene, se valora cómo adaptarlo. SAP es un ejemplo habitual, pero lo mismo vale para el programa que uséis.'],
     ['¿Qué ocurre con la confidencialidad de nuestra producción?', 'Pedimos los accesos mínimos y los servidores están en la Unión Europea siempre que es posible. Nada de lo que tratamos se usa para entrenar modelos de terceros y lo montado es tuyo.']],
-  band: ['¿Quieres que producción y calidad hablen el mismo idioma?', 'Reserva el diagnóstico gratis y cuéntanos qué dato apuntáis dos veces; empezamos por ahí.'],
+  band: ['¿Quieres que producción y calidad hablen el mismo idioma?', 'Pide el diagnóstico gratis y cuéntanos qué dato apuntáis dos veces; empezamos por ahí.'],
 };
 
 // ---------- presentación visual (revisión C): frase de intro, bloque «Hoy / Con IA», iconos y fichas de soluciones ----------
@@ -256,7 +256,7 @@ const E = (k) => EXTRA[k];
 const html = (k, c) => {
   const otros = ORDEN.filter((x) => x !== k).map((x) => `<a class="tc-link" href="${urlDe(x)}">${S[x].titulo}</a>`).join(' · ');
   return page(`${pagehead(`<a href="/industria/">Industria</a><span aria-hidden="true">/</span><span>${c.titulo}</span>`, c.eb, c.h1, c.lead,
-    btn(CTA, 'Reserva tu diagnóstico gratis') + btn('/erp-industria/', 'Ver el ERP para la industria', true), facts('De un vistazo', c.datos))}
+    btn(CTA, 'Pide tu diagnóstico gratis') + btn('/erp-industria/', 'Ver el ERP para la industria', true), facts('De un vistazo', c.datos))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow(c.introEb)}<h2>${c.introH}</h2><p>${E(k).frase}</p></div><div class="tc-box tc-reveal"><h3>${c.boxH}</h3>${list(c.box)}</div></div><div class="tc-wrap" style="margin-top:28px">${ad(E(k).ad)}</div></section>
 <section class="tc-sec tc-sec--alt" id="que-automatizamos"><div class="tc-wrap">${head('Qué automatizamos', c.qH)}<div class="tc-grid ${c.gridCls} tc-reveal">${c.cards.map(([t, d], i) => `<div class="tc-box">${ic(E(k).icons[i])}<h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
 <section class="tc-sec" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', c.comoH)}<div class="tc-grid tc-grid--2 tc-reveal">${c.pasos.map(([t, d]) => `<div class="tc-step"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
@@ -264,7 +264,7 @@ const html = (k, c) => {
 <section class="tc-sec"><div class="tc-wrap">${head('Soluciones relacionadas', 'Lo que usamos para esto')}<div class="tc-sectores tc-reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${c.rel.map(([u, t], i) => { const [ico, corto] = E(k).rel[i].split('|'); return `<a class="tc-sector" href="${u}">${ic(ico)}<span><b>${t}</b><small>${corto}</small></span></a>`; }).join('')}</div><div class="tc-prose tc-reveal" style="margin-top:22px"><p>${k === 'talleres' || k === 'instaladoras' ? 'Los precios orientativos del programa están en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>. ' : ''}Si quieres una visión de conjunto, mira la <a class="tc-link" href="/consultor-ia-murcia/">consultoría de IA en Murcia</a>, desde donde trabajamos con empresas de toda la Región y en remoto con toda España.</p></div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Dudas habituales')}${faq(c.faqs)}</div></section>
 <section class="tc-sec tc-sec--tight" id="otros-sectores"><div class="tc-wrap"><div class="tc-prose tc-reveal"><h3>Otros sectores industriales</h3><p>${otros} · <a class="tc-link" href="/distribucion-industrial/">Distribución técnica</a> · <a class="tc-link" href="/industria/">Toda la industria</a></p></div></div></section>
-${band(c.band[0], c.band[1], btn(CTA, 'Reserva tu diagnóstico gratis'))}`);
+${band(c.band[0], c.band[1], btn(CTA, 'Pide tu diagnóstico gratis'))}`);
 };
 
 // ---------- comprobaciones ----------

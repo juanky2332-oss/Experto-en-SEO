@@ -391,7 +391,7 @@ const anclas = Object.fromEntries(((P && P.enlaces) || []).filter(e => e && e.ur
 const CTA_CAT = { 'ia-en-la-industria': '/industria/', 'gestion-y-facturacion': '/erp-industria/', 'actualidad-ia': '/contacto/' };
 const dest = P && P.destino_ref ? ruta(P.destino_ref) : '';
 const ctaRuta = dest && existentes.has(dest) ? dest : (CTA_CAT[b.categoria] || '/contacto/');
-const ctaUrl = ctaRuta === '/contacto/' ? BASE + '/contacto/#reserva' : BASE + ctaRuta;
+const ctaUrl = ctaRuta === '/contacto/' ? BASE + '/contacto/' : BASE + ctaRuta;
 // externas permitidas
 const externas = [...new Set([r.source_url, ...(inv.hechos || []).map(h => h.url), ...citas.map(c => c.url)].filter(Boolean).map(limpia))].slice(0, 14);
 // extensión según intención
@@ -418,7 +418,7 @@ const usuario = [
   '', 'PÁGINAS DE SERVICIO / SECTOR / ERP / LOCALES (elige 1-3 que encajen de verdad):', paginas.map(([k, v]) => '- ' + BASE + k + ' → ' + v).join('\\n'),
   '', 'ARTÍCULOS DEL BLOG PARA ENLAZAR (elige 1-3 relacionados):', relacionados.map(p => '- ' + p.t + ' → ' + p.link).join('\\n'),
   obligatorios.length ? '\\nENLACES OBLIGATORIOS (todos, con ancla descriptiva):\\n' + obligatorios.map(u => '- ' + u + (anclas[ruta(u)] ? ' (ancla sugerida: «' + anclas[ruta(u)] + '»)' : '')).join('\\n') : '',
-  '', 'CTA DEL CIERRE: enlaza a ' + ctaUrl + (P && P.cta ? ' — mensaje: ' + P.cta : '') + ' (si encaja mejor, puedes usar ' + BASE + '/contacto/#reserva, diagnóstico gratis).',
+  '', 'CTA DEL CIERRE: enlaza a ' + ctaUrl + (P && P.cta ? ' — mensaje: ' + P.cta : '') + ' (si encaja mejor, puedes usar ' + BASE + '/contacto/, diagnóstico gratis por escrito).',
   '', r.source_text ? 'TEXTO FUENTE (referencia):\\n' + String(r.source_text).slice(0, 9000) : '',
 ].filter(x => x !== null && x !== undefined).join('\\n');
 ${reqJs({ model: 'gpt-5.5', effort: 'medium', schemaName: 'articulo', schema: ARTICULO_SCHEMA, maxTokens: 40000 })}
