@@ -23,7 +23,7 @@ Acceso a WordPress: siempre por la pasarela n8n (`n8n/gw.mjs` → `wp(method, pa
 
 - Posicionamiento: 1) IA y automatización para la **industria** en toda España; 2) Murcia y Región de Murcia; 3) IA general sin diluir.
 - Quiénes somos: «un grupo de expertos en IA de Murcia con más de 2 años de experiencia». **Nunca nombres de persona** (ni en texto ni en JSON-LD).
-- ERP: «TransformaConIA Gestión», para la industria (nunca «para el metal»). Precios confirmados: 690 € de puesta en marcha en dos pagos de 345 € (al empezar y a los 3 meses), 69 €/mes con los 3 primeros meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia (30 días de aviso), sin IVA. No tocar «oferta para las 10 primeras empresas» ni el 990 € tachado sin permiso.
+- ERP: «IndunexIA», para la industria (nunca «para el metal»). Precios confirmados: 690 € de puesta en marcha en un solo pago al empezar (desde el 2026-10-25; antes 345 + 345), 69 €/mes con los 3 primeros meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia (30 días de aviso), sin IVA. No tocar «oferta para las 10 primeras empresas» ni el 990 € tachado sin permiso.
 - Verifactu: el ERP no lo cumple todavía (aún no es obligatorio). No afirmar cumplimiento.
 - Nunca Flownexion ni herramientas internas por marca (n8n, OpenAI, Claude…) en texto público.
 - No inventar clientes, testimonios, cifras, resultados ni certificaciones. Ejemplos ficticios marcados («Ejemplo ficticio», «Empresa X», «Talleres Demo SL»). El caso SAP es un **ejemplo**.

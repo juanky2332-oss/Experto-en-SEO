@@ -196,7 +196,7 @@ add_shortcode( 'tc_calculadora', function () {
 	<div class="tc-calc__out" role="status" aria-live="polite">
 		<div class="tc-calc__big"><span data-o="anual">–</span> € <small>al año en papeleo</small></div>
 		<p class="tc-calc__rec" data-o="rec"></p>
-		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. Con la puesta en marcha de 690 € (345 € al empezar y 345 € a los 3 meses) y el mantenimiento orientativo de 69 €/mes desde el cuarto mes. Los usuarios extra no entran en esta cuenta.</p>
+		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. Con la puesta en marcha de 690 € (un solo pago al empezar) y el mantenimiento orientativo de 69 €/mes desde el cuarto mes. Los usuarios extra no entran en esta cuenta.</p>
 	</div>
 	<div class="tc-btns"><button type="button" class="tc-btn" data-o="ir">Quiero ver esto con mis números</button></div>
 </div>
@@ -211,8 +211,8 @@ add_shortcode( 'tc_calculadora', function () {
     function calc(){
       var p=num(P,1,50,2), h=num(H,0.5,40,8), co=num(C,5,150,20), pc=num(R,10,60,30)/100;
       var anual=p*h*52*co, ahorro=anual*pc/12, meses=null;
-      // coste acumulado al mes m: 345 € al empezar, otros 345 € a los 3 meses y la cuota desde el mes 4; se busca el mes desde el que lo ahorrado supera siempre lo pagado
-      var ultimo=0;for(var m=1;m<=60;m++){var gastado=puesta/2+(m>=3?puesta/2:0)+cuota*Math.max(0,m-gratis);if(ahorro*m<gastado)ultimo=m;}
+      // coste acumulado al mes m: 690 € al empezar y la cuota desde el mes 4; se busca el mes desde el que lo ahorrado supera siempre lo pagado
+      var ultimo=0;for(var m=1;m<=60;m++){var gastado=puesta+cuota*Math.max(0,m-gratis);if(ahorro*m<gastado)ultimo=m;}
       if(ultimo<60)meses=ultimo+1;
       RV.textContent=Math.round(pc*100)+' %';
       q('[data-o=anual]').textContent=eur(anual);
@@ -345,7 +345,7 @@ add_action( 'get_footer', function () {
 		?>
 <aside class="tc-webband tc-webband--erp" aria-label="Diagnóstico gratuito">
  <div class="tc-wrap tc-webband__in">
-  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Te enseñamos en 30 minutos qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, TransformaConIA Gestión.</p>
+  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Te enseñamos en 30 minutos qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, IndunexIA.</p>
   <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/contacto/#reserva' ); ?>">Reservar diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
  </div>
 </aside>
@@ -359,6 +359,7 @@ add_action( 'get_footer', function () {
     <a href="<?php echo $u( '/' ); ?>"><img src="<?php echo esc_url( $logo ); ?>" alt="Transforma con IA" width="220" height="35" loading="lazy"></a>
     <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. ERP para la industria, asistentes técnicos, gestión documental y mejoras sobre SAP o tu ERP.</p>
     <a class="tc-footer__mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a>
+    <a class="tc-footer__ig" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener me" aria-label="Instagram de Transforma con IA (se abre en otra pestaña)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>@transformaconia.oficial</a>
     <p>Murcia · En persona en la Región de Murcia y en remoto en toda España</p>
    </div>
    <div><h3>Industria</h3><ul>
@@ -377,8 +378,6 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/agentes-chatbots-ia/' ); ?>">Asistentes técnicos y chatbots</a></li>
     <li><a href="<?php echo $u( '/gestion-documental-ia/' ); ?>">Gestión documental con IA</a></li>
     <li><a href="<?php echo $u( '/desarrollo-a-medida-ia/' ); ?>">Herramientas a medida y SAP</a></li>
-    <li><a href="<?php echo $u( '/contenido-automatico-ia/' ); ?>">Contenido automático</a></li>
-    <li><a href="<?php echo $u( '/diseno-web/' ); ?>">Diseño web</a></li>
     <li><a href="<?php echo $u( '/soluciones/' ); ?>">Cómo trabajamos y precios</a></li>
    </ul></div>
    <div><h3>Transforma con IA</h3><ul>
@@ -471,6 +470,9 @@ add_filter( 'gettext', function ( $t, $orig, $dom ) {
 		'Older Entries'                      => 'Anteriores',
 		'Newer Entries'                      => 'Más recientes',
 		'Back to top'                        => 'Volver arriba',
+		'Previous Post'                     => 'Anterior',
+		'Next Post'                         => 'Siguiente',
+		'Recommended For You'               => 'Te puede interesar',
 	);
 	if ( ( 'salient' === $dom || 'salient-core' === $dom ) && isset( $mapa[ $orig ] ) ) {
 		return $mapa[ $orig ];
@@ -529,6 +531,7 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 		'logo'        => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-logo-v2.png',
 		'image'       => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png',
 		'email'       => 'info@transformaconia.com',
+		'sameAs'      => array( 'https://www.instagram.com/transformaconia.oficial/' ),
 		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para la industria (talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria e hidráulica), asistentes técnicos de catálogo, gestión documental con IA, automatizaciones y mejoras sobre SAP o cualquier ERP para empresas de toda España.',
 		'address'     => array( '@type' => 'PostalAddress', 'addressLocality' => 'Murcia', 'addressRegion' => 'Región de Murcia', 'addressCountry' => 'ES' ),
 		'areaServed'  => array( '@type' => 'Country', 'name' => 'España' ),
@@ -566,8 +569,8 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 	if ( is_page( 'erp-industria' ) ) {
 		$data['TcErp'] = array(
 			'@type'               => 'SoftwareApplication',
-			'name'                => 'TransformaConIA Gestión',
-			'alternateName'       => 'TransformaConIA Gestión: ERP para la industria',
+			'name'                => 'IndunexIA',
+			'alternateName'       => 'IndunexIA: ERP con IA para la industria',
 			'applicationCategory' => 'BusinessApplication',
 			'operatingSystem'     => 'Web',
 			'url'                 => home_url( '/erp-industria/' ),
@@ -575,12 +578,12 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			'screenshot'          => array(
 				'@type'       => 'ImageObject',
 				'url'         => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
-				'caption'     => 'Calculadora de costes de TransformaConIA Gestión con el margen aplicado (datos de ejemplo)',
+				'caption'     => 'Calculadora de costes de IndunexIA con el margen aplicado (datos de ejemplo)',
 				'contentUrl'  => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
 			),
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
 			'offers'              => array(
-				array( '@type' => 'Offer', 'name' => 'Puesta en marcha', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha en dos pagos: 345 € al empezar y 345 € a los 3 meses. Sin IVA.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array( '@type' => 'Offer', 'name' => 'Puesta en marcha', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha en un solo pago al empezar. Sin IVA.', 'url' => home_url( '/erp-industria/#precio' ) ),
 				array(
 					'@type'              => 'Offer',
 					'name'               => 'Mantenimiento mensual',
@@ -638,6 +641,24 @@ add_action( 'rest_api_init', function () {
 } );
 
 /* ---------- 9. Archivo de noticias, categorías, etiquetas, autor y búsqueda con el diseño propio ---------- */
+/* Tarjeta de categorías del blog (cabecera de /blog/ y de los archivos): «IA en la industria» primero y destacada */
+function tc_panel_categorias( $activa = 0 ) {
+	$def = array(
+		'ia-en-la-industria'    => array( 'Casos y aplicaciones reales en talleres y fábricas', true ),
+		'gestion-y-facturacion' => array( 'Facturas, albaranes y programas de gestión', false ),
+		'actualidad-ia'         => array( 'Lo que pasa en la IA, explicado sin jerga', false ),
+	);
+	$h = '<aside class="tc-hero__panel tc-spec"><div class="tc-hero__panel-h"><span>Elige por dónde empezar</span></div><div class="tc-catpanel">';
+	foreach ( $def as $slug => $d ) {
+		$t = get_category_by_slug( $slug );
+		if ( ! $t ) {
+			continue;
+		}
+		$n  = (int) $t->count;
+		$h .= '<a class="' . ( $d[1] ? 'is-star ' : '' ) . ( (int) $activa === (int) $t->term_id ? 'is-on' : '' ) . '" href="' . esc_url( get_category_link( $t ) ) . '"><b>' . esc_html( $t->name ) . ( $d[1] ? '<span class="tc-pilares__tag">Destacada</span>' : '' ) . '</b><small>' . esc_html( $d[0] ) . '</small><em>' . $n . ( 1 === $n ? ' artículo' : ' artículos' ) . '</em></a>';
+	}
+	return $h . '</div></aside>';
+}
 function tc_es_archivo() {
 	return ! is_admin() && ( is_home() || is_category() || is_tag() || is_author() || is_search() );
 }
@@ -666,7 +687,7 @@ add_action( 'template_redirect', function () {
 	$blog   = home_url( '/blog/' );
 	$eb     = 'Blog';
 	$h1     = 'Blog: IA en la industria y actualidad de la inteligencia artificial';
-	$lead   = 'Casos reales de empresas industriales que aplican IA, actualidad, guías prácticas y herramientas, revisado cada mañana por nuestro equipo.';
+	$lead   = 'Guías prácticas para talleres y empresas industriales, y lo que pasa en la IA explicado sin jerga.';
 	$crumb  = '<span>Noticias</span>';
 	$activa = 0;
 	if ( is_category() ) {
@@ -709,7 +730,7 @@ add_action( 'template_redirect', function () {
 		echo '<p class="tc-lead">' . esc_html( $lead ) . '</p>';
 	}
 	echo '<form class="tc-inline tc-buscar" role="search" action="' . esc_url( home_url( '/' ) ) . '"><input type="search" name="s" value="' . esc_attr( get_search_query() ) . '" placeholder="Buscar en el blog…" aria-label="Buscar en el blog"><button class="tc-btn tc-btn--ghost" type="submit">Buscar</button></form>';
-	echo '</div><aside class="tc-hero__panel"><div class="tc-hero__panel-h"><span>Consultoría de IA para la industria</span></div><p style="margin:4px 0 16px">Lo que contamos aquí, lo implantamos en empresas: ERP para la industria, asistentes técnicos y automatizaciones. Diagnóstico de 30 minutos, gratis.</p><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pedir diagnóstico</a></aside></div></header>';
+	echo '</div>' . tc_panel_categorias( (int) $activa ) . '</div></header>';
 	echo '<nav class="tc-wrap tc-filtros" aria-label="Categorías"><a class="' . ( is_home() ? 'is-on' : '' ) . '" href="' . esc_url( $blog ) . '">Todo</a>';
 	foreach ( get_categories( array( 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC' ) ) as $c ) {
 		echo '<a class="' . ( $activa === $c->term_id ? 'is-on' : '' ) . '" href="' . esc_url( get_category_link( $c ) ) . '">' . esc_html( $c->name ) . '</a>';
@@ -840,6 +861,17 @@ add_filter( 'the_content', function ( $c ) {
 		return str_replace( array( ' fetchpriority="high"', 'loading="eager"' ), array( '', 'loading="lazy"' ), $m[0] );
 	}, $c );
 }, 99 );
+/* Retoques visuales sobre el contenido de las páginas (repaso visual A):
+ * - la píldora de la portada cabe en una línea en el móvil;
+ * - «1 · Diagnóstico» bajo «PASO 1» repetía el título del paso: se quita esa línea (las del tipo «Semana 1» o «30 minutos» se quedan). */
+add_filter( 'the_content', function ( $c ) {
+	if ( is_admin() || false === strpos( $c, 'tc-' ) ) {
+		return $c;
+	}
+	$c = preg_replace( '#(<span class="tc-live"><i></i>)Expertos en IA de Murcia[^<]*(</span>)#u', '$1Expertos en IA · Murcia · Toda España$2', $c );
+	$c = preg_replace( '#<span class="tc-step__when">\s*\d+\s*·[^<]*</span>#u', '', $c );
+	return $c;
+}, 99 );
 /* Zoom con dos dedos permitido (Salient lo bloquea: penaliza accesibilidad y molesta a quien ve mal) */
 add_action( 'template_redirect', function () {
 	if ( is_admin() || wp_doing_ajax() || is_feed() ) {
@@ -877,7 +909,6 @@ body.single-post .content-inner table th,body.single-post .content-inner table t
 .tc-sticky{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:9990;transform:translateY(140%);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .tc-sticky.is-on{transform:none}
 .tc-sticky a{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 18px;border-radius:14px;background:#b020ff;color:#fff!important;font-family:"Poppins",system-ui,sans-serif;font-weight:600;font-size:15.5px;line-height:1.28;box-shadow:0 14px 34px -10px rgba(176,32,255,.6),0 0 0 1px rgba(255,255,255,.12) inset;text-decoration:none!important}
-body.tc-con-sticky #to-top{bottom:84px!important}
 }
 </style>
 	<?php
@@ -889,7 +920,7 @@ add_action( 'wp_footer', function () {
 	}
 	?>
 <?php $tc_erp = is_page( 'erp-industria' ); ?>
-<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/#reserva' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Pide la demo con tus precios' : 'Reserva tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/#reserva' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA por dentro' : 'Reserva tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
 <script id="tc-sticky-js">
 (function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
   var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};

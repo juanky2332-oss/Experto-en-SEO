@@ -5,10 +5,11 @@
 //   node n8n/web-locales.mjs --t3 [slug ...]   -> TANDA 3: copia de seguridad en _backups/tanda3/ y actualización COMPLETA (contenido + Rank Math) de las ya publicadas
 // Murcia ya existe como /consultor-ia-murcia/ (no se duplica; se enlaza). No toca web-paginas.mjs ni el snippet.
 // Contenido propio por ciudad con fuentes y fecha de consulta (13-10-2026). Casos SIEMPRE ficticios y marcados. Sin nombrar herramientas internas.
-// Precios: solo los confirmados (690 € en dos pagos de 345 €, 69 €/mes con 3 meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia) o enlace a /erp-industria/#precio.
+// Precios: solo los confirmados (690 € en un solo pago al empezar, 69 €/mes con 3 meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia) o enlace a /erp-industria/#precio.
 import fs from 'node:fs';
 import { wp } from './gw.mjs';
 const BK3 = '_backups/tanda3/';
+const CAP = JSON.parse(fs.readFileSync(new URL('./web-capturas-industria.json', import.meta.url), 'utf8'));
 
 const H = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
@@ -51,6 +52,49 @@ const a = (href, txt) => `<a class="tc-link" href="${href}">${txt}</a>`;
 
 const C = {};
 
+// ---------- presentación visual (revisión C) ----------
+const ICO_MAPA = '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>';
+const icMapa = '<span class="tc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO_MAPA + '</svg></span>';
+const shot = (src, alt, cap = '') => '<figure class="tc-shot"><div class="tc-shot__bar" aria-hidden="true"><i></i><i></i><i></i></div><img src="' + src + '" width="1440" height="900" alt="' + alt + '" loading="lazy" decoding="async">' + (cap ? '<figcaption>' + cap + '</figcaption>' : '') + '</figure>';
+const CAPTURA = { cartagena: 'albaran', molina: 'inicio', lorca: 'albaran', alcantarilla: 'facturas', elche: 'inicio', albacete: 'calculadora' };
+// Contorno aproximado de la Región de Murcia (lon, lat), solo para orientar; no es cartografía exacta
+const REGION = [[-2.30, 38.30], [-2.08, 38.47], [-1.78, 38.48], [-1.55, 38.42], [-1.40, 38.60], [-1.30, 38.74], [-1.12, 38.78], [-0.95, 38.70], [-1.00, 38.50], [-1.05, 38.38], [-0.90, 38.25], [-0.72, 38.12], [-0.76, 37.93], [-0.78, 37.83], [-0.72, 37.72], [-0.70, 37.63], [-0.85, 37.60], [-1.00, 37.55], [-1.20, 37.55], [-1.40, 37.55], [-1.60, 37.42], [-1.65, 37.38], [-1.78, 37.45], [-2.00, 37.55], [-2.05, 37.75], [-2.10, 37.92], [-2.30, 38.05]];
+const MURCIA = [-1.13, 37.99];
+const PUNTO = { cartagena: [-0.99, 37.60, 'r'], molina: [-1.21, 38.05, 'l'], lorca: [-1.70, 37.67, 'r'], alcantarilla: [-1.22, 37.97, 'l'], elche: [-0.70, 38.27, 't'], albacete: [-1.86, 38.99, 'r'] };
+const mapa = (slug, c) => {
+  const se = !c.presencial;
+  const lon0 = se ? -2.45 : -2.36, lon1 = se ? -0.35 : -0.64, lat1 = se ? 39.12 : 38.84, lat0 = se ? 37.30 : 37.34, K = se ? 95 : 128;
+  const X = (lo) => (lo - lon0) * 0.79 * K, Y = (la) => (lat1 - la) * K;
+  const W = Math.round((lon1 - lon0) * 0.79 * K), Hh = Math.round((lat1 - lat0) * K);
+  const f = (n) => n.toFixed(1);
+  const d = 'M' + REGION.map(([lo, la]) => f(X(lo)) + ' ' + f(Y(la))).join('L') + 'Z';
+  const [clo, cla, lado] = PUNTO[slug];
+  const mx = X(MURCIA[0]), my = Y(MURCIA[1]), cx = X(clo), cy = Y(cla);
+  const murLado = clo < MURCIA[0] ? 'r' : 'l';
+  const txt = (x, y, l2, t, extra) => l2 === 'r' ? '<text x="' + f(x + 8) + '" y="' + f(y + 3.5) + '" ' + extra + '>' + t + '</text>' : l2 === 'l' ? '<text x="' + f(x - 8) + '" y="' + f(y + 3.5) + '" text-anchor="end" ' + extra + '>' + t + '</text>' : '<text x="' + f(x - 4) + '" y="' + f(y - 11) + '" text-anchor="end" ' + extra + '>' + t + '</text>';
+  return '<svg viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Mapa esquemático: ' + c.nombre + ' respecto a Murcia" style="display:block;width:100%;height:auto;max-height:190px;margin:4px auto 10px;font-family:inherit">'
+    + '<path d="' + d + '" fill="rgba(176,32,255,.10)" stroke="#d27bff" stroke-opacity=".65" stroke-width="1.2" stroke-linejoin="round"/>'
+    + '<line x1="' + f(mx) + '" y1="' + f(my) + '" x2="' + f(cx) + '" y2="' + f(cy) + '" stroke="#d27bff" stroke-opacity=".7" stroke-width="1.2" stroke-dasharray="3 3"/>'
+    + '<circle cx="' + f(mx) + '" cy="' + f(my) + '" r="3" fill="#14111b" stroke="#a9a1b4" stroke-width="1.4"/>' + txt(mx, my, murLado, 'Murcia', 'font-size="8.5" fill="#a9a1b4"')
+    + '<circle cx="' + f(cx) + '" cy="' + f(cy) + '" r="9" fill="rgba(176,32,255,.28)"/><circle cx="' + f(cx) + '" cy="' + f(cy) + '" r="4.5" fill="#b020ff" stroke="#fff" stroke-width="1.2"/>' + txt(cx, cy, lado, c.nombre, 'font-size="10" font-weight="700" fill="#fff"')
+    + '<text x="3" y="' + (Hh - 3) + '" font-size="6" fill="#968ea2">Mapa esquemático, contorno aproximado</text></svg>';
+};
+const DIST = { cartagena: 'Presencial · unos 50 km', molina: 'Presencial · unos 10 km', lorca: 'Presencial con cita · unos 60 km', alcantarilla: 'Presencial · unos 7 km', elche: 'Remoto · unos 60 km', albacete: 'Remoto · unos 150 km' };
+const INTRO = {
+  cartagena: ['Pocas ciudades de la Región concentran tanta industria pesada: en el Valle de Escombreras conviven refinería, fertilizantes y química, y en el arsenal y el puerto, la reparación naval. En la parada programada de 2025, el complejo de Repsol firmó acuerdos con 130 empresas, el 80 % de ellas locales, según su nota de prensa del 13 de agosto de 2025.',
+    'Para una contrata o un taller, el reto rara vez es fabricar: es demostrarlo con partes de horas, albaranes firmados y una factura que cuadre. Ahí encaja <b>IndunexIA</b>, nuestro programa de gestión, que nació en talleres de mecanizado y se adapta por módulos.'],
+  molina: ['Molina fue un gran centro de la conserva vegetal: a mediados de los años setenta contaba con 24 fábricas de conservas y 34 de envases metálicos, según la Wikipedia. Hoy esa herencia sirve sobre todo a las golosinas: según El Español (11 de abril de 2026), tres de las mayores empresas españolas del dulce están en un radio de unos cuatro kilómetros.',
+    'Lo difícil no es la máquina sino los papeles que la rodean: pedidos con muchos formatos, albaranes de materia prima, lotes y transporte. Por eso empezamos con un solo proceso y ampliamos solo si compensa.'],
+  lorca: ['Lorca tiene un lugar propio en la industria regional por el porcino: el Gobierno regional señaló (declaraciones de 2016 recogidas por la prensa agraria) que supone en torno al 70 % del sector ganadero de la Región y que el Guadalentín concentra casi la mitad de las explotaciones. La feria SEPOR reúne cada octubre a ganaderos, industria y proveedores.',
+    'El BORM del 19 de enero de 2026 publicó la autorización ambiental integrada de un matadero y sala de despiece en La Serrata, con límites de hasta 16.000 cerdos al día en matadero y 12.000 canales diarios en despiece (son límites ambientales, no producción real). Lo que une a las empresas de la zona es la documentación: pesadas, albaranes, lotes y trazabilidad.'],
+  alcantarilla: ['Alcantarilla tiene apenas 16,6 km² y es uno de los municipios más industriales de la Región. Su origen fabril está en la conserva: en 1897 Juan Esteva se instaló aquí y la chimenea de su fábrica, de 22 metros, se conserva todavía (Ayuntamiento de Alcantarilla).',
+    'Un estudio de la Universidad de Murcia (Papeles de Geografía, 2005) describe un tejido diversificado: maquinaria y material eléctrico, productos metálicos, alimentación y, en Cabezo Verde, transporte. Son datos de hace veinte años: una foto del carácter del municipio, no un censo. Por eso aquí solemos empezar por pedidos, albaranes y rutas.'],
+  elche: ['Elche es uno de los centros del calzado español, pero el sector atraviesa un ajuste duro: según la asociación de componentes AEC (junio de 2026), las empresas fabricantes de calzado en España pasaron de 3.280 en 2020 a 2.131 en 2025. Las pymes que siguen ganan por eficiencia: saber cuánto cuesta cada serie, acertar con los pedidos y facturar a tiempo.',
+    'En Carrús, una encuesta presentada por su comunidad de propietarios (Alicante Plaza, mayo de 2024) hablaba de unas 10.000 personas trabajando allí y un 72 % de micropymes. Trabajamos en remoto desde Murcia; la visita es bajo petición, con gastos acordados antes y al mismo precio que en Murcia.'],
+  albacete: ['Campollano es el gran parque empresarial de la ciudad, con cientos de empresas de sectores muy distintos, gestionado por su asociación de empresarios, ADECA. No hemos localizado una cifra oficial reciente de empresas ni de empleos, así que no la damos.',
+    'La cuchillería es la seña de identidad: la Navaja y el Cuchillo Clásico de Albacete fueron declarados bien de interés cultural inmaterial en mayo de 2017. Es un oficio de series con muchos modelos y variantes, donde el catálogo y el presupuesto a medida consumen horas. Trabajamos en remoto, con visita bajo petición y al mismo precio que en Murcia.'],
+};
+
 /* ------------------------------------------------------------------ CARTAGENA */
 C.cartagena = {
   nombre: 'Cartagena', region: 'Región de Murcia', presencial: true,
@@ -59,8 +103,6 @@ C.cartagena = {
   lead: 'Cartagena trabaja para grandes clientes: complejo industrial, astillero y puerto. Te ayudamos a que partes, albaranes, certificaciones y facturas no se queden atascados en la oficina.',
   datos: [['Visita en tu empresa', 'Sí, en Cartagena y comarca'], ['Distancia desde Murcia', 'Unos 50 km'], ['Zonas habituales', 'Los Camachos · Cabezo Beaza · Escombreras'], ['Primer paso', 'Diagnóstico gratis']],
   eb: 'Contratas, astillero y complejo industrial', h2a: 'Un tejido industrial que trabaja por encargo',
-  intro: ['Pocas ciudades de la Región concentran tanta industria pesada en tan poco espacio. En el Valle de Escombreras conviven una refinería, fertilizantes, química y generación eléctrica; en el arsenal y el puerto, la reparación naval. Cuando uno de esos clientes hace una parada de mantenimiento, el trabajo se reparte entre muchas empresas auxiliares: en la parada programada de 2025, el complejo de Repsol firmó acuerdos con 130 empresas, el 80 % de ellas locales, según su propia nota de prensa del 13 de agosto de 2025.',
-    'Para un taller, una calderería o una empresa de montajes que trabaja como contrata, el reto rara vez es fabricar: es demostrarlo. Partes de horas por trabajador y orden, albaranes firmados, fotos, documentación para el cliente y una factura que cuadre con todo eso. Ahí se pierde más papel, y ahí tiene sentido nuestro programa de gestión, <b>TransformaConIA Gestión</b>, que nació en talleres de mecanizado y se adapta a cada oficio por módulos.'],
   poligonosTitulo: 'Los Camachos, Cabezo Beaza y Escombreras',
   poligonos: ['<b>Los Camachos:</b> en una moción presentada al pleno en febrero de 2026 se le describe como la mayor reserva de suelo industrial de la comarca. Tiene entidad de conservación propia y, según ese texto, mejoras pendientes de viales y alumbrado; se anuncia allí un centro de capacitación industrial y naval para 2027.',
     '<b>Cabezo Beaza:</b> una moción municipal de 2021 recordaba que su centro de formación industrial formaba soldadores, tuberos, caldereros, montadores, torneros o fresadores, una pista de los oficios que se concentran en la zona. Las empresas del polígono cuentan con su propia asociación (AECAB).',
@@ -72,7 +114,7 @@ C.cartagena = {
     ['Suministros industriales', 'Repuestos y consumibles con muchos códigos, pedidos por correo y teléfono. Es habitual perder tiempo con equivalencias y plazos; un asistente de catálogo y el registro automático del pedido lo recortan.']],
   comoH: 'Presencial en tu nave y remoto para el resto',
   como: ['<b>En tu taller o nave de Cartagena:</b> vemos cómo pasa hoy un trabajo desde la petición hasta la factura y apuntamos dónde se pierde el tiempo.', '<b>Después, por videollamada:</b> la puesta en marcha, las pruebas y la formación se hacen en remoto, que es más rápido y deja todo documentado.', '<b>Un solo proceso al principio:</b> empezamos por el parte de trabajo o el albarán firmado y solo ampliamos si funciona en tu día a día.'],
-  erp: 'Si trabajas con documentación para grandes clientes, mira cómo encaja <a class="tc-link" href="/erp-industria/">TransformaConIA Gestión</a>, el programa de gestión para la industria.',
+  erp: 'Si trabajas con documentación para grandes clientes, mira cómo encaja <a class="tc-link" href="/erp-industria/">IndunexIA</a>, el programa de gestión para la industria.',
   caso: { titulo: 'Contrata de mantenimiento «Montajes Ficticios del Sur, S.L.»', situacion: 'Una empresa auxiliar de tamaño medio que destaca cuadrillas de soldadura y tubería a la parada de una planta. Los partes de horas se rellenan en papel y se pasan a una hoja de cálculo al terminar la semana.', hacemos: 'Partes diarios desde el móvil, por orden de trabajo, con horas, materiales y fotos. El encargado firma en el sitio y el cierre semanal sale agrupado por orden, listo para la certificación y la factura.', resultado: 'En este ejemplo inventado, la oficina deja de reconstruir la semana cada viernes y puede responder con datos si el cliente cuestiona unas horas. No damos cifras de ahorro: dependen de cada empresa y se miden en un piloto con tus propios partes.' },
   nota: 'Caso inventado para ilustrar; no corresponde a ninguna empresa real.',
   faqsH: 'Preguntas de empresas de Cartagena',
@@ -97,8 +139,6 @@ C.molina = {
   lead: 'Golosinas, envase, transporte y talleres: en Molina de Segura el papeleo crece con cada formato y cada ruta nueva. Lo ordenamos desde Murcia, a unos diez kilómetros.',
   datos: [['Distancia desde Murcia', 'Unos 10 km'], ['Visita en tu empresa', 'Sí, en el día'], ['Polígonos', 'La Polvorista · La Serreta · El Tapiado · La Estrella'], ['Sector con más peso', 'Golosinas, envase y transporte']],
   eb: 'De la conserva a la golosina', h2a: 'Mucha referencia, mucho formato y plazos cortos',
-  intro: ['Molina fue uno de los grandes centros españoles de la conserva vegetal: a mediados de los años setenta contaba con 24 fábricas de conservas y 34 de envases metálicos, según los datos locales que recoge la Wikipedia. De aquel entramado quedó una industria de envase, embalaje y maquinaria que hoy sirve sobre todo a otro sector: el de las golosinas. Según El Español (11 de abril de 2026), tres de las mayores empresas españolas del dulce están en un radio de unos cuatro kilómetros.',
-    'En un entorno así, lo difícil no es la máquina sino la cadena de papeles que la rodea: pedidos de clientes con muchas referencias y formatos, albaranes de materia prima y de envase, lotes y caducidades, y transporte frigorífico o urgente. Las empresas auxiliares (envase, plástico, mantenimiento de maquinaria, logística) trabajan con la misma presión de plazos sin tener departamento de sistemas. Por eso proponemos empezar con un solo proceso y ampliar solo si compensa.'],
   poligonosTitulo: 'Los cuatro polígonos de Molina y el eje de la carretera de Madrid',
   poligonos: ['<b>Cuatro polígonos industriales:</b> el directorio de actividades económicas de la Región de Murcia (CREM) recoge La Polvorista, El Tapiado, La Serreta y La Estrella como los polígonos de Molina.', '<b>La Serreta y El Tapiado:</b> en los directorios empresariales aparecen transportistas frigoríficos, distribuidores de alimentación y bebidas y de suministros industriales, un perfil con muchos albaranes y rutas diarias.', '<b>Carretera de Madrid:</b> a lo largo de este eje se sitúan fábricas de golosinas, logística y transporte, según la prensa y los directorios.'],
   sectoresH: 'Dónde ayudamos en las empresas de Molina',
@@ -108,13 +148,13 @@ C.molina = {
     ['Mantenimiento y talleres de la zona', 'Los talleres que atienden a las fábricas viven de partes urgentes y presupuestos rápidos. Un ERP con ficha por máquina y cliente, histórico de averías y avisos de revisión ordena ese ritmo.']],
   comoH: 'Visita corta y proyecto en piloto',
   como: ['<b>Diagnóstico en tu empresa:</b> Molina queda a un paso de nuestra base en Murcia, así que revisamos tus documentos reales sin organizar una jornada de viaje.', '<b>Piloto de un proceso:</b> albaranes de entrada o pedidos de cliente, durante unas semanas; si no ahorra trabajo, no se amplía.', '<b>Formación en tu oficina:</b> si lo prefieres, enseñamos al equipo con sus propios documentos y el resto del soporte va por videollamada o correo.'],
-  erp: 'El programa de gestión que usamos con talleres y empresas de oficio es <a class="tc-link" href="/erp-industria/">TransformaConIA Gestión</a>; si ya tienes ERP, también trabajamos conectándolo.',
+  erp: 'El programa de gestión que usamos con talleres y empresas de oficio es <a class="tc-link" href="/erp-industria/">IndunexIA</a>; si ya tienes ERP, también trabajamos conectándolo.',
   caso: { titulo: 'Fabricante de envases «Envases Ficticios, S.L.»', situacion: 'Un fabricante de cajas y bolsas para empresas del dulce, con tres personas en administración que reciben pedidos de varios clientes, cada uno con sus formatos, y los teclean en el programa antes de lanzar producción.', hacemos: 'Se lee el pedido recibido por correo, se compara con el catálogo de formatos y se genera la orden de producción. Administración solo revisa los pedidos con medidas o cantidades dudosas.', resultado: 'En este ejemplo inventado, el equipo pasa de teclear pedidos a revisar excepciones. El ahorro real depende de cada empresa y lo medimos en un piloto con vuestros pedidos.' },
   nota: 'Ejemplo imaginario, sin relación con ninguna empresa existente.',
   faqsH: 'Preguntas de empresas de Molina de Segura',
   faqs: [['¿Qué conviene automatizar primero en una empresa de golosinas o de envases?', 'Suele ser lo que más veces se repite: los pedidos de cliente o los albaranes de materia prima. Se hace un piloto con tus documentos y se compara el tiempo antes y después; no prometemos cifras de antemano.'],
     ['¿Venís a Molina o hay que desplazarse a Murcia?', 'Vamos nosotros. Molina está a unos diez kilómetros de nuestra base, así que el diagnóstico y las revisiones se hacen en tu empresa; la configuración y el soporte van por videollamada.'],
-    ['¿Cuánto cuesta el ERP para un taller de la zona?', 'La puesta en marcha son 690 € en dos pagos de 345 €. El mantenimiento son 69 €/mes con los tres primeros meses gratis, cada usuario extra cuesta 15 €/mes desde el primer mes y no hay permanencia. Precios sin IVA; tras la demo recibes el presupuesto cerrado por escrito.']],
+    ['¿Cuánto cuesta el ERP para un taller de la zona?', 'La puesta en marcha son 690 €, en un solo pago al empezar. El mantenimiento son 69 €/mes con los tres primeros meses gratis, cada usuario extra cuesta 15 €/mes desde el primer mes y no hay permanencia. Precios sin IVA; tras la demo recibes el presupuesto cerrado por escrito.']],
   band: ['¿Tienes una fábrica o un taller en Molina?', 'Enséñanos un pedido y un albarán de un día normal y te decimos qué proceso automatizaríamos primero.'],
   fuentes: [['Wikipedia, Molina de Segura (apartado de economía e industria)', 'https://es.wikipedia.org/wiki/Molina_de_Segura'],
     ['El Español, «El municipio español que factura más de 700 millones vendiendo chuches» (11-04-2026)', 'https://www.elespanol.com/sociedad/20260411/municipio-espanol-factura-meur-vendiendo-chuches-empresas-grandes-pais/1003744199290_0.amp.html'],
@@ -130,8 +170,6 @@ C.lorca = {
   lead: 'Porcino, frío industrial y maquinaria agrícola: en Lorca mandan los albaranes, los lotes y los partes de taller. Los ordenamos con IA sin que cambies de programa.',
   datos: [['Distancia desde Murcia', 'Unos 60 km por la A-7'], ['Visita en tu empresa', 'Sí, con cita; agrupamos visitas'], ['Zonas', 'Saprelorca · La Hoya · La Serrata · Los Peñones'], ['Sector con más peso', 'Porcino y agroalimentación']],
   eb: 'Porcino, agroalimentación y maquinaria', h2a: 'Una industria ligada al campo y a la ganadería',
-  intro: ['Lorca tiene un lugar propio en la industria regional por el porcino. El Gobierno regional ha señalado (declaraciones de 2016 recogidas por la prensa agraria) que el porcino supone en torno al 70 % del sector ganadero de la Región y que la comarca del Guadalentín concentra casi la mitad de las explotaciones. Alrededor de esa base crecen el sacrificio, el despiece y los servicios para granjas, y la feria SEPOR, en el recinto ferial IFELOR, reúne cada octubre a ganaderos, industria y proveedores.',
-    'El sector está en movimiento: el BORM del 19 de enero de 2026 publicó la autorización ambiental integrada de un proyecto de matadero y sala de despiece en el polígono de La Serrata, con capacidades máximas de hasta 16.000 cerdos al día en matadero y 12.000 canales diarios en despiece (son límites ambientales, no producción real). Más allá de ese caso, lo que une a las empresas de la zona es el volumen de documentación: pesadas, albaranes, lotes, trazabilidad, transporte en frío y facturas a clientes y proveedores.'],
   poligonosTitulo: 'Saprelorca, La Hoya, La Serrata y Los Peñones',
   poligonos: ['<b>Saprelorca:</b> primer polígono planificado de Lorca (1982, según un estudio de la Universidad de Murcia) y el que más establecimientos registra: 263 en el directorio de la CARM de 2015.', '<b>La Hoya y La Serrata:</b> La Hoya concentra empresas agroalimentarias; La Serrata, junto a la carretera de Caravaca, tiene química, curtidos y el proyecto cárnico citado.', '<b>Los Peñones:</b> industria ligera y grandes superficies comerciales, junto a la carretera de Granada.'],
   sectoresH: 'Qué procesos pesan más en las empresas de Lorca',
@@ -141,13 +179,13 @@ C.lorca = {
     ['Frío industrial y transporte', 'Revisiones periódicas por instalación, avisos de mantenimiento y partes firmados en el sitio. Es habitual que lo que se olvida sea la revisión, no el trabajo.']],
   comoH: 'Con cita en Lorca y remoto para lo demás',
   como: ['<b>Visita con cita y agrupada:</b> Lorca queda a unos 60 km, así que procuramos juntar varias visitas de la zona en una misma jornada.', '<b>Remoto para todo lo demás:</b> configuración, formación y soporte por videollamada.', '<b>Si tu actividad es estacional:</b> planificamos la puesta en marcha para la época baja, no para la campaña.'],
-  erp: 'Para el taller o el servicio técnico, el programa es <a class="tc-link" href="/erp-industria/">TransformaConIA Gestión</a>; los precios vigentes están en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.',
+  erp: 'Para el taller o el servicio técnico, el programa es <a class="tc-link" href="/erp-industria/">IndunexIA</a>; los precios vigentes están en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.',
   caso: { titulo: 'Sala de despiece «Despieces Ficticios, S.L.»', situacion: 'Una sala de despiece que recibe canales de varios proveedores. Los albaranes llegan en papel, con pesos y lotes, y alguien los pasa a la hoja de trazabilidad al acabar el turno.', hacemos: 'El albarán se fotografía o llega por correo; se leen proveedor, lote y pesos, se cruzan con el pedido y se alimentan la ficha y la factura de compra. Se revisa solo lo que no cuadra. No sustituye vuestros registros sanitarios obligatorios: los alimenta con menos tecleo.', resultado: 'En este ejemplo inventado, el cierre del turno deja de depender de pasar papeles a mano. El tiempo real que se ahorra se mide en un piloto con vuestros albaranes.' },
   nota: 'Empresa y datos inventados; solo sirven para entender el planteamiento.',
   faqsH: 'Preguntas de empresas de Lorca',
   faqs: [['¿Os desplazáis hasta Lorca o solo trabajáis en Murcia?', 'Vamos a Lorca con cita previa. Queda a unos 60 km, así que juntamos varias visitas de la zona en un mismo día para que sea más económico. El resto del proyecto va en remoto.'],
     ['¿Sirve para una sala de despiece o una empresa de transformados cárnicos?', 'Sí para la parte documental: albaranes, pesos, lotes y facturas. No sustituimos los registros sanitarios obligatorios ni el sistema oficial de trazabilidad: los alimentamos con menos tecleo. Antes de proponer nada hacemos un diagnóstico gratis.'],
-    ['¿Cuánto cuesta un ERP para un taller de maquinaria agrícola?', 'Los precios vigentes están en la página del ERP para la industria, en el apartado de precio: puesta en marcha en dos pagos, mantenimiento mensual con tres meses gratis, usuario extra desde el primer mes y sin permanencia. Tras la demo recibes el presupuesto cerrado por escrito.']],
+    ['¿Cuánto cuesta un ERP para un taller de maquinaria agrícola?', 'Los precios vigentes están en la página del ERP para la industria, en el apartado de precio: puesta en marcha en un solo pago, mantenimiento mensual con tres meses gratis, usuario extra desde el primer mes y sin permanencia. Tras la demo recibes el presupuesto cerrado por escrito.']],
   band: ['¿Tienes una empresa en Lorca?', 'Cuéntanos qué papel te quita más tiempo, un albarán, un parte o un presupuesto, y vemos si merece la pena automatizarlo.'],
   fuentes: [['Wikipedia, Lorca (apartado de economía): polígonos y sectores', 'https://es.wikipedia.org/wiki/Lorca'],
     ['Papeles de Geografía n.º 35 (2002): industria y paisaje urbano de Lorca (Saprelorca, 1982)', 'https://dialnet.unirioja.es/descarga/articulo/291960.pdf'],
@@ -165,8 +203,6 @@ C.alcantarilla = {
   lead: 'Un municipio pequeño con mucha industria y mucho tránsito: pedidos, rutas y albaranes se multiplican. Estamos a unos minutos y empezamos por el proceso que más papel mueve.',
   datos: [['Distancia desde Murcia', 'Unos 7 km'], ['Visita en tu empresa', 'Sí, normalmente en pocos días'], ['Polígonos', 'Oeste · Cabezo Verde · Cañada Hermosa'], ['Sector con más peso', 'Transporte, metal y alimentación']],
   eb: 'Un nudo industrial junto a Murcia', h2a: 'Poco terreno, muchas empresas',
-  intro: ['Alcantarilla tiene apenas 16,6 km² y es, sin embargo, uno de los municipios más industriales de la Región. Su origen fabril está en la conserva: en 1897 Juan Esteva se instaló aquí para continuar el negocio familiar de dulces y conservas de fruta, y la chimenea de su fábrica, de 22 metros, se conserva todavía (Ayuntamiento de Alcantarilla); la Región la incluyó en su inventario de bienes culturales en 2016.',
-    'Un estudio de la Universidad de Murcia (Papeles de Geografía, 2005) describe un tejido muy diversificado: un polígono Oeste compartido con la capital, donde destacaban la maquinaria y el material eléctrico, los productos metálicos y la alimentación, y un Cabezo Verde en el que pesaba el transporte. Son datos de hace veinte años y conviene leerlos como una foto del carácter del municipio, no como un censo actual. Esa mezcla de almacén, reparto, taller y fábrica pequeña explica por qué aquí solemos empezar por pedidos, albaranes y rutas, y dejar para después el ERP.'],
   poligonosTitulo: 'Polígono Oeste, Cabezo Verde y Cañada Hermosa',
   poligonos: ['<b>Polígono Oeste:</b> el mayor espacio industrial del municipio (227 hectáreas en Alcantarilla, compartido con Murcia). En 2005 reunía más del 60 % de los establecimientos registrados, con casi todas las ramas y más empresas de servicios que de producción.', '<b>Cabezo Verde:</b> al norte del casco urbano, de iniciativa privada; en 2005 tenía 55 empresas y la rama más numerosa era la del transporte, con el 34,5 % de los establecimientos.', '<b>Cañada Hermosa y El Potrox:</b> Cañada Hermosa, al noroeste, tiene la química como primera industria instalada; El Potrox, al oeste, es más pequeño, con transporte, productos metálicos y química.'],
   sectoresH: 'Qué procesos pesan más en las empresas de Alcantarilla',
@@ -176,7 +212,7 @@ C.alcantarilla = {
     ['Talleres y servicios técnicos', 'Partes de trabajo, mantenimientos programados por cliente y cobros. Un ERP usable desde el móvil de cada operario cierra el círculo entre el trabajo hecho y la factura.']],
   comoH: 'Visita en el día y piloto pequeño',
   como: ['<b>Visita en minutos:</b> estamos en Murcia, así que pasar por tu nave de Alcantarilla no exige organizar una jornada de viaje.', '<b>Piloto de un proceso:</b> empezamos por uno, por ejemplo los albaranes firmados, y lo ampliamos solo si funciona.', '<b>Soporte cercano:</b> ante una duda podemos acercarnos en persona o resolverla por videollamada.'],
-  erp: 'Cuando el proceso pequeño funciona, el siguiente paso puede ser <a class="tc-link" href="/erp-industria/">TransformaConIA Gestión</a>, el ERP para la industria; no es obligatorio.',
+  erp: 'Cuando el proceso pequeño funciona, el siguiente paso puede ser <a class="tc-link" href="/erp-industria/">IndunexIA</a>, el ERP para la industria; no es obligatorio.',
   caso: { titulo: 'Empresa de transporte «Transportes Ficticios del Segura, S.L.»', situacion: 'Una empresa de transporte con una veintena de camiones. Los albaranes firmados llegan en papel a la oficina días después y las facturas esperan a que alguien los junte con los pedidos.', hacemos: 'El conductor fotografía el albarán firmado desde el móvil; se lee, se enlaza con el pedido y la ruta y se marca como facturable. La oficina solo revisa los albaranes con firma dudosa o cantidades distintas.', resultado: 'En este ejemplo inventado, la facturación deja de esperar a los papeles. El efecto real se prueba antes en un piloto con tus albaranes.' },
   nota: 'Este ejemplo es ficticio: nombre, flota y situación están inventados.',
   faqsH: 'Preguntas de empresas de Alcantarilla',
@@ -197,9 +233,6 @@ C.elche = {
   lead: 'Muchas referencias, series cortas y márgenes ajustados: en Elche, el control de costes y de pedidos pesa más que nunca. Trabajamos en remoto, con visita presencial bajo petición.',
   datos: [['Modo de trabajo', 'Remoto, por videollamada'], ['Visita presencial', 'Bajo petición, gastos a convenir'], ['Precio', 'El mismo que en Murcia'], ['Zonas', 'Carrús · Elche Parque Empresarial']],
   eb: 'Calzado, componentes y comercio mayorista', h2a: 'Un sector que busca eficiencia',
-  intro: ['Elche es uno de los centros del calzado español, pero el sector atraviesa un ajuste duro. Según la asociación de componentes AEC (junio de 2026), las empresas fabricantes de calzado en España pasaron de 3.280 en 2020 a 2.131 en 2025, y el calzado y la marroquinería perdieron 3.670 empleos en 2025. En ese contexto, las pymes que siguen ganan por eficiencia: saber cuánto cuesta de verdad cada serie, no equivocarse con los pedidos y facturar a tiempo.',
-    'El polígono de Carrús lo ilustra. Una encuesta que presentó su comunidad de propietarios (Alicante Plaza, mayo de 2024) hablaba de unas 10.000 personas trabajando allí, un 72 % de micropymes y cerca del 40 % de empresas dedicadas a fabricar o comercializar calzado. Son equipos administrativos pequeños, con mucha variedad de modelos, tallas y colores y pocas horas para dedicar a la tecnología. Por eso tiene sentido empezar por un único proceso, en remoto, con tus propios documentos.',
-    'Trabajamos en remoto desde Murcia: diagnóstico por videollamada, configuración con documentación compartida y soporte por correo o teléfono. Si prefieres vernos en persona, la visita se hace bajo petición, con los gastos acordados antes, y el precio es el mismo que en Murcia.'],
   poligonosTitulo: 'Carrús, Elche Parque Empresarial y Altabix',
   poligonos: ['<b>Carrús:</b> en la encuesta citada, la fabricación de calzado aportaba el 20 % de los ingresos de explotación y el comercio mayorista de ropa y calzado el 12 %. El 67 % de las empresas tiene menos de diez trabajadores.', '<b>Elche Parque Empresarial:</b> uno de los polígonos que el Ayuntamiento mantiene como industriales, junto a Carrús y el parque agroalimentario (Alicante Plaza, 2020).', '<b>Altabix:</b> el Ayuntamiento planteaba reconvertirlo en zona comercial y de servicios, así que no lo tomamos como foco industrial.'],
   sectoresH: 'Dónde puede ahorrar tiempo una empresa de Elche',
@@ -209,7 +242,7 @@ C.elche = {
     ['Mantenimiento de maquinaria', 'Talleres que reparan máquinas de las fábricas de la zona: parte por máquina, histórico de averías y repuestos pedidos al proveedor.']],
   comoH: 'Remoto de principio a fin, visita si hace falta',
   como: ['<b>Todo en remoto:</b> diagnóstico, configuración, formación y soporte por videollamada y con documentación compartida.', '<b>Visita presencial bajo petición:</b> si quieres que vayamos a tu empresa, acordamos los gastos de desplazamiento antes de ir.', '<b>Mismo precio que en Murcia:</b> no cobramos más por estar en Elche; el presupuesto cerrado te lo damos por escrito antes de empezar.'],
-  erp: 'Si buscas un programa de gestión para un taller o una empresa de componentes, mira <a class="tc-link" href="/erp-industria/">TransformaConIA Gestión</a>; sus precios están en el <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.',
+  erp: 'Si buscas un programa de gestión para un taller o una empresa de componentes, mira <a class="tc-link" href="/erp-industria/">IndunexIA</a>; sus precios están en el <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.',
   caso: { titulo: 'Taller de corte y aparado «Cortes Ficticios, S.L.»', situacion: 'Un taller que recibe pedidos de varias marcas con cientos de combinaciones de modelo, talla y color, anotados en una hoja de cálculo distinta por cliente.', hacemos: 'Se leen los pedidos del correo o del PDF, se validan contra el catálogo de modelos y se genera una única hoja de producción. Solo se revisan las combinaciones que no existen.', resultado: 'En este ejemplo ficticio, el administrativo deja de reescribir pedidos y revisa excepciones. El ahorro real se mide en un piloto con pedidos de verdad.' },
   nota: 'Caso de ficción creado para esta página; nada de lo que cuenta ha ocurrido.',
   faqsH: 'Preguntas de empresas de Elche',
@@ -232,9 +265,6 @@ C.albacete = {
   lead: 'Campollano reúne cientos de empresas de oficios muy distintos. Trabajamos en remoto, con visita bajo petición y el mismo precio que en Murcia.',
   datos: [['Modo de trabajo', 'Remoto, por videollamada'], ['Visita presencial', 'Bajo petición, gastos a convenir'], ['Precio', 'El mismo que en Murcia'], ['Zonas', 'Campollano · Romica']],
   eb: 'Cuchillería, oficios y logística', h2a: 'Un parque con cientos de empresas y muchos oficios',
-  intro: ['Campollano es el gran parque empresarial de la ciudad, con cientos de empresas de sectores muy distintos, y está gestionado por su asociación de empresarios, ADECA. La cuchillería tiene presencia allí, y también la logística y el transporte. No hemos localizado una cifra oficial reciente de empresas ni de empleos, así que no la damos.',
-    'La cuchillería es la seña de identidad: el Consejo de Gobierno regional declaró la Navaja y el Cuchillo Clásico de Albacete bien de interés cultural inmaterial en mayo de 2017. Es un oficio de series con muchos modelos y variantes (hoja, mango, acabado), donde el catálogo y el presupuesto a medida consumen horas. En Campollano y Romica hay además naves de transporte y logística.',
-    'Trabajamos con Albacete en remoto desde Murcia: diagnóstico por videollamada, configuración compartida y formación en línea. La visita presencial se hace bajo petición, con los gastos de desplazamiento acordados antes, y el precio es el mismo que en Murcia.'],
   poligonosTitulo: 'Campollano, Romica y ADECA',
   poligonos: ['<b>Campollano:</b> el gran parque empresarial de la ciudad, gestionado por ADECA, que ofrece a sus asociados servicios de empleo, formación y subvenciones. ADECA informaba en julio de 2026 de avances para desdoblar el puente de acceso.', '<b>Romica:</b> en los directorios aparecen naves de logística y transporte y empresas de madera; no hemos encontrado un censo oficial por sectores, así que no hacemos afirmaciones más allá de eso.', '<b>Si eres asociado de ADECA:</b> pregunta por sus servicios de subvenciones antes de decidir cualquier inversión en digitalización.'],
   sectoresH: 'Dónde puede ahorrar tiempo una empresa de Albacete',
@@ -244,7 +274,7 @@ C.albacete = {
     ['Logística y distribución', 'Albaranes firmados, devoluciones y rutas. Conciliar lo entregado con lo pedido es la tarea que más se retrasa en la oficina.']],
   comoH: 'Sin viajar, y con visita si la pides',
   como: ['<b>Remoto de principio a fin:</b> diagnóstico por videollamada, configuración compartida y formación en línea.', '<b>Visita presencial bajo petición:</b> para proyectos mayores podemos desplazarnos; los gastos se acuerdan antes de ir.', '<b>Mismo precio que en Murcia:</b> el presupuesto es el mismo estés donde estés y lo recibes cerrado y por escrito.'],
-  erp: 'Para el taller o la fábrica con trabajo a medida, tienes el programa de gestión <a class="tc-link" href="/erp-industria/">TransformaConIA Gestión</a>; los precios están en el <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.',
+  erp: 'Para el taller o la fábrica con trabajo a medida, tienes el programa de gestión <a class="tc-link" href="/erp-industria/">IndunexIA</a>; los precios están en el <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.',
   caso: { titulo: 'Taller de cuchillería «Navajas Ficticias, S.L.»', situacion: 'Un taller familiar que fabrica series de navajas y cuchillos personalizados para comercios y regalo de empresa. Cada presupuesto exige sumar a mano hoja, mango, grabado y acabado.', hacemos: 'Una calculadora de costes con las operaciones de cada modelo (corte, temple, montaje, grabado) y el margen del taller. El comercial saca el precio de una serie en la reunión y el pedido aceptado pasa a producción con sus partes.', resultado: 'En este ejemplo ficticio, el presupuesto sale en la misma conversación y no depende de una sola persona. Los números reales se ven en un piloto con vuestros modelos.' },
   nota: 'Ejemplo ficticio: ni la empresa ni sus modelos existen.',
   faqsH: 'Preguntas de empresas de Albacete',
@@ -258,6 +288,8 @@ C.albacete = {
   cerca: ['elche', 'lorca', 'molina'],
 };
 
+for (const k of Object.keys(INTRO)) C[k].intro = INTRO[k];
+
 const ficha = (slug, c) => {
   const url = `${SITE}/automatizacion-industria-${slug === 'molina' ? 'molina-de-segura' : slug}/`;
   return JSON.stringify({
@@ -269,11 +301,11 @@ const ficha = (slug, c) => {
   }).replace(/</g, '\\u003c');
 };
 
-// Bloque de enlaces entre las páginas locales (id fijo)
+// Bloque de enlaces entre las páginas locales (id fijo): fichas de ciudad
 const enlaces = (slug) => {
   const otras = Object.keys(L).filter((k) => k !== slug);
-  const lista = otras.map((k) => '<a class="tc-link" href="' + L[k][1] + '">automatización industrial en ' + L[k][0] + '</a>').join(', ');
-  return '<section class="tc-sec tc-sec--tight" id="otras-ciudades"><div class="tc-wrap"><div class="tc-prose tc-reveal"><h3>Dónde más trabajamos</h3><p>Volver a <a class="tc-link" href="/consultor-ia-murcia/">consultoría de IA en Murcia y toda la región</a>. También tenemos página para ' + lista + ', y trabajamos en toda España en remoto. Conoce <a class="tc-link" href="/erp-industria/">el ERP para la industria</a> o <a class="tc-link" href="/contacto/">escríbenos</a>.</p></div></div></section>';
+  const fichas = '<a class="tc-sector" href="/consultor-ia-murcia/">' + icMapa + '<span><b>Murcia y toda la región</b><small>Nuestra base · consultoría de IA</small></span></a>' + otras.map((k) => '<a class="tc-sector" href="' + L[k][1] + '">' + icMapa + '<span><b>Automatización industrial en ' + L[k][0] + '</b><small>' + DIST[k] + '</small></span></a>').join('');
+  return '<section class="tc-sec tc-sec--tight" id="otras-ciudades"><div class="tc-wrap">' + head('Dónde más trabajamos', 'Otras ciudades y toda España en remoto') + '<div class="tc-sectores tc-reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">' + fichas + '</div><div class="tc-prose tc-reveal" style="margin-top:22px"><p>Conoce <a class="tc-link" href="/erp-industria/">el ERP para la industria</a> o <a class="tc-link" href="/contacto/">escríbenos</a>.</p></div></div></section>';
 };
 
 const NOTAS = {
@@ -284,13 +316,14 @@ const NOTAS = {
   'Elche': 'La encuesta de Carrús la presentó la comunidad de propietarios del polígono; no sabemos qué entidad la elaboró y la citamos con esa cautela.',
   'Albacete': 'No hemos localizado un censo oficial actualizado de Campollano, por eso no damos cifras de empresas ni de empleo.',
 };
-const fuentesBloque = (c) => `<section class="tc-sec tc-sec--tight" id="fuentes"><div class="tc-wrap"><div class="tc-prose tc-reveal"><h3>Fuentes consultadas</h3><p>Datos sobre ${c.nombre} revisados el ${CONSULTA}. ${NOTAS[c.nombre]}</p>${list(c.fuentes.map(([t, u]) => `<a class="tc-link" href="${H(u)}" rel="nofollow noopener" target="_blank">${H(t)}</a>`))}</div></div></section>`;
+const fuentesBloque = (c) => `<section class="tc-sec tc-sec--tight" id="fuentes"><div class="tc-wrap"><div class="tc-faq tc-reveal"><details><summary><h3>Fuentes consultadas</h3></summary><div style="padding:0 22px 20px"><p style="padding:0 0 12px">Datos sobre ${c.nombre} revisados el ${CONSULTA}. ${NOTAS[c.nombre]}</p>${list(c.fuentes.map(([t, u]) => `<a class="tc-link" href="${H(u)}" rel="nofollow noopener" target="_blank">${H(t)}</a>`))}</div></details></div></div></section>`;
 
 const html = (slug, c) => page(`${pagehead(`<a href="/consultor-ia-murcia/">Región de Murcia</a><span aria-hidden="true">/</span><span>${c.nombre}</span>`, `Industria en ${c.nombre}`, c.h1, c.lead,
-    btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/erp-industria/', 'Ver el ERP para la industria', true), facts(`Trabajamos en ${c.nombre}`, c.datos))}
+    btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/erp-industria/', 'Ver el ERP para la industria', true), facts(`Trabajamos en ${c.nombre}`, c.datos).replace('<dl class="tc-facts">', mapa(slug, c) + '<dl class="tc-facts">'))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow(c.eb)}<h2>${c.h2a}</h2>${c.intro.map((p) => `<p>${p}</p>`).join('')}</div><div class="tc-box tc-reveal"><h3>${c.poligonosTitulo}</h3>${list(c.poligonos)}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Sectores', c.sectoresH)}<div class="tc-grid tc-reveal" style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${c.sectores.map(([t, d]) => `<div class="tc-box"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
-<section class="tc-sec"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow('Cómo trabajamos')}<h2>${c.comoH}</h2>${list(c.como)}<p>${c.erp}</p></div><div class="tc-box tc-reveal"><span class="tc-eyebrow">Ejemplo ficticio</span><h3>${c.caso.titulo}</h3><p><i>${c.nota}</i></p><p><b>Situación.</b> ${c.caso.situacion}</p><p><b>Qué hacemos.</b> ${c.caso.hacemos}</p><p><b>Resultado.</b> ${c.caso.resultado}</p></div></div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('Cómo trabajamos', c.comoH)}<div class="tc-grid tc-grid--3 tc-reveal">${c.como.map((x) => { const m = x.match(/^<b>(.*?)<\/b>\s*(.*)$/); return `<div class="tc-step"><h3>${m[1].replace(/:$/, '')}</h3><p>${m[2]}</p></div>`; }).join('')}</div><div class="tc-prose tc-reveal" style="margin-top:22px"><p>${c.erp}</p></div></div></section>
+<section class="tc-sec tc-sec--alt" id="ejemplo"><div class="tc-wrap tc-split"><div class="tc-box tc-reveal"><span class="tc-eyebrow">Ejemplo ficticio</span><h3>${c.caso.titulo}</h3><p><i>${c.nota}</i></p><p><b>Situación.</b> ${c.caso.situacion}</p><p><b>Qué hacemos.</b> ${c.caso.hacemos}</p><p><b>Resultado.</b> ${c.caso.resultado}</p></div><div class="tc-reveal">${shot(CAP[CAPTURA[slug]].url, CAP[CAPTURA[slug]].alt, 'Captura de IndunexIA · Datos ficticios')}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', c.faqsH)}${faq(c.faqs)}</div></section>
 ${fuentesBloque(c)}
 ${enlaces(slug)}

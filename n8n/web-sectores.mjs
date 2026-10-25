@@ -48,8 +48,6 @@ S.talleres = {
   lead: 'Un taller vive de dos cosas: cobrar lo que de verdad cuesta cada trabajo y entregarlo a tiempo. Ordenamos presupuestos, partes, albaranes y facturas para que el jefe vuelva a estar en la nave y no en el despacho.',
   datos: [['Para quién', 'Mecanizado, calderería, reparación'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con tus propios trabajos, 1 a 3 semanas'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'El problema de siempre', introH: 'Se fabrica bien y se cobra mal',
-  intro: ['En muchos talleres el precio de un presupuesto sale de la memoria del encargado: «esto lo hicimos hace dos años por tanto». El problema aparece cuando sube el material, cuando la máquina se ocupa más horas de las previstas o cuando un cliente repite un pedido y nadie encuentra cómo se calculó el anterior. El resultado es un trabajo entregado a tiempo que deja menos margen del que parecía.',
-    'Después viene la cola de papeles: el parte de horas escrito a lápiz, el albarán que se firma en la furgoneta, la factura que se hace el viernes por la tarde mirando tres hojas de cálculo. Nada de esto es difícil, pero se repite decenas de veces al mes. Es justo el tipo de tarea que un programa de gestión pensado para taller y un poco de inteligencia artificial resuelven bien.'],
   boxH: 'Encaja si te suena',
   box: ['Presupuestas «a ojo» o con una hoja propia', 'Los albaranes se pierden entre el taller y la oficina', 'Facturas que salen tarde y cobros que se olvidan', 'Quien sabe calcular un trabajo es siempre la misma persona'],
   qH: 'Qué automatizamos en un taller industrial',
@@ -68,8 +66,8 @@ S.talleres = {
   ejH: 'Un día cualquiera en un taller de ejemplo', ejTitulo: 'Taller «Mecanizados Ejemplo, S.L.»',
   ej: ['<b>Situación.</b> Un taller pequeño de torneado y fresado recibe peticiones por correo. El encargado calcula cada precio de memoria y la administrativa pasa los partes a mano los lunes.', '<b>Qué hacemos.</b> Cargamos las máquinas con su coste hora y las operaciones habituales; la petición se convierte en borrador de oferta; el operario cierra el parte en el móvil y el cliente firma el albarán al recoger. La factura se genera desde ese albarán.', '<b>Resultado.</b> El precio deja de depender de una sola persona y la factura sale al entregar. No ponemos cifras de ahorro porque dependen de cada taller: se miden en el piloto con tus datos.'],
   ejNota: 'Empresa y situación inventadas para ilustrar; no existe ningún taller con ese nombre.',
-  ejShot: [CAP.calculadora.url, CAP.calculadora.alt, 'Captura con datos de demostración ficticios.'],
-  rel: [['/erp-industria/', 'TransformaConIA Gestión', 'el programa de gestión para la industria: presupuesto, parte, albarán, factura y cobro en un solo sitio, con precios en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.'],
+  ejShot: [CAP.calculadora.url, CAP.calculadora.alt, 'Captura de IndunexIA · Datos ficticios'],
+  rel: [['/erp-industria/', 'IndunexIA', 'el programa de gestión para la industria: presupuesto, parte, albarán, factura y cobro en un solo sitio, con precios en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.'],
     ['/automatizacion-procesos-ia/', 'Automatización de procesos', 'para lo que no entra en el programa: avisos, correos de clientes y tareas repetitivas del taller.'],
     ['/gestion-documental-ia/', 'Gestión documental con IA', 'facturas de proveedor y albaranes de material que se leen y se archivan solos.'],
     ['/agentes-chatbots-ia/', 'Asistentes y chatbots', 'para atender consultas de clientes sobre estado de pedidos o plazos.'],
@@ -90,8 +88,6 @@ S.mantenimiento = {
   lead: 'Un servicio técnico mide su trabajo en tiempo de respuesta. Hacemos que el aviso llegue ya clasificado, que el técnico encuentre el manual y el repuesto y que el informe de intervención no se escriba dos veces.',
   datos: [['Para quién', 'Mantenimiento y servicios técnicos'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con tus avisos y tus equipos reales'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'Entre la urgencia y el papel', introH: 'El mantenimiento sufre cuando la información llega tarde',
-  intro: ['Un aviso entra por teléfono, otro por un mensaje al encargado y otro por correo. Alguien los apunta en una libreta, otro los pasa a una hoja y el técnico sale a la instalación sin saber qué se hizo la última vez ni qué repuesto lleva la máquina. La visita se alarga, se vuelve para buscar una pieza y el cliente nota que no hay historial.',
-    'Los preventivos tienen otro problema: se olvidan precisamente porque no son urgentes. Una revisión semestral que nadie recuerda se convierte, seis meses después, en una avería. Con un poco de estructura y asistentes de IA se consigue que cada equipo tenga su historial, que cada aviso tenga su orden y que cada revisión tenga su fecha.'],
   boxH: 'Encaja si te pasa',
   box: ['Los avisos llegan por varias vías y se pierden', 'El técnico no sabe qué se hizo antes en esa máquina', 'Faltan repuestos justo cuando se necesitan', 'Los informes se redactan a mano al volver'],
   qH: 'Qué ordenamos en una empresa de mantenimiento',
@@ -110,11 +106,11 @@ S.mantenimiento = {
   ejH: 'Un servicio técnico de ejemplo', ejTitulo: 'Servicio técnico «Mantenimientos Ejemplo, S.L.»',
   ej: ['<b>Situación.</b> Una empresa pequeña de mantenimiento de instalaciones recibe los avisos por teléfono y por mensajes sueltos. Los preventivos se llevan en una hoja de cálculo que mantiene una sola persona.', '<b>Qué hacemos.</b> Un aviso por mensaje genera una orden con el equipo y la prioridad propuestos; el técnico ve el historial y el manual desde el móvil, anota los repuestos usados y firma el cliente en pantalla. Cada revisión periódica crea su orden por adelantado.', '<b>Resultado.</b> La oficina deja de transcribir avisos y los preventivos dejan de depender de una hoja. No damos cifras: se miden durante el piloto con vuestras propias órdenes.'],
   ejNota: 'Ejemplo ficticio: ni la empresa ni los equipos existen.',
-  ejShot: null,
+  ejShot: [CAP.inicio.url, CAP.inicio.alt, 'Captura de IndunexIA · Datos ficticios'],
   rel: [['/automatizacion-procesos-ia/', 'Automatización de procesos', 'la pieza central: avisos, órdenes y recordatorios que se mueven solos entre canales.'],
     ['/gestion-documental-ia/', 'Gestión documental con IA', 'manuales, fichas de repuesto, albaranes y certificados organizados y fáciles de consultar.'],
     ['/agentes-chatbots-ia/', 'Asistentes y chatbots', 'el asistente técnico que responde con tus manuales y también atiende al cliente.'],
-    ['/erp-industria/', 'TransformaConIA Gestión', 'si además necesitas presupuesto, albarán y facturación en el mismo programa.'],
+    ['/erp-industria/', 'IndunexIA', 'si además necesitas presupuesto, albarán y facturación en el mismo programa.'],
     ['/desarrollo-a-medida-ia/', 'Desarrollo a medida', 'para conectar con el sistema de órdenes o de activos que ya utilizas.']],
   faqs: [['¿Necesito dejar mi programa de mantenimiento actual?', 'No necesariamente. Si ya usas un programa de órdenes y tiene API, nos conectamos de forma directa; si no, valoramos cómo adaptarlo o si compensa sustituirlo. Cualquier mejora que se os ocurra se puede implementar en el programa que uséis.'],
     ['¿Cómo evita la IA errores al crear una orden desde un mensaje?', 'Propone, no decide: el equipo, la prioridad y el cliente se sugieren y una persona confirma lo importante. Lo dudoso se marca para revisar. Lo probamos en el piloto con avisos reales antes de ampliar.'],
@@ -132,8 +128,6 @@ S.instaladoras = {
   lead: 'Una instaladora cierra obras, pero las obras no se cierran del todo hasta que el papel está en orden. Ayudamos a presupuestar más rápido, a documentar mientras se trabaja y a recordar cada revisión periódica.',
   datos: [['Para quién', 'Eléctricas, climatización, fontanería y frío'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con una obra o un presupuesto real'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'Obra por la mañana, papeles por la tarde', introH: 'El trabajo está en la obra y el desgaste, en la oficina',
-  intro: ['El instalador sale a medir, vuelve con unas notas y esa misma tarde toca convertirlas en un presupuesto: partidas, material, mano de obra, plazos. Si además hay que pedir precios a tres proveedores, el presupuesto tarda días y el cliente, mientras tanto, pide otro a la competencia. Cuando la obra termina, la documentación (memorias, certificados, fotos, listados de material) se reúne a toda prisa.',
-    'Tiene otra cara menos visible: las instalaciones con revisión periódica. Cada cliente tiene su fecha, y lo habitual es recordarla de memoria o con una agenda. Cada recordatorio que se escapa es una visita perdida. Un buen programa de gestión y algo de inteligencia artificial pueden encargarse de lo repetitivo y dejar el criterio técnico para quien lo tiene.'],
   boxH: 'Te sonará si',
   box: ['Presupuestas por la tarde lo que mediste por la mañana', 'Los albaranes de proveedor se acumulan sin imputar a obra', 'La documentación final se monta a última hora', 'Las revisiones de clientes dependen de una agenda'],
   qH: 'Qué automatizamos en una instaladora',
@@ -152,10 +146,10 @@ S.instaladoras = {
   ejH: 'Una instaladora de ejemplo', ejTitulo: 'Instalaciones «Climaelectric Ejemplo, S.L.»',
   ej: ['<b>Situación.</b> Una empresa de instalaciones eléctricas y de climatización con dos equipos en obra. Los presupuestos se hacen con mediciones en papel y la documentación se reúne cuando el cliente la reclama.', '<b>Qué hacemos.</b> Las mediciones de la visita se pasan al programa y generan un borrador por partidas; las facturas de proveedor se leen e imputan a cada obra; el equipo dicta el parte y sube las fotos; al cerrar, se prepara el dossier con todo lo anterior para que el responsable lo revise y firme.', '<b>Resultado.</b> La oficina revisa en lugar de reconstruir. No incluimos cifras de resultado: se comprueban durante el piloto con una obra de la propia empresa.'],
   ejNota: 'Ejemplo ficticio, sin relación con ninguna empresa instaladora real.',
-  ejShot: [CAP.albaran.url, CAP.albaran.alt, 'Captura con datos de demostración ficticios.'],
+  ejShot: [CAP.albaran.url, CAP.albaran.alt, 'Captura de IndunexIA · Datos ficticios'],
   rel: [['/automatizacion-procesos-ia/', 'Automatización de procesos', 'recordatorios de revisión, avisos a clientes y petición de ofertas a proveedores.'],
     ['/gestion-documental-ia/', 'Gestión documental con IA', 'la carpeta de cada obra con facturas, fotos y certificados ordenados.'],
-    ['/erp-industria/', 'TransformaConIA Gestión', 'presupuesto, albarán firmado, factura y cobros en un solo programa; precios en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.'],
+    ['/erp-industria/', 'IndunexIA', 'presupuesto, albarán firmado, factura y cobros en un solo programa; precios en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>.'],
     ['/agentes-chatbots-ia/', 'Asistentes y chatbots', 'para atender consultas de clientes sobre citas, estados de obra o revisiones.'],
     ['/desarrollo-a-medida-ia/', 'Desarrollo a medida', 'si necesitas conectar con tu programa de presupuestos o de contabilidad.']],
   faqs: [['¿La IA firma o emite certificados de instalación?', 'No. Prepara borradores y reúne la documentación, pero la firma, el registro y la responsabilidad técnica son siempre del instalador autorizado. Nosotros no sustituimos ese paso ni afirmamos nada sobre cumplir normativa por ti.'],
@@ -174,8 +168,6 @@ S.fabricacion = {
   lead: 'En planta, el dato se genera una vez y se escribe tres: en el parte, en la hoja de calidad y en el ERP. Conectamos esos puntos para que producción, calidad y oficina trabajen con la misma información.',
   datos: [['Para quién', 'Fabricantes y agroindustria'], ['Primer paso', 'Diagnóstico gratis de 30 minutos'], ['Piloto', 'Con una línea o un proceso concreto'], ['Dónde', 'Región de Murcia y remoto en toda España']],
   introEb: 'De la línea a la oficina', introH: 'La planta produce datos que nadie aprovecha a tiempo',
-  intro: ['Una fábrica genera muchísima información: órdenes de fabricación, lotes, mermas, paradas, controles, incidencias, albaranes de materia prima. Mucha se apunta en papel al pie de la máquina y se teclea después, a veces al día siguiente, a veces a final de semana. Cuando hay que saber por qué un lote salió con defecto, la respuesta está repartida en tres cuadernos y dos hojas de cálculo.',
-    'La inteligencia artificial no sustituye a la línea ni a los responsables de calidad. Lo que sí hace bien es leer documentos, clasificar, comparar y avisar: cosas aburridas que consumen horas. Por eso proponemos empezar por un proceso acotado, medirlo y, si compensa, ampliarlo. No vendemos plantas «inteligentes» de golpe.'],
   boxH: 'Piensa en fabricación si',
   box: ['Los partes de producción se pasan a mano al sistema', 'Los controles de calidad viven en hojas aparte', 'Buscar un lote antiguo lleva media tarde', 'El informe mensual se monta copiando datos'],
   qH: 'Qué abordamos en una planta de fabricación',
@@ -194,12 +186,12 @@ S.fabricacion = {
   ejH: 'Una planta de ejemplo', ejTitulo: 'Fábrica «Conservas y Envases Ejemplo, S.A.»',
   ej: ['<b>Situación.</b> Una planta mediana con dos líneas de envasado. Cada turno apunta producción, mermas y paradas en papel; calidad rellena sus controles en otra hoja y el lunes se monta el informe para dirección.', '<b>Qué hacemos.</b> El parte de cada turno se registra en una tablet con el lote asociado; los controles de calidad se anotan en el mismo registro; los pedidos de materia prima se leen desde el albarán y se contrastan con la orden de compra. El informe semanal se genera con esos datos.', '<b>Resultado.</b> Un lote problemático se localiza en minutos y el informe del lunes deja de montarse a mano. No hay cifras de ahorro: se establecen con una línea piloto y datos de la propia empresa.'],
   ejNota: 'Ejemplo ficticio: la empresa y sus líneas son inventadas.',
-  ejShot: null,
+  ejShot: [CAP.facturas.url, CAP.facturas.alt, 'Captura de IndunexIA · Datos ficticios'],
   rel: [['/automatizacion-procesos-ia/', 'Automatización de procesos', 'la base: partes, pedidos y avisos conectados sin intervención manual.'],
     ['/gestion-documental-ia/', 'Gestión documental con IA', 'instrucciones, fichas técnicas y albaranes organizados por versión y lote.'],
     ['/desarrollo-a-medida-ia/', 'Desarrollo a medida', 'pantallas de planta, paneles de producción o conexión con máquinas y ERP.'],
     ['/agentes-chatbots-ia/', 'Asistentes y chatbots', 'el asistente que responde al operario con la instrucción de trabajo correcta.'],
-    ['/erp-industria/', 'TransformaConIA Gestión', 'para fabricaciones a medida y series pequeñas, con pedidos, albaranes y facturación.']],
+    ['/erp-industria/', 'IndunexIA', 'para fabricaciones a medida y series pequeñas, con pedidos, albaranes y facturación.']],
   faqs: [['¿Por dónde empieza una fábrica con la IA?', 'Por un proceso acotado donde se pierda tiempo cada semana: un parte, un informe o un tipo de pedido. Se mide el tiempo antes y después y solo entonces se amplía.'],
     ['¿Es realista la visión artificial en una pyme?', 'Depende de la pieza, la luz, la velocidad y el tipo de defecto. Hay casos que funcionan muy bien y otros que no compensan. Lo primero es probar con fotos de tus piezas y decirte con franqueza si merece la pena.'],
     ['¿Se conecta con nuestro ERP o con SAP?', 'Si el ERP tiene API, la conexión es directa; si no la tiene, se valora cómo adaptarlo. SAP es un ejemplo habitual, pero lo mismo vale para el programa que uséis.'],
@@ -207,18 +199,69 @@ S.fabricacion = {
   band: ['¿Quieres que producción y calidad hablen el mismo idioma?', 'Reserva el diagnóstico gratis y cuéntanos qué dato apuntáis dos veces; empezamos por ahí.'],
 };
 
+// ---------- presentación visual (revisión C): frase de intro, bloque «Hoy / Con IA», iconos y fichas de soluciones ----------
+const ICONS = {
+  calc: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h4"/>',
+  doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+  movil: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  firma: '<path d="M3 17c3-1 4-6 6-6s1 5 3 5 2-3 4-3 2 2 5 2"/><path d="M3 21h18"/>',
+  euro: '<path d="M18 6a7 7 0 1 0 0 12M4 10h10M4 14h10"/>',
+  carpeta: '<path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
+  alerta: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  cajas: '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  lupa: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  grafica: '<path d="M3 20h18M6 16l4-5 4 3 5-7"/>',
+  libro: '<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-5a3 3 0 0 0-3 3"/>',
+  escudo: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  sobre: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  engranaje: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+  chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8"/>',
+  codigo: '<path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>',
+  fabrica: '<path d="M2 21V10l6 4V10l6 4V6l8 4v11z"/><path d="M6 18h2M11 18h2M16 18h2"/>',
+};
+const ic = (n) => `<span class="tc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg></span>`;
+const ad = (rows) => `<div class="tc-ad tc-reveal"><div class="tc-ad__h"><span>Hoy</span><span>Con IA</span></div>${rows.map(([a, d]) => `<div class="tc-ad__row"><p class="tc-ad__antes">${a}</p><span class="tc-ad__arrow" aria-hidden="true">${ARROW}</span><p class="tc-ad__despues">${d}</p></div>`).join('')}</div>`;
+const EXTRA = {
+  talleres: {
+    frase: 'Un taller entrega a tiempo y aun así deja margen por el camino: el precio sale de la memoria y el papeleo se acumula.',
+    ad: [['El precio sale de la memoria del encargado.', 'Precio con tu coste real por hora y operación.'], ['Parte a lápiz y albarán firmado en la furgoneta.', 'Parte y firma en el móvil, guardados por pedido.'], ['Factura del viernes con tres hojas de cálculo.', 'Factura generada desde el albarán firmado.']],
+    icons: ['calc', 'doc', 'movil', 'firma', 'euro', 'carpeta'],
+    rel: ['calc|Presupuesto, parte, albarán, factura y cobro en un solo sitio.', 'engranaje|Avisos, correos de clientes y tareas repetitivas.', 'carpeta|Facturas y albaranes de material que se archivan solos.', 'chat|Consultas de clientes sobre estado de pedidos o plazos.', 'codigo|Para el proceso propio que ningún programa cubre.'],
+  },
+  mantenimiento: {
+    frase: 'El mantenimiento sufre cuando la información llega tarde: el aviso por una vía, el historial en otra y el repuesto, donde toque.',
+    ad: [['Avisos por teléfono, mensaje y correo, apuntados en una libreta.', 'Cada aviso se convierte en orden con equipo y prioridad.'], ['El técnico sale sin saber qué se hizo la última vez.', 'Historial y manual del equipo en el móvil antes de llegar.'], ['Revisiones preventivas que se olvidan hasta la avería.', 'Calendario por equipo con la orden creada por adelantado.']],
+    icons: ['alerta', 'reloj', 'cajas', 'cal', 'lupa', 'doc'],
+    rel: ['engranaje|Avisos, órdenes y recordatorios que se mueven solos.', 'carpeta|Manuales, fichas de repuesto y certificados a mano.', 'chat|El asistente técnico que responde con tus manuales.', 'calc|Presupuesto, albarán y facturación en el mismo programa.', 'codigo|Conexión con el sistema de órdenes que ya usas.'],
+  },
+  instaladoras: {
+    frase: 'La obra se hace por la mañana; el presupuesto, la documentación y las revisiones se hacen por la tarde.',
+    ad: [['Mediciones en papel convertidas en presupuesto por la tarde.', 'Borrador por partidas con tus tarifas para revisar y enviar.'], ['Documentación final reunida a toda prisa al cerrar la obra.', 'Carpeta por obra con facturas, fotos y certificados ordenados.'], ['Revisiones periódicas anotadas en una agenda.', 'Aviso al cliente y orden de trabajo creados sin acordarse.']],
+    icons: ['calc', 'sobre', 'movil', 'carpeta', 'cal', 'grafica'],
+    rel: ['engranaje|Recordatorios de revisión y petición de ofertas.', 'carpeta|La carpeta de cada obra, ordenada.', 'calc|Presupuesto, albarán firmado, factura y cobros.', 'chat|Consultas sobre citas, obras o revisiones.', 'codigo|Conexión con tu programa de presupuestos o contabilidad.'],
+  },
+  fabricacion: {
+    frase: 'En planta el dato se genera una vez y se escribe tres: en el parte, en la hoja de calidad y en el ERP.',
+    ad: [['Parte de producción en papel, tecleado al día siguiente.', 'Registro en tablet en el puesto, con el lote asociado.'], ['Controles de calidad en hojas aparte.', 'Controles e incidencias por lote en el mismo registro.'], ['Informe mensual montado copiando datos.', 'Informe semanal generado con los datos ya registrados.']],
+    icons: ['libro', 'movil', 'escudo', 'lupa', 'sobre', 'grafica'],
+    rel: ['engranaje|Partes, pedidos y avisos conectados sin tecleo.', 'carpeta|Instrucciones y fichas técnicas por versión y lote.', 'codigo|Pantallas de planta y conexión con máquinas y ERP.', 'chat|El asistente que responde al operario con la instrucción correcta.', 'calc|Series pequeñas y trabajo a medida con pedidos y facturación.'],
+  },
+};
 const ORDEN = ['talleres', 'mantenimiento', 'instaladoras', 'fabricacion'];
 const urlDe = (k) => `/${S[k].slug}/`;
 
+const E = (k) => EXTRA[k];
 const html = (k, c) => {
   const otros = ORDEN.filter((x) => x !== k).map((x) => `<a class="tc-link" href="${urlDe(x)}">${S[x].titulo}</a>`).join(' · ');
   return page(`${pagehead(`<a href="/industria/">Industria</a><span aria-hidden="true">/</span><span>${c.titulo}</span>`, c.eb, c.h1, c.lead,
     btn(CTA, 'Reserva tu diagnóstico gratis') + btn('/erp-industria/', 'Ver el ERP para la industria', true), facts('De un vistazo', c.datos))}
-<section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow(c.introEb)}<h2>${c.introH}</h2>${c.intro.map((p) => `<p>${p}</p>`).join('')}</div><div class="tc-box tc-reveal"><h3>${c.boxH}</h3>${list(c.box)}</div></div></section>
-<section class="tc-sec tc-sec--alt" id="que-automatizamos"><div class="tc-wrap">${head('Qué automatizamos', c.qH)}<div class="tc-grid ${c.gridCls} tc-reveal">${c.cards.map(([t, d]) => `<div class="tc-box"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
+<section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow(c.introEb)}<h2>${c.introH}</h2><p>${E(k).frase}</p></div><div class="tc-box tc-reveal"><h3>${c.boxH}</h3>${list(c.box)}</div></div><div class="tc-wrap" style="margin-top:28px">${ad(E(k).ad)}</div></section>
+<section class="tc-sec tc-sec--alt" id="que-automatizamos"><div class="tc-wrap">${head('Qué automatizamos', c.qH)}<div class="tc-grid ${c.gridCls} tc-reveal">${c.cards.map(([t, d], i) => `<div class="tc-box">${ic(E(k).icons[i])}<h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
 <section class="tc-sec" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', c.comoH)}<div class="tc-grid tc-grid--2 tc-reveal">${c.pasos.map(([t, d]) => `<div class="tc-step"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt" id="ejemplo"><div class="tc-wrap${c.ejShot ? ' tc-split' : ''}"><div class="tc-box tc-reveal"><span class="tc-eyebrow">Ejemplo ficticio</span><h2>${c.ejH}</h2><h3>${c.ejTitulo}</h3><p><i>${c.ejNota}</i></p>${c.ej.map((p) => `<p>${p}</p>`).join('')}</div>${c.ejShot ? `<div class="tc-reveal">${shot(...c.ejShot)}</div>` : ''}</div></section>
-<section class="tc-sec"><div class="tc-wrap">${head('Soluciones relacionadas', 'Lo que usamos para esto')}<div class="tc-prose tc-reveal">${list(c.rel.map(([u, t, d]) => `<a class="tc-link" href="${u}">${t}</a>: ${d}`))}<p>Si quieres una visión de conjunto, mira la <a class="tc-link" href="/consultor-ia-murcia/">consultoría de IA en Murcia</a>, desde donde trabajamos con empresas de toda la Región y en remoto con toda España.</p></div></div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('Soluciones relacionadas', 'Lo que usamos para esto')}<div class="tc-sectores tc-reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${c.rel.map(([u, t], i) => { const [ico, corto] = E(k).rel[i].split('|'); return `<a class="tc-sector" href="${u}">${ic(ico)}<span><b>${t}</b><small>${corto}</small></span></a>`; }).join('')}</div><div class="tc-prose tc-reveal" style="margin-top:22px"><p>${k === 'talleres' || k === 'instaladoras' ? 'Los precios orientativos del programa están en su <a class="tc-link" href="/erp-industria/#precio">apartado de precio</a>. ' : ''}Si quieres una visión de conjunto, mira la <a class="tc-link" href="/consultor-ia-murcia/">consultoría de IA en Murcia</a>, desde donde trabajamos con empresas de toda la Región y en remoto con toda España.</p></div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Dudas habituales')}${faq(c.faqs)}</div></section>
 <section class="tc-sec tc-sec--tight" id="otros-sectores"><div class="tc-wrap"><div class="tc-prose tc-reveal"><h3>Otros sectores industriales</h3><p>${otros} · <a class="tc-link" href="/distribucion-industrial/">Distribución técnica</a> · <a class="tc-link" href="/industria/">Toda la industria</a></p></div></div></section>
 ${band(c.band[0], c.band[1], btn(CTA, 'Reserva tu diagnóstico gratis'))}`);
