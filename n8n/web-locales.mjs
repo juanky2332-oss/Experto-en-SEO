@@ -5,7 +5,7 @@
 //   node n8n/web-locales.mjs --t3 [slug ...]   -> TANDA 3: copia de seguridad en _backups/tanda3/ y actualización COMPLETA (contenido + Rank Math) de las ya publicadas
 // Murcia ya existe como /consultor-ia-murcia/ (no se duplica; se enlaza). No toca web-paginas.mjs ni el snippet.
 // Contenido propio por ciudad con fuentes y fecha de consulta (13-10-2026). Casos SIEMPRE ficticios y marcados. Sin nombrar herramientas internas.
-// Precios: solo los confirmados (690 € en un solo pago al empezar, 69 €/mes con 3 meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia) o enlace a /erp-industria/#precio.
+// Precios: solo los confirmados (planes Básico 590 €+59 €/mes, Profesional 690 €+69 €/mes y Pro 990 €+89 €/mes, pago único al empezar, 3 meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia) o enlace a /erp-industria/#precio.
 import fs from 'node:fs';
 import { wp } from './gw.mjs';
 const BK3 = '_backups/tanda3/';
@@ -154,7 +154,7 @@ C.molina = {
   faqsH: 'Preguntas de empresas de Molina de Segura',
   faqs: [['¿Qué conviene automatizar primero en una empresa de golosinas o de envases?', 'Suele ser lo que más veces se repite: los pedidos de cliente o los albaranes de materia prima. Se hace un piloto con tus documentos y se compara el tiempo antes y después; no prometemos cifras de antemano.'],
     ['¿Venís a Molina o hay que desplazarse a Murcia?', 'Vamos nosotros. Molina está a unos diez kilómetros de nuestra base, así que la puesta en marcha y las revisiones se hacen en tu empresa; el diagnóstico te llega por escrito y la configuración y el soporte van en remoto.'],
-    ['¿Cuánto cuesta el ERP para un taller de la zona?', 'La puesta en marcha son 690 €, en un solo pago al empezar. El mantenimiento son 69 €/mes con los tres primeros meses gratis, cada usuario extra cuesta 15 €/mes desde el primer mes y no hay permanencia. Precios sin IVA; tras la demo recibes el presupuesto cerrado por escrito.']],
+    ['¿Cuánto cuesta el ERP para un taller de la zona?', 'Hay tres planes: Básico, 590 € de puesta en marcha y 59 €/mes; Profesional, 690 € y 69 €/mes; y Pro, 990 € y 89 €/mes. Son precios de temporada sin IVA, en un solo pago al empezar, con los tres primeros meses de cuota gratis y sin permanencia. El precio es el mismo que en Murcia.']],
   band: ['¿Tienes una fábrica o un taller en Molina?', 'Enséñanos un pedido y un albarán de un día normal y te decimos qué proceso automatizaríamos primero.'],
   fuentes: [['Wikipedia, Molina de Segura (apartado de economía e industria)', 'https://es.wikipedia.org/wiki/Molina_de_Segura'],
     ['El Español, «El municipio español que factura más de 700 millones vendiendo chuches» (11-04-2026)', 'https://www.elespanol.com/sociedad/20260411/municipio-espanol-factura-meur-vendiendo-chuches-empresas-grandes-pais/1003744199290_0.amp.html'],

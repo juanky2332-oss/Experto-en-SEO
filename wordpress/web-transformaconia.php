@@ -177,7 +177,7 @@ add_shortcode( 'tc_categoria', function ( $a ) {
 } );
 
 /* [tc_calculadora] «¿Cuánto te cuesta el papeleo?»: cálculo orientativo con las cifras de quien lo usa.
- * Tarifa vigente de /erp-industria/: puesta en marcha 690 € (oferta de lanzamiento) y 69 €/mes desde el mes 4 (3 primeros meses gratis).
+ * Usa el plan Profesional de /erp-industria/ (690 € de puesta en marcha y 69 €/mes desde el mes 4, 3 primeros meses gratis). Planes: Básico 590+59, Profesional 690+69, Pro 990+89.
  * Si cambia la tarifa, cambiar aquí data-puesta / data-cuota / data-gratis y el texto de la página del ERP. */
 add_shortcode( 'tc_calculadora', function () {
 	static $n = 0;
@@ -196,7 +196,7 @@ add_shortcode( 'tc_calculadora', function () {
 	<div class="tc-calc__out" role="status" aria-live="polite">
 		<div class="tc-calc__big"><span data-o="anual">–</span> € <small>al año en papeleo</small></div>
 		<p class="tc-calc__rec" data-o="rec"></p>
-		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. Con la puesta en marcha de 690 € (un solo pago al empezar) y el mantenimiento orientativo de 69 €/mes desde el cuarto mes. Los usuarios extra no entran en esta cuenta.</p>
+		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. La cuenta usa el plan Profesional: 690 € de puesta en marcha (un solo pago al empezar) y 69 €/mes desde el cuarto mes. Hay también un plan Básico desde 590 € y 59 €/mes. Los usuarios extra no entran en esta cuenta.</p>
 	</div>
 	<div class="tc-btns"><button type="button" class="tc-btn" data-o="ir">Quiero ver esto con mis números</button></div>
 </div>
@@ -541,7 +541,7 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			'@type'           => 'OfferCatalog',
 			'name'            => 'Soluciones de IA y automatización para la industria',
 				'itemListElement' => array(
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 690, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 590, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Asistentes técnicos y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 900, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Gestión documental con IA', 'url' => home_url( '/gestion-documental-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
@@ -583,15 +583,9 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			),
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
 			'offers'              => array(
-				array( '@type' => 'Offer', 'name' => 'Puesta en marcha', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Puesta en marcha en un solo pago al empezar. Sin IVA.', 'url' => home_url( '/erp-industria/#precio' ) ),
-				array(
-					'@type'              => 'Offer',
-					'name'               => 'Mantenimiento mensual',
-					'priceCurrency'      => 'EUR',
-					'description'        => '69 €/mes de mantenimiento, los 3 primeros meses gratis. Usuario extra: 15 €/mes desde el primer mes. Sin permanencia (30 días de aviso). Sin IVA.',
-					'priceSpecification' => array( '@type' => 'UnitPriceSpecification', 'price' => 69, 'priceCurrency' => 'EUR', 'billingDuration' => 1, 'unitCode' => 'MON' ),
-					'url'                => home_url( '/erp-industria/#precio' ),
-				),
+				array( '@type' => 'Offer', 'name' => 'Plan Básico', 'price' => 590, 'priceCurrency' => 'EUR', 'description' => 'Presupuestos, albaranes, facturas, envío por correo, cobros y gastos. Puesta en marcha en un solo pago al empezar; después 59 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array( '@type' => 'Offer', 'name' => 'Plan Profesional', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Básico más gastos por foto con IA, albaranes firmados, calculadora de costes y margen, fiscal y paquete para el asesor, informes y Telegram. Puesta en marcha en un solo pago al empezar; después 69 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array( '@type' => 'Offer', 'name' => 'Plan Pro', 'price' => 990, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Profesional más asistente con IA propio, presupuesto desde plano, histórico completo, una automatización a medida y 2 h/mes de mejoras. Puesta en marcha en un solo pago al empezar; después 89 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
 			),
 			'provider'            => array( '@id' => home_url( '/#person' ) ),
 		);

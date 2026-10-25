@@ -466,6 +466,8 @@ body.single-post .tca-autor .tca-autor__titulo,body.single-post .tca-autor .tca-
 .tc-oferta>div:first-child{border-left:0}
 .tc-oferta span{font-family:var(--tc-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tc-dim)}
 .tc-oferta b{font-family:var(--tc-display);font-size:17px;color:var(--tc-fg)!important;white-space:nowrap}
+.tc-oferta small{font-size:12px;color:var(--tc-dim)}
+.tc-oferta s{color:var(--tc-dim);font-weight:400;font-size:.85em;margin-right:4px}
 .tc-oferta s{color:var(--tc-dim);font-weight:400;font-size:13px}
 .tc-shots>.tc-shot:nth-child(4){animation-delay:12s}
 .tc-shots[style*="--n:4"]>.tc-shot{animation-name:tc-fade4}
@@ -731,3 +733,19 @@ body.single-post .related-posts .article-content-wrap,body.single-post .related-
 body.single-post .related-posts h3.title,body.single-post .related-posts h3.title a{color:#fff!important;font-family:var(--tc-display)!important;font-weight:600!important;line-height:1.3!important}
 body.single-post .related-posts .meta-category a{color:#e6b8ff!important;background:rgba(176,32,255,.18)!important;border-radius:99px}
 body.single-post .related-posts .grav-wrap,body.single-post .related-posts .grav-wrap a,body.single-post .related-posts .text a,body.single-post .related-posts .text,body.single-post .related-posts .text span{color:#a9a1b4!important}
+/* Planes de IndunexIA (Básico · Profesional · Pro) */
+.tc-planes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch;margin-top:8px}
+.tc-plan{position:relative;display:flex;flex-direction:column;gap:10px;padding:26px 22px;border:1px solid var(--tc-line);border-radius:18px;background:rgba(255,255,255,.03)}
+.tc-plan h3{margin:0;font-family:var(--tc-display);font-size:1.35rem}
+.tc-plan__para{margin:0;color:var(--tc-dim);font-size:.95rem;min-height:3.3em}
+.tc-plan__precio{margin:6px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.tc-plan__precio s{color:var(--tc-dim);font-size:1.05rem}
+body .tc-plan .tc-plan__precio b{font-family:var(--tc-display);font-size:2.1rem;line-height:1;color:#fff!important}
+.tc-plan__precio small,.tc-plan__mes small{width:100%;color:var(--tc-dim);font-size:.82rem}
+.tc-plan__mes{margin:0 0 6px}
+body .tc-plan .tc-plan__mes b{color:#fff!important;font-size:1.1rem}
+.tc-plan .tc-list{margin-top:4px}
+.tc-plan--top{border:2px solid #b020ff;background:linear-gradient(180deg,rgba(176,32,255,.14),rgba(176,32,255,.03));box-shadow:0 18px 50px rgba(176,32,255,.18)}
+.tc-plan__tag{position:absolute;top:-13px;left:22px;padding:4px 12px;border-radius:999px;font:600 .78rem var(--tc-display);color:#fff;background:linear-gradient(100deg,#e05cff,#a11cf0 55%,#5b3cff)}
+.tc-planes__nota{margin:26px 0 0;color:var(--tc-dim);font-size:.9rem}
+@media (max-width:900px){.tc-planes{grid-template-columns:minmax(0,1fr)}.tc-plan__para{min-height:0}}
