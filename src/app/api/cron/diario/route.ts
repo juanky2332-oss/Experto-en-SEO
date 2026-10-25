@@ -4,6 +4,7 @@ import { inventario, guardarFoto } from "@/lib/seo/inventario";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { guardarGsc, ultimaGsc } from "@/lib/gsc";
+import { compartirNuevos } from "@/lib/redes";
 
 export const maxDuration = 300;
 
@@ -48,5 +49,12 @@ export async function GET(req: NextRequest) {
   }
   // Ya no hay plan semanal ni lote automático de «Qué publicar» (24-10-2026): las ideas se piden
   // cuando él quiere («Dame una idea») y se publican en ese momento.
-  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, gsc });
+  // Noticias nuevas del blog → Instagram (publicación + historia, o aviso a Telegram si aún no hay token)
+  let redes = 0;
+  try {
+    redes = (await compartirNuevos(process.env.APP_URL || req.nextUrl.origin)).length;
+  } catch (e) {
+    console.error("redes", e);
+  }
+  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, gsc, redes });
 }

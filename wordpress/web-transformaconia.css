@@ -749,3 +749,9 @@ body .tc-plan .tc-plan__mes b{color:#fff!important;font-size:1.1rem}
 .tc-plan__tag{position:absolute;top:-13px;left:22px;padding:4px 12px;border-radius:999px;font:600 .78rem var(--tc-display);color:#fff;background:linear-gradient(100deg,#e05cff,#a11cf0 55%,#5b3cff)}
 .tc-planes__nota{margin:26px 0 0;color:var(--tc-dim);font-size:.9rem}
 @media (max-width:900px){.tc-planes{grid-template-columns:minmax(0,1fr)}.tc-plan__para{min-height:0}}
+/* Capturas de móvil del asistente */
+.tc-movil-shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tc-movil-shots figure{margin:0;display:grid;gap:8px;text-align:center}
+.tc-movil-shots img{width:100%;height:auto;border-radius:18px;border:1px solid var(--tc-line);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.tc-movil-shots figcaption{font-family:var(--tc-display);font-size:.85rem;color:var(--tc-dim)}
+@media (max-width:620px){.tc-movil-shots{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tc-movil-shots figcaption{font-size:.75rem}}

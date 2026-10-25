@@ -15,6 +15,8 @@ Repositorio **público**: nunca escribas secretos, claves ni datos personales en
 | Publicador del blog y radar (n8n) | `n8n/publicador.mjs`, `n8n/radar.mjs`, `n8n/prompts.mjs` | `node --env-file=.env.local n8n/<script>.mjs` |
 | Base de datos | Neon, esquema `seo` (`sql/seo.sql`) | SQL idempotente |
 | Panel (Next.js, Vercel `experto-en-seo`) | `src/` | push a `main` = producción |
+| Noticias → Instagram | `src/lib/redes.ts`, `/api/ig/tarjeta` (imagen JPEG pública, post 4:5 y historia 9:16) y `/api/ig/publicar` (Bearer CRON_SECRET); el cron diario comparte lo publicado en los últimos 3 días (`seo.settings.ig_compartidos`) | Con `IG_TOKEN` + `IG_USER_ID` en Vercel publica solo; sin ellos manda texto y enlaces a Telegram |
+| Asistente técnico (chatbot) | Página `/agentes-chatbots-ia/` (planes `PLANES_ASISTENTE` = oferta.json) y demo en `demo.transformaconia.com/asistente/` (tienda ficticia Fluidtec Demo, `LANDING ERP/transformaconia-gestion/api/asistente-*.js`, OPENAI_API_KEY en Vercel) | `node --env-file=.env.local n8n/web-paginas.mjs agentes-chatbots-ia` · `vercel deploy --prod` en la landing |
 | Landing de la demo del ERP | `PROYECTOS CLAUDE\LANDING ERP\transformaconia-gestion` (Vercel `transformaconia-gestion`, sin git) | `vercel deploy --prod` |
 
 Acceso a WordPress: siempre por la pasarela n8n (`n8n/gw.mjs` → `wp(method, path, body)`). La pasarela **no** borra fragmentos (DELETE responde 204 sin borrar). Purgar caché: `wp('POST','/tc/v1/purgar',{})`. Tras purgar puede haber unos segundos de 504 por caché fría.
@@ -47,3 +49,13 @@ Pendiente:
 - Asistente de la web: código aparcado en la rama local `asistente-web` (falta widget y pruebas). Gasto nuevo (tope 5 €/mes) pendiente de aprobación.
 - LinkedIn: rama del publicador preparada y apagada (`seo.settings.linkedin_activo`); falta página de empresa y credencial.
 - Autor de los artículos: «Redacción Transforma con IA» (no hay usuario personal y no debe haberlo con nombre).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

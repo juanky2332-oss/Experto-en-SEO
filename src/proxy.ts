@@ -11,6 +11,6 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // públicos: login, endpoints de n8n (clave propia) y cron (CRON_SECRET), estáticos
-  matcher: ["/((?!login|api/telegram|api/cron|_next/static|_next/image|favicon.ico|icon|apple-icon|robots.txt).*)"],
+  // públicos: login, endpoints de n8n (clave propia), cron e /api/ig/publicar (CRON_SECRET), /api/ig/tarjeta (imágenes que descarga Instagram) y estáticos
+  matcher: ["/((?!login|api/telegram|api/cron|api/ig|_next/static|_next/image|favicon.ico|icon|apple-icon|robots.txt).*)"],
 };
