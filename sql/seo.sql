@@ -315,3 +315,25 @@ create index if not exists gsc_consulta on seo.gsc (fecha desc, impresiones desc
 -- 2026-10-24 · «Dame una idea»: una idea que se salta («Otra idea») queda como 'saltada' y no se vuelve a proponer.
 alter table seo.qp_recs drop constraint if exists qp_recs_estado_check;
 alter table seo.qp_recs add constraint qp_recs_estado_check check (estado in ('abierta', 'interesa', 'descartada', 'publicada', 'en_brief', 'saltada'));
+
+-- 2026-10-26 · Cola de Instagram: reels (y noticias del blog) que se proponen por Telegram y se suben con «✅ Subir».
+-- estado: pendiente → propuesto (enviado a Telegram) → publicando → publicado | descartado (o vuelve a pendiente si falla)
+create table if not exists seo.ig_cola (
+  id text primary key,                        -- 'n1-tareas-taller' (reel) o 'blog-7825' (noticia)
+  tipo text not null default 'reel' check (tipo in ('reel', 'noticia')),
+  titulo text not null,
+  texto text not null,                        -- descripción tal cual se publica (termina en espacio)
+  video_url text,                             -- mp4 público (reel)
+  portada_url text,                           -- jpg público (portada del reel o imagen de la noticia)
+  historia_url text,                          -- jpg 9:16 (solo noticias)
+  fecha date,                                 -- día previsto; el cron lo propone ese día
+  estado text not null default 'pendiente' check (estado in ('pendiente', 'propuesto', 'publicando', 'publicado', 'descartado')),
+  ig_id text,
+  ig_url text,
+  error text,
+  propuesto_at timestamptz,
+  publicado_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists ig_cola_orden on seo.ig_cola (estado, fecha);
+alter table seo.ig_cola add column if not exists publicando_at timestamptz;  -- un 'publicando' de más de 6 min se puede reintentar

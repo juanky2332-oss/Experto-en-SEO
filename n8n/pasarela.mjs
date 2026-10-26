@@ -5,7 +5,7 @@
 // POST /webhook/seo-pasarela
 //   { action:'wp', method, path, body? }          -> { status, total, totalPages, data }
 //   { action:'media', filename, mime, base64 }    -> { status, data }
-//   { action:"tg", text, buttons?:[{text,data}] (0-2) } -> { ok }
+//   { action:"tg", text, buttons?:[{text,data}] (0-2), video?: url mp4 (con 2 botones) } -> { ok }
 //   { action:'openai', endpoint:'responses'|'images/generations', body } -> respuesta de OpenAI (credencial de n8n)
 import { Flow, CRED, CHAT_ID, WP, n8n } from './lib.mjs';
 
@@ -75,13 +75,16 @@ f.add('Responder medio', 'n8n-nodes-base.respondToWebhook', 1.1, respondWp, [880
 f.add('Cuantos botones', 'n8n-nodes-base.code', 2, { jsCode: `
 const b = $json.body || {};
 const botones = Array.isArray(b.buttons) ? b.buttons.slice(0, 2) : [];
-let texto = String(b.text || '').slice(0, 4000);
-return [{ json: { texto, botones, n: botones.length } }];` }, [440, 650]);
+// con video (URL pública de un mp4 de menos de 20 MB) el texto va como pie del vídeo: Telegram admite 1024 caracteres
+const video = /^https:\\/\\//.test(String(b.video || '')) ? String(b.video) : null;
+let texto = String(b.text || '').slice(0, video ? 1024 : 4000);
+const n = video && botones.length === 2 ? 'v2' : 'b' + botones.length;
+return [{ json: { texto, botones, video, n } }];` }, [440, 650]);
 f.add('Segun botones', 'n8n-nodes-base.switch', 3.2, {
-  rules: { values: [0, 1, 2].map((n) => ({
+  rules: { values: ['b0', 'b1', 'b2', 'v2'].map((n) => ({
     conditions: { options: { caseSensitive: true, typeValidation: 'loose', version: 2 }, combinator: 'and',
-      conditions: [{ leftValue: '={{ $json.n }}', rightValue: n, operator: { type: 'number', operation: 'equals' } }] },
-    renameOutput: true, outputKey: `b${n}`,
+      conditions: [{ leftValue: '={{ $json.n }}', rightValue: n, operator: { type: 'string', operation: 'equals' } }] },
+    renameOutput: true, outputKey: n,
   })) },
   options: {},
 }, [660, 650]);
@@ -94,6 +97,11 @@ const btn = (i) => ({
 f.add('TG sin botones', 'n8n-nodes-base.telegram', 1.2, tgBase, [880, 550], { credentials: CRED.telegram, onError: 'continueRegularOutput' });
 f.add('TG 1 boton', 'n8n-nodes-base.telegram', 1.2, { ...tgBase, replyMarkup: 'inlineKeyboard', inlineKeyboard: { rows: [{ row: { buttons: [btn(0)] } }] } }, [880, 650], { credentials: CRED.telegram, onError: 'continueRegularOutput' });
 f.add('TG 2 botones', 'n8n-nodes-base.telegram', 1.2, { ...tgBase, replyMarkup: 'inlineKeyboard', inlineKeyboard: { rows: [{ row: { buttons: [btn(0), btn(1)] } }] } }, [880, 750], { credentials: CRED.telegram, onError: 'continueRegularOutput' });
+f.add('TG video 2 botones', 'n8n-nodes-base.telegram', 1.2, {
+  operation: 'sendVideo', chatId: CHAT_ID, file: '={{ $json.video }}',
+  replyMarkup: 'inlineKeyboard', inlineKeyboard: { rows: [{ row: { buttons: [btn(0), btn(1)] } }] },
+  additionalFields: { caption: '={{ $json.texto }}', parse_mode: 'HTML' },
+}, [880, 850], { credentials: CRED.telegram, onError: 'continueRegularOutput' });
 f.add('Responder TG', 'n8n-nodes-base.respondToWebhook', 1.1, {
   respondWith: 'json', responseBody: '={{ JSON.stringify({ ok: !$json.error, message_id: ($json.result || {}).message_id || null, error: $json.error ? String($json.error.message || $json.error) : null }) }}', options: {},
 }, [1100, 650]);
@@ -127,7 +135,8 @@ f.link('Cuantos botones', 'Segun botones');
 f.link('Segun botones', 'TG sin botones', 0);
 f.link('Segun botones', 'TG 1 boton', 1);
 f.link('Segun botones', 'TG 2 botones', 2);
-for (const n of ['TG sin botones', 'TG 1 boton', 'TG 2 botones']) f.link(n, 'Responder TG');
+f.link('Segun botones', 'TG video 2 botones', 3);
+for (const n of ['TG sin botones', 'TG 1 boton', 'TG 2 botones', 'TG video 2 botones']) f.link(n, 'Responder TG');
 
 const r = await n8n.upsert(f.json(), ID);
 await n8n.activate(r.id);

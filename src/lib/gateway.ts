@@ -45,10 +45,10 @@ export async function subirMedio(filename: string, mime: string, base64: string)
 
 export type Boton = { text: string; data: string };
 
-/** Mensaje a Telegram (HTML). Nunca rompe el flujo si Telegram falla. */
-export async function telegram(text: string, buttons: Boton[] = []) {
+/** Mensaje a Telegram (HTML). Con `video` (URL de un mp4 y 2 botones) manda el vídeo con el texto de pie (máx. 1024). Nunca rompe el flujo si Telegram falla. */
+export async function telegram(text: string, buttons: Boton[] = [], video?: string) {
   try {
-    return await call<{ ok: boolean }>("seo-pasarela", { action: "tg", text: text.slice(0, 4000), buttons: buttons.slice(0, 2) });
+    return await call<{ ok: boolean; error?: string | null }>("seo-pasarela", { action: "tg", text: text.slice(0, video ? 1024 : 4000), buttons: buttons.slice(0, 2), ...(video ? { video } : {}) });
   } catch (e) {
     console.error("telegram", e);
     return { ok: false };

@@ -4,7 +4,7 @@ import { inventario, guardarFoto } from "@/lib/seo/inventario";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { guardarGsc, ultimaGsc } from "@/lib/gsc";
-import { compartirNuevos } from "@/lib/redes";
+import { compartirNuevos, proponerDeHoy, renovarToken } from "@/lib/redes";
 
 export const maxDuration = 300;
 
@@ -49,12 +49,24 @@ export async function GET(req: NextRequest) {
   }
   // Ya no hay plan semanal ni lote automático de «Qué publicar» (24-10-2026): las ideas se piden
   // cuando él quiere («Dame una idea») y se publican en ese momento.
-  // Noticias nuevas del blog → Instagram (publicación + historia, o aviso a Telegram si aún no hay token)
+  // Noticias nuevas del blog → propuesta por Telegram para subirlas a Instagram (publicación + historia)
   let redes = 0;
   try {
     redes = (await compartirNuevos(process.env.APP_URL || req.nextUrl.origin)).length;
   } catch (e) {
     console.error("redes", e);
   }
-  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, gsc, redes });
+  // Reels previstos para hoy → Telegram con «✅ Subir a Instagram»; y renovar el permiso de Instagram (caduca a los 60 días)
+  let reels = 0;
+  try {
+    reels = await proponerDeHoy();
+  } catch (e) {
+    console.error("reels", e);
+  }
+  try {
+    await renovarToken();
+  } catch (e) {
+    console.error("ig_token", e);
+  }
+  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidas.length, gsc, redes, reels });
 }

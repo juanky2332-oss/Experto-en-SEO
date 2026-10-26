@@ -1,5 +1,6 @@
 import "server-only";
 import crypto from "node:crypto";
+import { after } from "next/server";
 import { sql } from "./db";
 import { telegram, esc, publicador, lanzarRadar, type Boton } from "./gateway";
 import { obtener, listar, categorias, ahoraWp, type Cambios } from "./wp";
@@ -9,6 +10,7 @@ import { inventario, anioActual } from "./seo/inventario";
 import { agente, type LlamadaHerramienta } from "./ai";
 import { investigarTema } from "./temas";
 import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } from "./guia";
+import { siguienteReel, colaReels, proponer, subir, descartar, recuperar } from "./redes";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -68,7 +70,7 @@ async function estado(): Promise<Respuesta> {
 }
 
 // ---------------------------------------------------------------- comandos
-async function comando(texto: string): Promise<Respuesta> {
+async function comando(texto: string): Promise<Respuesta | null> {
   const [cmdRaw, ...resto] = texto.trim().split(/\s+/);
   const cmd = cmdRaw.toLowerCase().replace(/@.*$/, "");
   const arg = resto.join(" ");
@@ -78,10 +80,14 @@ async function comando(texto: string): Promise<Respuesta> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando el siguiente reel con «✅ Subir a Instagram» · /reels — la cola entera\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
       return pedirIdea(false);
+    case "/reel":
+      return siguiente();
+    case "/reels":
+      return listaReels(arg.trim());
     case "/estado":
       return estado();
     case "/articulos": {
@@ -185,11 +191,41 @@ async function pedirIdea(saltarActual: boolean): Promise<Respuesta> {
 }
 
 
+// ---------------------------------------------------------------- Instagram (reels y noticias)
+async function siguiente(): Promise<Respuesta | null> {
+  const e = await siguienteReel();
+  if (!e) return { text: "🎬 No quedan reels en la cola. Cuando la fábrica de vídeos tenga más, los meto y te aviso." };
+  await proponer(e);
+  return null; // el propio vídeo con sus botones es la respuesta
+}
+
+async function listaReels(arg: string): Promise<Respuesta> {
+  // «/reels recuperar n3-precio-pieza» vuelve a poner en la cola uno descartado
+  const [op, id] = arg.split(/\s+/);
+  if (op === "recuperar" && id) return { text: (await recuperar(id)) ? `↩️ «${esc(id)}» vuelve a la cola.` : "Ese no estaba descartado." };
+  const l = await colaReels();
+  if (!l.length) return { text: "La cola de reels está vacía." };
+  const icono: Record<string, string> = { pendiente: "⏳", propuesto: "📨", publicando: "⬆️", publicado: "✅", descartado: "❌" };
+  const fecha = (f: string | null) => (f ? new Date(f).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "sin fecha");
+  return {
+    text: `🎬 <b>Reels</b>\n\n${l.map((e) => `${icono[e.estado] ?? "•"} ${fecha(e.fecha)} · ${esc(e.titulo)}${e.estado === "publicado" && e.ig_url ? ` — ${e.ig_url}` : ""}${e.estado === "descartado" ? ` (/reels recuperar ${e.id})` : ""}`).join("\n")}\n\n⏳ pendiente · 📨 enviado a ti · ✅ subido · ❌ descartado\nCada martes y jueves te llega el del día; /reel te manda ya el siguiente.`,
+  };
+}
+
 // ---------------------------------------------------------------- botones
 async function boton(data: string): Promise<Respuesta | null> {
   const [, accion, valor] = data.split(":");
   const id = Number(valor);
   switch (accion) {
+    case "igsi": {
+      // un reel tarda en procesarse: se contesta ya y se sube después de responder (maxDuration de la ruta)
+      after(async () => {
+        await telegram(await subir(valor));
+      });
+      return { text: "⬆️ Subiendo a Instagram… te aviso en cuanto esté publicado (un reel tarda 1-3 minutos)." };
+    }
+    case "igno":
+      return { text: await descartar(valor) };
     case "undo": {
       const r = await deshacer(id, "telegram");
       return { text: r ? `↩️ Deshecho. «${esc(r.title)}» vuelve a como estaba.` : "↩️ Deshecho. El ajuste vuelve a como estaba." };
@@ -246,6 +282,8 @@ const HERRAMIENTAS = [
   { type: "function", name: "estado_web", description: "Resumen de la salud SEO del sitio.", strict: true, parameters: { type: "object", additionalProperties: false, required: [], properties: {} } },
   { type: "function", name: "investigar_tema", description: "Busca en la web las mejores noticias y publicaciones recientes sobre un tema para decidir qué publicar (envía al usuario las mejores fuentes con botón para preparar el artículo).", strict: true,
     parameters: { type: "object", additionalProperties: false, required: ["tema"], properties: { tema: { type: "string" } } } },
+  { type: "function", name: "siguiente_reel", description: "Manda al usuario el siguiente reel de Instagram pendiente (vídeo + texto) con los botones para subirlo. Úsalo si pide subir o ver el siguiente reel o vídeo.", strict: true,
+    parameters: { type: "object", additionalProperties: false, required: [], properties: {} } },
   { type: "function", name: "preparar_noticia", description: "Prepara el brief de una noticia (URL) para publicarla.", strict: true,
     parameters: { type: "object", additionalProperties: false, required: ["url"], properties: { url: { type: "string" } } } },
 ];
@@ -307,9 +345,15 @@ async function ejecutarHerramienta(l: LlamadaHerramienta, botones: Boton[]): Pro
       case "estado_web":
         return (await estado()).text.replace(/<[^>]+>/g, "");
       case "investigar_tema": {
-        const r = await comando("/tema " + a.tema);
+        const r = (await comando("/tema " + a.tema))!;
         await telegram(r.text, r.buttons ?? []);
         return "Búsqueda hecha y enviada al usuario con las fuentes y botones. Resume en una frase y no repitas la lista.";
+      }
+      case "siguiente_reel": {
+        const e = await siguienteReel();
+        if (!e) return "No quedan reels en la cola.";
+        await proponer(e);
+        return `Enviado el reel «${e.titulo}» con los botones «Subir a Instagram» y «No subir». Dile que lo revise y pulse el botón; no repitas el texto del reel.`;
       }
       case "preparar_noticia":
         await publicador({ action: "brief_url", url: a.url });

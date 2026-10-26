@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { mismaClave } from "@/lib/sesion";
 import { atender } from "@/lib/telegram";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 // n8n (Publicador v3) reenvía aquí todo mensaje o botón de Telegram que no sea del flujo de publicación.
 export async function POST(req: NextRequest) {
