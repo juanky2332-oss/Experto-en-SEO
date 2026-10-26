@@ -11,6 +11,7 @@ import { agente, type LlamadaHerramienta } from "./ai";
 import { investigarTema } from "./temas";
 import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } from "./guia";
 import { siguienteReel, colaReels, proponer, subir, descartar, recuperar, instagramConectado, INSTRUCCIONES } from "./redes";
+import { aprobar, rechazar, resumenPlan, subirReelDelPlan } from "./plan-ig";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -80,7 +81,7 @@ async function comando(texto: string): Promise<Respuesta | null> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando el siguiente reel con «✅ Subir a Instagram» · /reels — la cola entera\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando el siguiente reel con «✅ Subir a Instagram» · /reels — la cola entera · /plan — el plan de Instagram de esta semana\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
       return pedirIdea(false);
@@ -88,6 +89,8 @@ async function comando(texto: string): Promise<Respuesta | null> {
       return siguiente();
     case "/reels":
       return listaReels(arg.trim());
+    case "/plan":
+      return { text: await resumenPlan() };
     case "/estado":
       return estado();
     case "/articulos": {
@@ -227,6 +230,13 @@ async function boton(data: string): Promise<Respuesta | null> {
     }
     case "igno":
       return { text: await descartar(valor) };
+    case "plsi": {
+      const r = await aprobar(valor);
+      if (r.reel) after(() => subirReelDelPlan(r.reel!));
+      return { text: r.text };
+    }
+    case "plno":
+      return { text: await rechazar(valor) };
     case "undo": {
       const r = await deshacer(id, "telegram");
       return { text: r ? `↩️ Deshecho. «${esc(r.title)}» vuelve a como estaba.` : "↩️ Deshecho. El ajuste vuelve a como estaba." };

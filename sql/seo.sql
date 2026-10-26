@@ -337,3 +337,27 @@ create table if not exists seo.ig_cola (
 );
 create index if not exists ig_cola_orden on seo.ig_cola (estado, fecha);
 alter table seo.ig_cola add column if not exists publicando_at timestamptz;  -- un 'publicando' de más de 6 min se puede reintentar
+
+-- 2026-10-26 · Plan diario de Instagram: cada mañana se le propone por Telegram el plan del día («✅ Adelante» / «❌ Hoy no»).
+-- Lo publicable (reels) lo hace el servidor al aprobar; seguir y comentar lo hace el agente local (Claude + Chrome) a las 13:00.
+create table if not exists seo.ig_plan (
+  fecha date primary key,
+  titulo text not null,
+  tareas jsonb not null default '[]',           -- [{tipo:'reel'|'seguir'|'comentar'|'responder'|'informe', detalle, cuentas?, ref?}]
+  estado text not null default 'pendiente' check (estado in ('pendiente', 'propuesto', 'aprobado', 'rechazado', 'hecho')),
+  informe text,
+  propuesto_at timestamptz,
+  aprobado_at timestamptz,
+  hecho_at timestamptz
+);
+-- Lo que se ha hecho en Instagram (para no repetir cuenta y para el informe semanal)
+create table if not exists seo.ig_acciones (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  fecha date not null default current_date,
+  tipo text not null check (tipo in ('seguir', 'dejar', 'comentar', 'responder')),
+  cuenta text not null,
+  url text,
+  texto text
+);
+create index if not exists ig_acciones_cuenta on seo.ig_acciones (cuenta, created_at desc);

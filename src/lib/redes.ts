@@ -154,10 +154,10 @@ export async function colaReels() {
   return sql<ElementoCola[]>`select * from seo.ig_cola where tipo = 'reel' order by fecha nulls last, id`;
 }
 
-/** Cron: propone los reels previstos para hoy (y los atrasados que nunca se propusieron). */
+/** Cron (días sin plan): propone los reels previstos para hoy. */
 export async function proponerDeHoy() {
   const hoy = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
-  const l = await sql<ElementoCola[]>`select * from seo.ig_cola where tipo = 'reel' and estado = 'pendiente' and fecha <= ${hoy} order by fecha limit 2`;
+  const l = await sql<ElementoCola[]>`select * from seo.ig_cola where tipo = 'reel' and estado = 'pendiente' and fecha = ${hoy} order by fecha limit 2`;
   for (const e of l) await proponer(e);
   return l.length;
 }

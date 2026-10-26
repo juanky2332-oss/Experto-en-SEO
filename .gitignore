@@ -18,3 +18,4 @@ n8n/_t4b/
 
 # Credenciales locales (nunca al repo)
 .secrets/
+agente-ig/logs/
