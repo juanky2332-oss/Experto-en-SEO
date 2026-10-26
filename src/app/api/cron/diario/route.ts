@@ -5,7 +5,7 @@ import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { guardarGsc, ultimaGsc } from "@/lib/gsc";
 import { compartirNuevos, proponerDeHoy, renovarToken } from "@/lib/redes";
-import { hayPlanHoy, proponerPlanDeHoy } from "@/lib/plan-ig";
+import { hayPlanHoy } from "@/lib/plan-ig";
 
 export const maxDuration = 300;
 
@@ -60,9 +60,8 @@ export async function GET(req: NextRequest) {
   // Reels previstos para hoy → Telegram con «✅ Subir a Instagram»; y renovar el permiso de Instagram (caduca a los 60 días)
   let reels = 0;
   try {
-    // con plan del día, el reel va dentro del plan (un solo «sí» al día); sin plan, el reel suelto
-    if (await hayPlanHoy()) await proponerPlanDeHoy();
-    else reels = await proponerDeHoy();
+    // con plan del día, el reel lo publica solo /api/cron/instagram a las 13:00; sin plan, el reel suelto se propone
+    if (!(await hayPlanHoy())) reels = await proponerDeHoy();
   } catch (e) {
     console.error("reels", e);
   }

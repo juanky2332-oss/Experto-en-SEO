@@ -361,3 +361,20 @@ create table if not exists seo.ig_acciones (
   texto text
 );
 create index if not exists ig_acciones_cuenta on seo.ig_acciones (cuenta, created_at desc);
+-- 2026-10-26 · Lista del móvil: lo que la API no deja hacer (seguir y comentar en otras cuentas) se le manda cada día
+-- a Telegram con el enlace y el comentario ya escrito; él lo hace desde el móvil y pulsa «✅ Hecho».
+create table if not exists seo.ig_movil (
+  id bigserial primary key,
+  fecha date not null,
+  orden int not null default 0,
+  tipo text not null check (tipo in ('seguir', 'comentar')),
+  cuenta text not null,
+  url text,
+  texto text,
+  hecho boolean not null default false
+);
+create index if not exists ig_movil_fecha on seo.ig_movil (fecha, orden);
+-- el agente local reclama cada tarea antes de hacerla (evita duplicar comentarios si coincide con otra ejecución o con el móvil)
+alter table seo.ig_movil add column if not exists reclamada_at timestamptz;
+-- una sola respuesta por comentario aunque coincidan dos ejecuciones
+create unique index if not exists ig_acciones_respuesta_unica on seo.ig_acciones (url) where tipo = 'responder';

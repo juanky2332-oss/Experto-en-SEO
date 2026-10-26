@@ -221,9 +221,16 @@ export async function compartir(a: Articulo, base: string) {
   const id = `blog-${a.id}`;
   const [e] = await sql<ElementoCola[]>`insert into seo.ig_cola (id, tipo, titulo, texto, portada_url, historia_url)
     values (${id}, 'noticia', ${a.titulo}, ${textoInstagram(a)}, ${urlTarjeta(base, a.id, "post")}, ${urlTarjeta(base, a.id, "story")})
-    on conflict (id) do update set estado = case when seo.ig_cola.estado in ('publicado', 'publicando') then seo.ig_cola.estado else 'pendiente' end
+    on conflict (id) do update set estado = case when seo.ig_cola.estado in ('publicado', 'publicando', 'descartado') then seo.ig_cola.estado else 'pendiente' end
     returning *`;
-  if (e.estado === "publicado" || e.estado === "publicando") return { id, estado: e.estado };
+  if (e.estado === "publicado" || e.estado === "publicando" || e.estado === "descartado") return { id, estado: e.estado };
+  // con Instagram conectado se publica sola (decidido el 26-10-2026: «hazlo tú y dame el informe»); sin conectar, se propone
+  if (await credencial()) {
+    const r = await subir(id);
+    await telegram(`📰 ${r}`);
+    if (!r.startsWith("✅")) throw new Error("no se ha podido publicar"); // así compartirNuevos lo reintenta mañana
+    return { id, estado: "publicado" };
+  }
   await proponer(e);
   return { id, estado: "propuesto" };
 }

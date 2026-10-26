@@ -12,6 +12,7 @@ import { investigarTema } from "./temas";
 import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } from "./guia";
 import { siguienteReel, colaReels, proponer, subir, descartar, recuperar, instagramConectado, INSTRUCCIONES } from "./redes";
 import { aprobar, rechazar, resumenPlan, subirReelDelPlan } from "./plan-ig";
+import { movilHecho } from "./instagram-diario";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -237,6 +238,10 @@ async function boton(data: string): Promise<Respuesta | null> {
     }
     case "plno":
       return { text: await rechazar(valor) };
+    case "mvok":
+      return { text: await movilHecho(valor, true) };
+    case "mvno":
+      return { text: await movilHecho(valor, false) };
     case "undo": {
       const r = await deshacer(id, "telegram");
       return { text: r ? `↩️ Deshecho. «${esc(r.title)}» vuelve a como estaba.` : "↩️ Deshecho. El ajuste vuelve a como estaba." };

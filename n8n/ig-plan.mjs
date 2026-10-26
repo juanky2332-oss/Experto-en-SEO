@@ -80,12 +80,23 @@ if (cmd === 'cargar') {
   const [n] = await sql`select count(*)::int n from seo.ig_plan`;
   console.log('días en el plan:', n.n);
 } else if (cmd === 'hoy') {
-  const [p] = await sql`select fecha::text, titulo, tareas, estado from seo.ig_plan where fecha = ${hoy()}`;
-  console.log(JSON.stringify(p && p.estado === 'aprobado' ? p : { estado: p?.estado ?? 'sin plan', nada_que_hacer: true }, null, 1));
+  // lo que el agente local tiene que hacer hoy: seguir y comentar pendientes de la lista (seo.ig_movil)
+  const l = await sql`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho order by orden`;
+  console.log(JSON.stringify(l.length ? { fecha: hoy(), tareas: l } : { nada_que_hacer: true }, null, 1));
+} else if (cmd === 'reclamar') {
+  // node n8n/ig-plan.mjs reclamar <id>  → ANTES de hacer la tarea; si dice «no», otro (el móvil u otra ejecución) la tiene: sáltala
+  const [x] = await sql`update seo.ig_movil set reclamada_at = now() where id = ${Number(args[0])} and not hecho
+    and (reclamada_at is null or reclamada_at < now() - interval '60 minutes') returning id`;
+  console.log(x ? 'ok' : 'no');
+} else if (cmd === 'hecho-item') {
+  // node n8n/ig-plan.mjs hecho-item <id>  → la tarea de la lista ya está hecha (y queda apuntada)
+  const [x] = await sql`update seo.ig_movil set hecho = true where id = ${Number(args[0])} and not hecho returning tipo, cuenta, url, texto, fecha`;
+  if (x) await sql`insert into seo.ig_acciones (tipo, cuenta, url, texto, fecha) values (${x.tipo}, ${x.cuenta}, ${x.url}, ${x.texto}, ${x.fecha})`;
+  console.log(x ? 'ok' : 'ya estaba hecha');
 } else if (cmd === 'hecho') {
+  // informe del agente local a Telegram
   const informe = (args.join(' ') || fs.readFileSync(0, 'utf8')).trim();
-  await sql`update seo.ig_plan set estado = 'hecho', informe = ${informe}, hecho_at = now() where fecha = ${hoy()}`;
-  await gw({ action: 'tg', text: `✅ <b>Instagram, hecho hoy</b>\n\n${informe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}`.slice(0, 4000) });
+  await gw({ action: 'tg', text: `✅ <b>Instagram: lo que he hecho desde el ordenador</b>\n\n${informe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}`.slice(0, 4000) });
   console.log('ok');
 } else if (cmd === 'accion') {
   const [tipo, cuenta, url = null, texto = null] = args;
