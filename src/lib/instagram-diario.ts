@@ -59,7 +59,7 @@ async function responderComentarios(c: Cred) {
         modelo: MODELO_RAPIDO,
         sistema:
           "Respondes comentarios en el Instagram de Transforma con IA, un equipo de Murcia que lleva la IA y la automatización a talleres, industria y pymes (programa de gestión IndunexIA, automatizaciones y asistentes a medida). " +
-          "Español de España, cercano y profesional, 1-2 frases, como mucho un emoji. Agradece y contesta lo que pregunten. Si preguntan precio, cómo funciona o si les sirve, invita a pedir el diagnóstico gratis en transformaconia.com («te lo enviamos por escrito»). " +
+          "Español de España, formal y cercano, 1-2 frases, sin emojis o como mucho uno. No repitas lo que dice la publicación ni el comentario: aporta una idea, un matiz o un dato práctico que haga que merezca la pena leer la respuesta. Nada de fórmulas genéricas («¡Gracias por tu comentario!») ni tono publicitario. Contesta lo que pregunten. Si preguntan precio, cómo funciona o si les sirve, invita a pedir el diagnóstico gratis en transformaconia.com («te lo enviamos por escrito»). " +
           "Nunca inventes datos, clientes ni plazos; nunca nombres herramientas internas. Si el comentario es spam, ofensivo, una cuenta que vende seguidores o no tiene sentido, responder=false.",
         usuario: `Publicación: ${(m.caption ?? "").slice(0, 300)}\n\nComentario de @${x.username}: ${x.text}`,
         esquema: { type: "object", additionalProperties: false, required: ["responder", "texto", "motivo"], properties: { responder: { type: "boolean" }, texto: { type: "string" }, motivo: { type: "string" } } },
