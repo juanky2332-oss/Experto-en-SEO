@@ -10,7 +10,7 @@ import { inventario, anioActual } from "./seo/inventario";
 import { agente, type LlamadaHerramienta } from "./ai";
 import { investigarTema } from "./temas";
 import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } from "./guia";
-import { siguienteReel, colaReels, proponer, subir, descartar, recuperar } from "./redes";
+import { siguienteReel, colaReels, proponer, subir, descartar, recuperar, instagramConectado, INSTRUCCIONES } from "./redes";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -218,6 +218,7 @@ async function boton(data: string): Promise<Respuesta | null> {
   const id = Number(valor);
   switch (accion) {
     case "igsi": {
+      if (!(await instagramConectado())) return { text: INSTRUCCIONES };
       // un reel tarda en procesarse: se contesta ya y se sube después de responder (maxDuration de la ruta)
       after(async () => {
         await telegram(await subir(valor));

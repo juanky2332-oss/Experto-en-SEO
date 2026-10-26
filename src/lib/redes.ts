@@ -66,6 +66,8 @@ async function credencial(): Promise<Cred | null> {
   return null;
 }
 
+export const instagramConectado = async () => !!(await credencial());
+
 /** Renueva el token guardado en la base si tiene más de 7 días (los de larga duración caducan a los 60). */
 export async function renovarToken() {
   const [r] = await sql<{ value: Cred }[]>`select value from seo.settings where key = 'ig_token'`;
@@ -160,7 +162,7 @@ export async function proponerDeHoy() {
   return l.length;
 }
 
-const INSTRUCCIONES = `🔌 <b>Falta conectar Instagram</b> (una sola vez, 5 minutos)\n\n1. En el ordenador, abre developers.facebook.com en la ventana de Chrome que uso yo y entra con tu Facebook (si te pide registrarte como desarrollador, acepta).\n2. Dímelo en Claude Code: creo la app, la conecto con @transformaconia.oficial y guardo el permiso.\n\nDesde ese momento, al pulsar «✅ Subir» se publica solo. Mientras tanto, lo puedes subir a mano con el vídeo y el texto de arriba.`;
+export const INSTRUCCIONES = `🔌 <b>Falta conectar Instagram</b> (una sola vez, 5 minutos)\n\n1. En el ordenador, abre developers.facebook.com en la ventana de Chrome que uso yo y entra con tu Facebook (si te pide registrarte como desarrollador, acepta).\n2. Dímelo en Claude Code: creo la app, la conecto con @transformaconia.oficial y guardo el permiso.\n\nDesde ese momento, al pulsar «✅ Subir» se publica solo. Mientras tanto, lo puedes subir a mano con el vídeo y el texto de arriba.`;
 
 /** «✅ Subir a Instagram»: publica el elemento. Devuelve el texto para Telegram. */
 export async function subir(id: string): Promise<string> {
