@@ -119,13 +119,7 @@ export async function mediodia() {
       reelOk = r.startsWith("✅") || r.startsWith("Ya estaba subido");
       lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar a las 19:00; si quieres, escribe /reel."}`);
     }
-    // historias del día: aviso de lo nuevo del feed + las siguientes del banco (agente-ig/ESTILO-CUENTA.md)
-    try {
-      const h = await publicarHistorias(reel && reelOk ? reel : null);
-      if (h) lineas.push(h);
-    } catch (e) {
-      lineas.push(`⚠️ Historias: ${esc((e as Error).message)}`);
-    }
+    // las historias van en su propia pasada (13:10, historias()), para no quedarse sin tiempo detrás de un reel
   }
   try {
     const r = await responderComentarios(c);
@@ -170,7 +164,9 @@ export async function tarde() {
   const reel = plan?.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
   if (reel && (await cred())) {
     const r = await subir(reel);
-    await telegram(`🎬 Segundo intento del reel: ${r.split("\n\nQuedan")[0]}`);
+    await telegram(`🎬 Segundo intento: ${r.split("\n\nQuedan")[0]}`);
+    // si ahora sí ha salido, su historia de aviso (la de las 13:10 no la pudo poner)
+    if (r.startsWith("✅")) await avisoHistoria(reel).catch((e) => console.error("aviso historia", e));
     if (r.startsWith("✅") || r.startsWith("Ya estaba subido")) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now() where fecha = ${hoy()}`;
   }
   const l = await sql<Movil[]>`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho
@@ -203,30 +199,47 @@ export async function movilHecho(fecha: string, hecho: boolean) {
 const BASE = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 const urlHistoria = (id: string) => `${BASE}/api/ig/historia?id=${encodeURIComponent(id)}`;
 
-/** El día que toca: aviso de lo que acaba de salir en el feed + 2 historias del banco (una pregunta arrastra su respuesta). */
-async function publicarHistorias(nuevo: string | null) {
-  const hechas: string[] = [];
-  const fallos: string[] = [];
-  const una = async (id: string) => {
-    const r = await subir(id);
-    if (r.startsWith("✅")) hechas.push(r.replace("✅ Historia: ", ""));
-    else fallos.push(r);
-  };
-  if (nuevo) {
-    const [f] = await sql<{ titulo: string; tipo: string }[]>`select titulo, tipo from seo.ig_cola where id = ${nuevo}`;
-    if (f) {
-      const id = `h-aviso-${nuevo}`;
-      const datos = { plantilla: "reel", reel: nuevo, etiqueta: f.tipo === "carrusel" ? "Nuevo en el perfil" : "Nuevo vídeo", titulo: f.titulo, texto: "Lo tienes en el perfil" };
-      await sql`insert into seo.ig_cola (id, tipo, titulo, texto, historia_url, datos) values (${id}, 'historia', ${"Aviso: " + f.titulo}, '', ${urlHistoria(id)}, ${sql.json(datos)})
-        on conflict (id) do nothing`;
-      await una(id);
-    }
-  }
-  const banco = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia' and estado = 'pendiente' and orden is not null order by orden limit 3`;
-  const elegidas = banco.slice(0, 2);
-  if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[2]) elegidas.push(banco[2]);
-  for (const h of elegidas) await una(h.id);
-  if (!hechas.length && !fallos.length) return "";
-  return `📸 <b>Historias</b>: ${hechas.map(esc).join(" · ") || "ninguna"}${fallos.length ? `\n${fallos.join("\n")}` : ""}`;
+/** Historia que avisa de la publicación nueva del feed (una sola vez por publicación). */
+async function avisoHistoria(nuevo: string) {
+  const [f] = await sql<{ titulo: string; tipo: string }[]>`select titulo, tipo from seo.ig_cola where id = ${nuevo}`;
+  if (!f) return null;
+  const id = `h-aviso-${nuevo}`;
+  const datos = { plantilla: "reel", reel: nuevo, etiqueta: f.tipo === "carrusel" ? "Nuevo en el perfil" : "Nuevo vídeo", titulo: f.titulo, texto: "Lo tienes en el perfil" };
+  await sql`insert into seo.ig_cola (id, tipo, titulo, texto, historia_url, datos) values (${id}, 'historia', ${"Aviso: " + f.titulo}, '', ${urlHistoria(id)}, ${sql.json(datos)})
+    on conflict (id) do nothing`;
+  return subir(id);
 }
 
+/** 13:10 del día que toca: aviso de lo publicado hoy en el feed + 2 historias del banco (una pregunta arrastra su respuesta).
+ *  Una vez al día como mucho; a Telegram solo si algo falla. */
+export async function historias() {
+  const ritmo = await getRitmo();
+  if (ritmo.pausas.instagram || !toca(ritmo)) return { ok: true, nada: true };
+  const [yo] = await sql`insert into seo.settings (key, value) values ('ig_historias_dia', ${sql.json(hoy())})
+    on conflict (key) do update set value = excluded.value, updated_at = now() where seo.settings.value <> excluded.value returning key`;
+  if (!yo) return { ok: true, yaHechas: true };
+  const fallos: string[] = [];
+  const hechas: string[] = [];
+  const [nuevo] = await sql<{ id: string }[]>`select id from seo.ig_cola where tipo in ('reel', 'carrusel') and estado = 'publicado'
+    and (publicado_at at time zone 'Europe/Madrid')::date = ${hoy()}::date order by publicado_at desc limit 1`;
+  if (nuevo) {
+    const r = await avisoHistoria(nuevo.id);
+    if (r?.startsWith("✅")) hechas.push("aviso");
+    else if (r) fallos.push(r);
+  }
+  // las que fallaron otro día ('propuesto') vuelven a intentarse
+  const banco = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia'
+    and estado in ('pendiente', 'propuesto') and orden is not null order by orden limit 3`;
+  const elegidas = banco.slice(0, 2);
+  if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[2]) elegidas.push(banco[2]);
+  for (const h of elegidas) {
+    const r = await subir(h.id);
+    if (r.startsWith("✅")) hechas.push(h.id);
+    else {
+      fallos.push(r);
+      if (h.datos.plantilla === "pregunta") break; // sin la pregunta, la respuesta no tiene sentido
+    }
+  }
+  if (fallos.length) await telegram(`⚠️ <b>Historias de hoy</b>: han salido ${hechas.length}; no han salido:\n${fallos.join("\n")}\nSe reintentan el próximo día que toque.`);
+  return { ok: true, hechas, fallos: fallos.length };
+}

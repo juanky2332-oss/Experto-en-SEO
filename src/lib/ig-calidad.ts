@@ -13,8 +13,9 @@ const PROHIBIDO: [RegExp, string][] = [
   [/flownexion/i, "Flownexion"],
   [/solo por escrito|sin llamadas/i, "«solo por escrito / sin llamadas» (se dice en positivo: «te lo enviamos por escrito»)"],
   [/para el metal\b/i, "«para el metal» (IndunexIA es para la industria)"],
-  [/\b(n8n|openai|chatgpt|gpt-\d|anthropic|claude)\b/i, "herramientas internas por su marca"],
-  [/verifactu[^.\n]*(cumpl|homologad|adaptad)/i, "afirmar que cumplimos Verifactu"],
+  [/\b(n8n|openai|chatgpt|anthropic|claude)\b|\bgpt[-\s]?\d/i, "herramientas internas por su marca"],
+  // «IndunexIA cumple Verifactu», «adaptado a Verifactu», «Verifactu: homologado»… (en cualquier orden, dentro de la misma frase)
+  [/(cumple|cumplimos|homologad\w*|adaptad\w*)[^.\n]{0,60}verifactu|verifactu[^.\n]{0,60}(cumple|cumplimos|homologad\w*|adaptad\w*)/i, "afirmar que cumplimos Verifactu"],
 ];
 
 const hashtags = (t: string) => t.match(/#[\p{L}\p{N}_]+/gu) ?? [];
@@ -41,6 +42,23 @@ function pulir(texto: string) {
   return t.trimEnd() + " ";
 }
 
+// Repeticiones que se miden con código (el editor IA, solo, tiende a decir que todo está bien)
+const empiezaPregunta = (t: string) => /^\s*\S{0,3}\s*¿/.test(t);
+const tieneLista = (t: string) => /(^|\n)\s*(1[.)]|1\uFE0F?\u20E3)/.test(t);
+const ctaDiagnostico = (t: string) => /diagn[oó]stico/i.test(t.split("\n").slice(-4).join(" "));
+const flechas = (t: string) => /👇/.test(t) && /👉/.test(t);
+
+function repeticiones(t: string, recientes: string[]) {
+  const r: string[] = [];
+  const [a, b] = recientes;
+  if (ctaDiagnostico(t) && a && b && ctaDiagnostico(a) && ctaDiagnostico(b)) r.push("termina con la misma llamada al diagnóstico que las 2 últimas: usa otra de la lista");
+  if (ctaDiagnostico(t) && a && ctaDiagnostico(a)) r.push("la última ya terminaba con el diagnóstico: usa otra llamada a la acción");
+  if (empiezaPregunta(t) && recientes.slice(0, 4).filter(empiezaPregunta).length >= 2) r.push("otra vez arranca con una pregunta: arranca con una afirmación, una situación concreta o un ejemplo");
+  if (tieneLista(t) && a && tieneLista(a)) r.push("la última ya era una lista numerada: cuéntalo de otra forma (párrafo corto, antes/después o 2-3 frases)");
+  if (flechas(t) && recientes.slice(0, 3).filter(flechas).length >= 2) r.push("repite los 👇 y 👉 de las últimas: quítalos o usa otros");
+  return [...new Set(r)];
+}
+
 export type Revision = { ok: boolean; texto: string; cambios: string[]; problemas: string[]; nota?: string };
 
 export async function revisarTexto(texto: string, tipo: string, recientes: string[]): Promise<Revision> {
@@ -49,6 +67,7 @@ export async function revisarTexto(texto: string, tipo: string, recientes: strin
   if (problemas.length) return { ok: false, texto: original, cambios: [], problemas };
   if (!recientes.length || tipo === "historia") return { ok: true, texto: original, cambios: [], problemas: [], nota: "sin publicaciones con las que comparar" };
 
+  const obligatorio = repeticiones(original, recientes);
   try {
     const r = await json<{ repetitivo: boolean; motivos: string[]; texto: string }>({
       nombre: "editor_instagram",
@@ -63,17 +82,17 @@ export async function revisarTexto(texto: string, tipo: string, recientes: strin
         "«Pide tu diagnóstico gratis en transformaconia.com (enlace en el perfil)» · «Guárdalo para cuando lo necesites» · «Cuéntanos en comentarios cómo lo hacéis vosotros» · «Mándaselo a quien lleva los papeles en tu empresa» · «Te lo enviamos por escrito: enlace en el perfil». " +
         "Reglas: castellano de España natural, como se habla en Murcia; cercano y profesional; mismos datos, precios, cifras y nombres que el original (no inventes nada ni quites un precio); 3-5 hashtags específicos al final; 0-4 emojis; nada de «demo gratis»; nunca nombres de herramientas internas; el diagnóstico siempre gratis y por escrito, dicho en positivo. " +
         "Si no es repetitivo, devuelve el texto original tal cual.",
-      usuario: `TEXTO NUEVO (${tipo}):\n${original}\n\nÚLTIMAS PUBLICACIONES (de la más reciente a la más antigua):\n${recientes.map((t, i) => `--- ${i + 1}\n${t.slice(0, 700)}`).join("\n")}`,
+      usuario: `${obligatorio.length ? `REPETICIONES DETECTADAS (tienes que corregirlas: repetitivo=true y reescríbelo):\n- ${obligatorio.join("\n- ")}\n\n` : ""}TEXTO NUEVO (${tipo}):\n${original}\n\nÚLTIMAS PUBLICACIONES (de la más reciente a la más antigua):\n${recientes.map((t, i) => `--- ${i + 1}\n${t.slice(0, 700)}`).join("\n")}`,
       esquema: {
         type: "object", additionalProperties: false, required: ["repetitivo", "motivos", "texto"],
         properties: { repetitivo: { type: "boolean" }, motivos: { type: "array", items: { type: "string" } }, texto: { type: "string" } },
       },
     });
-    if (!r.repetitivo || !r.texto.trim()) return { ok: true, texto: original, cambios: [], problemas: [], nota: `editor: no lo ve repetitivo (${r.motivos.join("; ") || "sin motivos"})` };
+    if ((!r.repetitivo && !obligatorio.length) || !r.texto.trim() || r.texto.trim() === original.trim()) return { ok: true, texto: original, cambios: [], problemas: [], nota: `editor: no lo ve repetitivo (${r.motivos.join("; ") || "sin motivos"})` };
     const nuevo = pulir(r.texto);
     // lo reescrito tiene que cumplir las reglas y conservar todas las cifras del original
     if (reglasFijas(nuevo, tipo).length || numeros(nuevo) !== numeros(original)) return { ok: true, texto: original, cambios: [], problemas: [], nota: "editor: su versión cambiaba cifras o rompía reglas; se queda el original" };
-    return { ok: true, texto: nuevo, cambios: r.motivos, problemas: [] };
+    return { ok: true, texto: nuevo, cambios: [...obligatorio, ...r.motivos].slice(0, 4), problemas: [] };
   } catch (e) {
     console.error("editor_instagram", e);
     return { ok: true, texto: original, cambios: [], problemas: [], nota: `editor con error: ${(e as Error).message}` }; // el editor es una mejora: si falla, vale el original (ya cumple las reglas)

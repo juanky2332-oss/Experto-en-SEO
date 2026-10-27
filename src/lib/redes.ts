@@ -112,6 +112,22 @@ async function publicarEnInstagram(c: Cred, params: Record<string, string>, espe
   return { id, url: p.permalink ?? null };
 }
 
+/** Espera a que Instagram haya procesado los contenedores (las imágenes de un carrusel) antes de juntarlos. */
+async function esperarListos(c: Cred, ids: string[], esperaMax = 40_000) {
+  const fin = Date.now() + esperaMax;
+  let pendientes = [...ids];
+  while (pendientes.length && Date.now() < fin) {
+    const estados = await Promise.all(pendientes.map(async (id) => {
+      const j = (await fetch(`${IG}/${id}?fields=status_code&access_token=${c.token}`).then((r) => r.json()).catch(() => ({}))) as { status_code?: string };
+      if (j.status_code === "ERROR") throw new Error("Instagram no ha podido procesar una de las imágenes del carrusel");
+      return j.status_code === "FINISHED" ? null : id;
+    }));
+    pendientes = estados.filter((x): x is string => !!x);
+    if (pendientes.length) await new Promise((x) => setTimeout(x, 3000));
+  }
+  if (pendientes.length) throw new Error("Instagram sigue procesando las imágenes del carrusel; se reintenta en la próxima pasada");
+}
+
 // ---------------------------------------------------------------- cola
 export type ElementoCola = {
   id: string; tipo: "reel" | "noticia" | "carrusel" | "historia"; titulo: string; texto: string; video_url: string | null; portada_url: string | null; historia_url: string | null;
@@ -209,6 +225,7 @@ export async function subir(id: string): Promise<string> {
       if (imgs.length < 2 || imgs.length > 10) throw new Error(`un carrusel lleva de 2 a 10 imágenes (tiene ${imgs.length})`);
       const hijos: string[] = [];
       for (const url of imgs) hijos.push(await igPost(c, `${c.user_id}/media`, { image_url: url, is_carousel_item: "true" }));
+      await esperarListos(c, hijos);
       r = await publicarEnInstagram(c, { media_type: "CAROUSEL", children: hijos.join(","), caption: e.texto }, 60_000);
     } else if (e.tipo === "historia") {
       r = await publicarEnInstagram(c, { media_type: "STORIES", image_url: e.historia_url! });
@@ -291,8 +308,8 @@ export async function ensayar(id?: string) {
   const c = await credencial();
   if (!c) return { ok: false as const, motivo: "Instagram no conectado" };
   const [e] = id
-    ? await sql<ElementoCola[]>`select * from seo.ig_cola where id = ${id}`
-    : await sql<ElementoCola[]>`select * from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto') order by fecha nulls last, id limit 1`;
+    ? await sql<ElementoCola[]>`select *, fecha::text as fecha from seo.ig_cola where id = ${id}`
+    : await sql<ElementoCola[]>`select *, fecha::text as fecha from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto') order by fecha nulls last, id limit 1`;
   if (!e) return { ok: false as const, motivo: "No encuentro ese elemento" };
   const rev = await revisarTexto(e.texto, e.tipo, await ultimosTextos(c));
   return { ok: true as const, id: e.id, titulo: e.titulo, fecha: e.fecha, original: e.texto, pasa: rev.ok, texto: rev.texto, cambios: rev.cambios, problemas: rev.problemas, nota: rev.nota };

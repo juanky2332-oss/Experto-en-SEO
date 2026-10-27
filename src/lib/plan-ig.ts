@@ -88,8 +88,10 @@ export async function replanificar() {
   await sql`delete from seo.ig_plan where fecha >= ${inicio}::date and estado in ('pendiente', 'propuesto', 'aprobado')`;
   for (const [i, f] of dias.entries()) {
     const tareas: Tarea[] = [];
-    if (reels[i]) tareas.push({ tipo: "reel", ref: reels[i].id, detalle: `${reels[i].tipo === "carrusel" ? "Carrusel" : "Reel"}: ${reels[i].titulo}` });
+    if (reels[i]) {
+      tareas.push({ tipo: "reel", ref: reels[i].id, detalle: `${reels[i].tipo === "carrusel" ? "Carrusel" : "Reel"}: ${reels[i].titulo}` });
       tareas.push({ tipo: "historia", detalle: "Historias: aviso de la publicación nueva + 2 del banco" });
+    }
     if (listas[i]) {
       tareas.push({ tipo: "seguir", detalle: "Seguir las cuentas de la lista (desde el ordenador o, si está apagado, te llega al móvil a las 19:00)" });
       tareas.push({ tipo: "comentar", detalle: "Un comentario corto y natural en una publicación de cada una" });
