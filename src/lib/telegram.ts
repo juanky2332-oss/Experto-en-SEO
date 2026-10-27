@@ -84,7 +84,7 @@ async function comando(texto: string): Promise<Respuesta | null> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/queredactar — busco las noticias del día y te digo qué publicaría yo ahora y por qué (web, Instagram y noticias con más movimiento), con el resumen de la noticia; confirmas y lo redacto y publico. Y otras 5 para elegir; si te gusta, «✍️ Redactar y publicar ahora»
+      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/queredactar — busco las noticias del día y te digo qué publicaría yo ahora y por qué (web, Instagram y noticias con más movimiento), con el resumen de la noticia; confirmas y lo redacto y publico. Y otras 5 para elegir; si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando la siguiente publicación con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram · /revisar — cómo saldría el texto de la siguiente tras el control de calidad\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
     case "/queredactar":
