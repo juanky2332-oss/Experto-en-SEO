@@ -10,8 +10,13 @@ import { json, MODELO } from "@/lib/ai";
 
 const PROHIBIDO: [RegExp, string][] = [
   [
-    /demo gratis|pru[eé]balo gratis/i,
-    "«demo gratis / pruébalo gratis» (el gancho es el diagnóstico gratis)",
+    /demo gratis|pru[eé]ba(lo|la|nos)\b/i,
+    "«demo gratis / pruébalo» (el gancho es el diagnóstico gratis)",
+  ],
+  // clientes, casos o resultados que no se pueden demostrar (no inventar: CLAUDE.md)
+  [
+    /ya funciona en|nuestros clientes|clientes (satisfechos|contentos)|trabajamos con empresas de|(cientos|miles|decenas) de (empresas|clientes)|empresas (como la tuya )?ya (lo )?usan/i,
+    "clientes, casos o resultados sin comprobar",
   ],
   [/flownexion/i, "Flownexion"],
   [
