@@ -19,8 +19,10 @@ const PROHIBIDO: [RegExp, string][] = [
 ];
 
 const hashtags = (t: string) => t.match(/#[\p{L}\p{N}_]+/gu) ?? [];
-// cifras del texto (sin los emojis numerados 1️⃣ 2️⃣…, que son forma y no datos)
-const numeros = (t: string) => (t.replace(/\d️?⃣/g, "").match(/\d+(?:[.,]\d+)?/g) ?? []).sort().join("|");
+// cifras del texto: sin los emojis numerados (1️⃣ 2️⃣…), sin los números de una lista («1.», «2)» al empezar línea) y sin
+// hashtags, que son forma y no datos; repetidas cuentan una vez (precios, horas, porcentajes… tienen que seguir estando)
+const numeros = (t: string) =>
+  [...new Set(t.replace(/\d️?⃣/g, "").replace(/(^|\n)\s*\d{1,2}[.)]\s/g, "$1").replace(/#[\p{L}\p{N}_]+/gu, "").match(/\d+(?:[.,]\d+)?/g) ?? [])].sort().join("|");
 
 /** Problemas de reglas fijas. `noticia`: el texto viene del blog ya revisado; ahí se permite nombrar herramientas (es actualidad). */
 export function reglasFijas(texto: string, tipo: string): string[] {
