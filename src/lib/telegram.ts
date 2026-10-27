@@ -503,7 +503,7 @@ export async function atender(update: Update) {
   try {
     if (update.callback_query?.data?.startsWith("app:")) r = await boton(update.callback_query.data);
     else if (update.message?.text?.startsWith("/")) r = await comando(update.message.text);
-    else if (update.message?.text && /qu[eé] (redacto|redactamos|publico|publicamos|escribo|subo)/i.test(update.message.text)) r = await pedirIdea(false);
+    else if (update.message?.text && /\bqu[eé] (redacto|redactamos|publico|publicamos|escribo|subo)\b/i.test(update.message.text)) r = await pedirIdea(false);
     else if (update.message?.text && /\bnoticias?\b/i.test(update.message.text) && /\b(busca|búscame|buscame|dame|trae|tráeme|traeme|hay|qué|que|ver|enséñame|ensename)\b/i.test(update.message.text)) r = await buscarNoticias();
     else if (update.message?.text) r = await conversar(update.message.text);
     else if (update.message?.voice) r = { text: "De momento solo entiendo texto. Escríbemelo y lo hago 🙂" };
