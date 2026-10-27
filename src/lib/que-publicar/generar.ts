@@ -57,7 +57,8 @@ Campos de cada candidato:
 - radar_id: id de la noticia del radar o 0.
 
 Devuelve 12-15 candidatos variados (al menos 4 de procesos industriales, 2 de sectores, 2 de Murcia o local y al menos 3 que no sean artículos nuevos).
-NOTICIAS: si el RADAR trae noticias, al menos 5 candidatos deben ser ARTÍCULOS que partan de una noticia concreta (señal radar con su radar_id), aterrizada a lo que significa para una empresa industrial española o de Murcia (qué cambia, qué hacer, ejemplo práctico). Los dos mejores candidatos de todos deben ser de noticia si hay alguna con puntuación alta. Nunca copies el titular de la noticia: el titular es nuestro y responde a lo que buscaría un gerente.`;
+NOTICIAS: si el RADAR trae noticias, al menos 5 candidatos deben ser ARTÍCULOS que partan de una noticia concreta (señal radar con su radar_id), aterrizada a lo que significa para una empresa industrial española o de Murcia (qué cambia, qué hacer, ejemplo práctico). Los dos mejores candidatos de todos deben ser de noticia si hay alguna con puntuación alta. Entre noticias parecidas, gana la que cuentan MÁS MEDIOS (más movimiento = más gente buscándolo ahora) y la que más se aterriza a la industria; dilo en por_que (p. ej. «la cuentan 4 medios esta semana»).
+INSTAGRAM: el artículo debe complementar lo que sale en Instagram, no repetirlo con el mismo enfoque; si un tema acaba de salir en Instagram, mejor otro ángulo o el siguiente paso. Nunca copies el titular de la noticia: el titular es nuestro y responde a lo que buscaría un gerente.`;
 
 const str = { type: "string" } as const;
 const ESQUEMA = {
@@ -93,7 +94,8 @@ function textoSenales(s: Senales) {
     `AUDITORÍA · canibalización:\n${l(s.canibalizacion.slice(0, 10).map((c) => `- ${c.titulo} ↔ ${c.con}`))}`,
     `AUDITORÍA · artículos huérfanos (nadie los enlaza):\n${l(s.huerfanos.slice(0, 15).map((h) => `- /${h.slug}/ · ${h.titulo}`))}`,
     `PLAZOS:\n${l(s.plazos.map((p) => `- ${p.titulo}: ${p.fecha ?? "fecha por confirmar"} (${p.estado.replace("_", " ")}). ${p.nota}`))}`,
-    `RADAR (últimos 14 días, id · puntuación · titular · keyword):\n${s.radar.length ? s.radar.map((r) => `- ${r.id} · ${r.score} · ${r.titulo} · ${r.keyword}`).join("\n") : "- sin noticias recientes: no uses la señal «radar»"}`,
+    `RADAR (últimos 7 días, id · puntuación · medios que lo cuentan · titular · keyword):\n${s.radar.length ? s.radar.map((r) => `- ${r.id} · ${r.score} · ${r.medios} medios · ${r.titulo} · ${r.keyword}`).join("\n") : "- sin noticias recientes: no uses la señal «radar»"}`,
+    `INSTAGRAM (lo último y lo próximo):\n${s.instagram.length ? s.instagram.map((t) => `- ${t}`).join("\n") : "- (nada)"}`,
     `SEARCH CONSOLE${s.gsc.fecha ? ` (28 días hasta ${s.gsc.fecha})` : " (sin datos)"}
 GSC_CERCA (consulta · página que posiciona · posición · impresiones; casi en página 1):
 ${l(s.gsc.cerca.slice(0, 8).map((o) => `- ${o.consulta} · ${o.pagina} · ${redondea(o.posicion)} · ${o.impresiones}`))}

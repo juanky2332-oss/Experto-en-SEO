@@ -84,10 +84,14 @@ async function comando(texto: string): Promise<Respuesta | null> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando la siguiente publicación con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram · /revisar — cómo saldría el texto de la siguiente tras el control de calidad\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/idea — la mejor publicación para ahora (con noticias frescas) y otras 5 para elegir; si te gusta, «✍️ Redactar y publicar ahora»
+/noticias — las mejores noticias de IA e industria para el blog (0 € si ya se buscaron hoy); también vale escribir «búscame noticias»\n\n/reel — te mando la siguiente publicación con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram · /revisar — cómo saldría el texto de la siguiente tras el control de calidad\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
       return pedirIdea(false);
+    case "/noticias":
+    case "/noticia":
+      return buscarNoticias();
     case "/reel":
       return siguiente();
     case "/reels":
@@ -229,6 +233,31 @@ async function pedirIdea(saltarActual: boolean, recId?: number): Promise<Respues
 }
 
 
+// ---------------------------------------------------------------- noticias para el blog (0 € si ya se buscaron hoy)
+async function buscarNoticias(): Promise<Respuesta> {
+  after(async () => {
+    try {
+      const { asegurarNoticias } = await import("./que-publicar/idea");
+      const estado = await asegurarNoticias();
+      const ns = await sql<{ id: number; title: string; source: string; score: number; keyword: string | null }[]>`
+        select id, title, source, score, keyword from seo.radar
+        where score >= 55 and created_at > now() - interval '7 days' and status in ('new', 'sent', 'seen')
+        order by score desc, created_at desc limit 8`;
+      if (!ns.length) {
+        await telegram("🗞 No he encontrado noticias que encajen con la guía en los últimos 7 días. Prueba mañana o pídeme un tema con /tema.");
+        return;
+      }
+      await telegram(
+        `🗞 <b>Noticias para el blog</b> ${estado === "recientes" ? "(ya buscadas hoy: 0 €)" : "(recién buscadas)"}\n\n${ns.map((n, i) => `${i + 1}. <b>${esc(n.title)}</b>\n   ${esc(n.source)} · interés ${n.score}/100`).join("\n")}\n\nToca el número para que te prepare el artículo (cómo quedará, y luego «Redactar y publicar»).`,
+        ns.map((n, i) => ({ text: `✍️ ${i + 1}`, data: `app:noticia:${n.id}` })),
+      );
+    } catch (e) {
+      await telegram(`⚠️ No he podido buscar noticias: ${esc((e as Error).message)}`);
+    }
+  });
+  return { text: "🔎 Miro las noticias de IA e industria… Si ya las busqué hoy te las enseño al momento (0 €); si no, las busco ahora (céntimos, 1-3 minutos)." };
+}
+
 // ---------------------------------------------------------------- Instagram (reels y noticias)
 async function siguiente(): Promise<Respuesta | null> {
   const e = await siguienteReel();
@@ -289,6 +318,12 @@ async function boton(data: string): Promise<Respuesta | null> {
       const esLaActual = !!i?.brief && i.brief.id === valor;
       if (!esLaActual && /^[0-9a-f-]{36}$/.test(valor ?? "")) await publicador({ action: "reject", brief_id: valor }).catch(() => null);
       return pedirIdea(esLaActual);
+    }
+    case "noticia": {
+      // artículo a partir de una noticia concreta: el publicador prepara la propuesta (cómo quedará) y llega con sus botones
+      await sql`update seo.radar set status = 'seen' where id = ${id} and status = 'new'`;
+      await publicador({ action: "brief_radar", radar_id: id });
+      return { text: "✍️ Preparo el artículo de esa noticia. En un minuto te llega cómo quedará, con «Redactar y publicar»." };
     }
     case "ideax":
       // una de las «otras 5»: la que hubiera en preparación se aparta y se prepara esta
@@ -440,6 +475,7 @@ export async function atender(update: Update) {
   try {
     if (update.callback_query?.data?.startsWith("app:")) r = await boton(update.callback_query.data);
     else if (update.message?.text?.startsWith("/")) r = await comando(update.message.text);
+    else if (update.message?.text && /noticias?/i.test(update.message.text) && /(busca|búscame|buscame|dame|trae|tráeme|traeme|hay|qué|que|ver|enséñame|ensename)/i.test(update.message.text)) r = await buscarNoticias();
     else if (update.message?.text) r = await conversar(update.message.text);
     else if (update.message?.voice) r = { text: "De momento solo entiendo texto. Escríbemelo y lo hago 🙂" };
   } catch (e) {

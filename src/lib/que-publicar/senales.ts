@@ -15,8 +15,10 @@ export type PaginaSenal = { slug: string; ruta: string; titulo: string; keyword:
 export type Senales = {
   guia: Guia;
   radarCfg: RadarConfig;
-  /** solo si el radar está encendido; apagado = lista vacía (decisión del usuario 2026-10-14) */
-  radar: { id: number; titulo: string; keyword: string; score: number }[];
+  /** noticias de los últimos 7 días; «medios» = cuántos medios distintos cuentan lo mismo en 4 días (movimiento) */
+  radar: { id: number; titulo: string; keyword: string; score: number; medios: number }[];
+  /** lo último publicado y lo próximo en Instagram, para complementar y no repetir */
+  instagram: string[];
   publicados: { titulo: string; keyword: string; slug: string; fecha: string }[];
   programados: Programado[];
   paginas: PaginaSenal[];
@@ -54,6 +56,24 @@ export async function recogerSenales(): Promise<Senales> {
       select coalesce(etiqueta, '') etiqueta, count(*)::int n from seo.visitas where evento = 'conversion' group by 1`,
   ]);
   const plazos = await getPlazos();
+  // Movimiento: medios distintos con 3+ palabras importantes en común en los últimos 4 días (sin IA, 0 €)
+  const recientes = await sql<{ title: string; source: string }[]>`select title, source from seo.radar where created_at > now() - interval '4 days'`;
+  const palabras = (t: string) => new Set(t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/).filter((w) => w.length > 4));
+  const bolsas = recientes.map((x) => ({ s: x.source, p: palabras(x.title) }));
+  const medios = (t: string) => {
+    const p = palabras(t);
+    const fuentes = new Set<string>();
+    for (const b of bolsas) {
+      let n = 0;
+      for (const w of p) if (b.p.has(w) && ++n >= 3) break;
+      if (n >= 3) fuentes.add(b.s);
+    }
+    return Math.max(1, fuentes.size);
+  };
+  const instagram = await sql<{ t: string }[]>`
+    (select '[publicado ' || to_char(coalesce(publicado_at, fecha), 'DD/MM') || '] ' || titulo t from seo.ig_cola where estado = 'publicado' order by coalesce(publicado_at, fecha) desc nulls last limit 6)
+    union all
+    (select '[previsto ' || to_char(fecha, 'DD/MM') || '] ' || titulo from seo.ig_cola where estado in ('pendiente','propuesto') and tipo in ('reel','carrusel') order by fecha limit 4)`.catch(() => []);
 
   const pub = inv.posts.filter((p) => p.status === "publish");
   const kw = (m: { rank_math_focus_keyword?: string }) => m.rank_math_focus_keyword ?? "";
@@ -92,7 +112,8 @@ export async function recogerSenales(): Promise<Senales> {
 
   return {
     guia, radarCfg,
-    radar: radar.filter((r) => !RE_MARCAS.test(`${r.titulo} ${r.keyword}`)),
+    radar: radar.filter((r) => !RE_MARCAS.test(`${r.titulo} ${r.keyword}`)).map((r) => ({ ...r, medios: medios(r.titulo) })),
+    instagram: instagram.map((x) => x.t),
     publicados: pub.map((p) => ({ titulo: p.title, keyword: kw(p.meta), slug: p.slug, fecha: p.date.slice(0, 10) })),
     // los borradores ya redactados también cuentan: no se propone otra vez un tema que ya está escrito
     programados: inv.posts.filter((p) => p.status === "future" || p.status === "draft").sort((a, b) => a.date.localeCompare(b.date))
