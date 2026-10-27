@@ -2,31 +2,31 @@
  "inicio": {
   "id": 7633,
   "url": "https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-inicio.webp",
-  "alt": "Panel de inicio de IndunexIA con avisos de facturas vencidas, impuestos próximos e importes pendientes de cobro"
+  "alt": "Panel de inicio de IndunexIA Gestión con avisos de facturas vencidas, impuestos próximos e importes pendientes de cobro"
  },
  "calculadora": {
   "id": 7634,
   "url": "https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp",
-  "alt": "Calculadora de costes de IndunexIA: coste de material y de máquina de un trabajo, margen del 30 % y precio final por pieza"
+  "alt": "Calculadora de costes de IndunexIA Gestión: coste de material y de máquina de un trabajo, margen del 30 % y precio final por pieza"
  },
  "albaran": {
   "id": 7635,
   "url": "https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-albaran.webp",
-  "alt": "Listado de albaranes de IndunexIA con un albarán firmado por el cliente y ya traspasado a factura"
+  "alt": "Listado de albaranes de IndunexIA Gestión con un albarán firmado por el cliente y ya traspasado a factura"
  },
  "facturas": {
   "id": 7636,
   "url": "https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-facturas.webp",
-  "alt": "Listado de facturas de IndunexIA con totales facturado, cobrado y pendiente, y el estado de cada factura"
+  "alt": "Listado de facturas de IndunexIA Gestión con totales facturado, cobrado y pendiente, y el estado de cada factura"
  },
  "cobros": {
   "id": 7637,
   "url": "https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-cobros.webp",
-  "alt": "Pantalla de cobros y vencimientos de IndunexIA con facturas vencidas, parciales y próximas a vencer"
+  "alt": "Pantalla de cobros y vencimientos de IndunexIA Gestión con facturas vencidas, parciales y próximas a vencer"
  },
  "movil": {
   "id": 7638,
   "url": "https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-movil.webp",
-  "alt": "IndunexIA en el móvil: inicio con avisos de cobros, impuestos y menú inferior de acceso rápido"
+  "alt": "IndunexIA Gestión en el móvil: inicio con avisos de cobros, impuestos y menú inferior de acceso rápido"
  }
 }

@@ -11,7 +11,7 @@ import { TIPOS_BASE, GUIA_INICIAL, guiaATexto, cajaAutor } from '../src/lib/guia
 // Páginas a las que el artículo puede llevar (servicio, sector, ERP, locales). Solo se ofrecen
 // las que existen publicadas en WordPress en el momento de redactar.
 const PAGINAS = {
-  '/erp-industria/': 'ERP para la industria (IndunexIA): presupuestos, pedidos, albaranes, facturas, stock, partes de trabajo e informes',
+  '/erp-industria/': 'ERP para la industria (IndunexIA Gestión): presupuestos, pedidos, albaranes, facturas, stock, partes de trabajo e informes',
   '/industria/': 'IA y automatización para empresas industriales (página general del sector)',
   '/ia-talleres-industriales/': 'IA para talleres de mecanizado, calderería, carpintería metálica y reparación de maquinaria',
   '/ia-mantenimiento-industrial/': 'IA para mantenimiento industrial: preventivo, averías, órdenes de trabajo y repuestos',

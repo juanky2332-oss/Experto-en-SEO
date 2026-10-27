@@ -24,7 +24,7 @@ const tarjeta = (tag, h1, pie) => `<div class="og" id="x"><div class="lk">${svg}
 <h1>${h1}</h1><div class="pie">${pie}</div></div>`;
 const piezas = [
   ['og-transformaconia.png', tarjeta('', 'Automatización de procesos e IA <span class="grad">para la industria.</span>', '<span>ERP para la industria · Asistentes técnicos · Automatización</span><b>transformaconia.com</b>')],
-  ['og-gestion.png', tarjeta('<span style="text-transform:none;letter-spacing:0;font-size:30px;font-weight:700">IndunexIA</span>', 'El ERP con IA <span class="grad">para la industria</span> y otros sectores.', '<span>Costes y margen · Presupuestos · Facturas · Cobros</span><b>Diagnóstico gratis</b>')],
+  ['og-gestion.png', tarjeta('<span style="text-transform:none;letter-spacing:0;font-size:30px;font-weight:700">IndunexIA Gestión</span>', 'El ERP con IA <span class="grad">para la industria</span> y otros sectores.', '<span>Costes y margen · Presupuestos · Facturas · Cobros</span><b>Diagnóstico gratis</b>')],
 ];
 (async () => {
   const b = await puppeteer.launch({ executablePath: 'C:/Users/juank/.cache/puppeteer/chrome/win64-145.0.7632.67/chrome-win64/chrome.exe', headless: 'new' });

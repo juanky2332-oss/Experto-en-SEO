@@ -17,7 +17,7 @@ Esta guía manda sobre todo lo que se prepare para Instagram (reels, carruseles,
 - Dos temas, que se **alternan** en la cuadrícula para que tenga ritmo: **oscuro** (`#0b0614` con brillos morados) y **claro** (`#f7f3fd`, tinta `#1b1029`, círculos suaves). Mismo degradado de acento (`#e05cff → #a11cf0 → #5b3cff`), letra Poppins y símbolo de la marca.
 - Portadas de reel: `Portada` de la fábrica con `tema: "claro"` u `"oscuro"`. Carruseles: `"tema"` en el JSON (`scripts/carrusel.mjs`). Historias: la plantilla decide el tema (consejo, respuesta y app en claro; dato y mito en oscuro; pregunta con el degradado).
 - Enseñar el producto: al menos 1 de cada 3 piezas lleva pantallas reales de la app en el móvil (siempre con datos ficticios: «Empresa X», «Cliente Demo»).
-- Formatos de carrusel: portada · comparativa (antes / con IndunexIA) · pasos · lista · pantalla · precio · cierre. Que el contenido llene la diapositiva (centrado, letra grande); nada de medias diapositivas vacías.
+- Formatos de carrusel: portada · comparativa (antes / con IndunexIA Gestión) · pasos · lista · pantalla · precio · cierre. Que el contenido llene la diapositiva (centrado, letra grande); nada de medias diapositivas vacías.
 - Zona segura de historias: nada importante en los 250 px de arriba y de abajo.
 
 ## Textos
@@ -34,7 +34,7 @@ Esta guía manda sobre todo lo que se prepare para Instagram (reels, carruseles,
 - Ensayo sin publicar: `/revisar` en Telegram (la siguiente) o `/revisar <id>`.
 
 ## Destacadas (las crea él desde el móvil, una vez)
-Cuando haya historias publicadas: «IndunexIA», «Consejos», «Diagnóstico», «Nosotros» y «Blog», con las portadas de `FABRICA DE VIDEOS/salida/instagram/destacadas/`. Instagram no deja crearlas por la API ni desde la web.
+Cuando haya historias publicadas: «IndunexIA Gestión», «Consejos», «Diagnóstico», «Nosotros» y «Blog», con las portadas de `FABRICA DE VIDEOS/salida/instagram/destacadas/`. Instagram no deja crearlas por la API ni desde la web.
 
 ## Mejorar siempre
 - Cada informe del día que toca trae números solo si se mueven. Una vez al mes (o al preparar la siguiente tanda), mirar qué formato y qué tema han tenido más alcance, guardados y visitas al perfil, y ajustar la mezcla de la siguiente tanda: más de lo que funciona y cambiar el ángulo de lo que no.

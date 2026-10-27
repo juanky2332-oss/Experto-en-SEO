@@ -23,12 +23,12 @@ const PROHIBIDO: [RegExp, string][] = [
     /solo por escrito|sin llamadas/i,
     "«solo por escrito / sin llamadas» (se dice en positivo: «te lo enviamos por escrito»)",
   ],
-  [/para el metal\b/i, "«para el metal» (IndunexIA es para la industria)"],
+  [/para el metal\b/i, "«para el metal» (IndunexIA Gestión es para la industria)"],
   [
     /\b(n8n|openai|chatgpt|anthropic|claude)\b|\bgpt[-\s]?\d/i,
     "herramientas internas por su marca",
   ],
-  // «IndunexIA cumple Verifactu», «adaptado a Verifactu», «Verifactu: homologado»… (en cualquier orden, dentro de la misma frase)
+  // «IndunexIA Gestión cumple Verifactu», «adaptado a Verifactu», «Verifactu: homologado»… (en cualquier orden, dentro de la misma frase)
   [
     /(cumple|cumplimos|homologad\w*|adaptad\w*)[^.\n]{0,60}verifactu|verifactu[^.\n]{0,60}(cumple|cumplimos|homologad\w*|adaptad\w*)/i,
     "afirmar que cumplimos Verifactu",
@@ -146,7 +146,7 @@ export async function revisarTexto(
         esfuerzo: "medium",
         maxTokens: 4000,
         sistema:
-          "Eres el editor de la cuenta de Instagram de Transforma con IA (Murcia): IA y automatización para talleres, industria y pymes; producto estrella IndunexIA (programa de gestión). " +
+          "Eres el editor de la cuenta de Instagram de Transforma con IA (Murcia): IA y automatización para talleres, industria y pymes; producto estrella IndunexIA Gestión (programa de gestión). " +
           "Te paso el texto que se va a publicar y los de las últimas publicaciones. Tu trabajo: que la cuenta NO se vea repetitiva. " +
           "Marca repetitivo=true solo si el texto nuevo repite claramente lo de las anteriores: el mismo tipo de gancho de arranque (p. ej. otra pregunta «¿Sabes…?» tras varias), la misma estructura (gancho + lista con emojis + «👇»), la misma llamada a la acción final que las 2 últimas, o los mismos emojis. " +
           "Si es repetitivo, reescríbelo cambiando SOLO la forma: otro tipo de gancho (una afirmación rotunda, una situación concreta del taller, un «Ejemplo:», un antes/después), otra estructura y otra llamada a la acción de esta lista, la que no se haya usado en las 2 últimas: " +

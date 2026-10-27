@@ -345,7 +345,7 @@ add_action( 'get_footer', function () {
 		?>
 <aside class="tc-webband tc-webband--erp" aria-label="Diagnóstico gratuito">
  <div class="tc-wrap tc-webband__in">
-  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Cuéntanos cómo trabajáis y te enviamos por escrito qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, IndunexIA.</p>
+  <p class="tc-webband__t">¿Trabajas en una empresa industrial? Cuéntanos cómo trabajáis y te enviamos por escrito qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, IndunexIA Gestión.</p>
   <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/contacto/' ); ?>">Pedir diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
  </div>
 </aside>
@@ -569,8 +569,8 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 	if ( is_page( 'erp-industria' ) ) {
 		$data['TcErp'] = array(
 			'@type'               => 'SoftwareApplication',
-			'name'                => 'IndunexIA',
-			'alternateName'       => 'IndunexIA: ERP con IA para la industria',
+			'name'                => 'IndunexIA Gestión',
+			'alternateName'       => 'IndunexIA Gestión: ERP con IA para la industria',
 			'applicationCategory' => 'BusinessApplication',
 			'operatingSystem'     => 'Web',
 			'url'                 => home_url( '/erp-industria/' ),
@@ -578,7 +578,7 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			'screenshot'          => array(
 				'@type'       => 'ImageObject',
 				'url'         => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
-				'caption'     => 'Calculadora de costes de IndunexIA con el margen aplicado (datos de ejemplo)',
+				'caption'     => 'Calculadora de costes de IndunexIA Gestión con el margen aplicado (datos de ejemplo)',
 				'contentUrl'  => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
 			),
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
@@ -914,7 +914,7 @@ add_action( 'wp_footer', function () {
 	}
 	?>
 <?php $tc_erp = is_page( 'erp-industria' ); ?>
-<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA por dentro' : 'Pide tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA Gestión por dentro' : 'Pide tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
 <script id="tc-sticky-js">
 (function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
   var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};
