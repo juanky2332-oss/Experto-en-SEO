@@ -1,8 +1,10 @@
 import "server-only";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
+import { revisarTexto } from "@/lib/ig-calidad";
 
-// Instagram: reels de la fábrica de vídeos y noticias del blog (publicación 4:5 + historia 9:16).
+// Instagram: reels y carruseles de la fábrica de vídeos, historias (/api/ig/historia) y noticias del blog (publicación 4:5 + historia 9:16).
+// Antes de subir cualquier cosa pasa el control de calidad (src/lib/ig-calidad.ts): reglas de marca y que no repita las últimas.
 // Nada se sube sin que él diga que sí: todo entra en seo.ig_cola, se le propone por Telegram
 // (vídeo o enlaces + texto) con «✅ Subir a Instagram» / «❌ No subir», y al pulsar se publica por la API.
 // Las imágenes de noticias las genera /api/ig/tarjeta y los reels se sirven desde demo.transformaconia.com/ig/
@@ -112,9 +114,15 @@ async function publicarEnInstagram(c: Cred, params: Record<string, string>, espe
 
 // ---------------------------------------------------------------- cola
 export type ElementoCola = {
-  id: string; tipo: "reel" | "noticia"; titulo: string; texto: string; video_url: string | null; portada_url: string | null; historia_url: string | null;
-  fecha: string | null; estado: string; ig_url: string | null;
+  id: string; tipo: "reel" | "noticia" | "carrusel" | "historia"; titulo: string; texto: string; video_url: string | null; portada_url: string | null; historia_url: string | null;
+  fecha: string | null; estado: string; ig_url: string | null; datos: { imagenes?: string[] } | null;
 };
+
+/** Los textos de las últimas publicaciones del perfil (para que el editor no repita). */
+async function ultimosTextos(c: Cred, n = 8) {
+  const r = (await fetch(`${IG}/${c.user_id}/media?fields=caption&limit=${n}&access_token=${c.token}`).then((x) => x.json()).catch(() => ({}))) as { data?: { caption?: string }[] };
+  return (r.data ?? []).map((m) => m.caption ?? "").filter(Boolean);
+}
 
 const botones = (id: string) => [{ text: "✅ Subir a Instagram", data: `app:igsi:${id}` }, { text: "❌ No subir", data: `app:igno:${id}` }];
 
@@ -146,12 +154,12 @@ export async function proponer(e: ElementoCola) {
 
 /** El siguiente reel sin subir (el de fecha más temprana primero). */
 export async function siguienteReel() {
-  const [e] = await sql<ElementoCola[]>`select * from seo.ig_cola where tipo = 'reel' and estado in ('pendiente', 'propuesto') order by fecha nulls last, id limit 1`;
+  const [e] = await sql<ElementoCola[]>`select * from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto') order by fecha nulls last, id limit 1`;
   return e ?? null;
 }
 
 export async function colaReels() {
-  return sql<ElementoCola[]>`select * from seo.ig_cola where tipo = 'reel' order by fecha nulls last, id`;
+  return sql<ElementoCola[]>`select * from seo.ig_cola where tipo in ('reel', 'carrusel') order by fecha nulls last, id`;
 }
 
 /** Cron (días sin plan): propone los reels previstos para hoy. */
@@ -180,9 +188,30 @@ export async function subir(id: string): Promise<string> {
   }
   let r: { id: string; url: string | null };
   let extra = "";
+  // control de calidad: reglas de marca (si no las cumple, no se sube) y que no repita las últimas publicaciones
+  if (e.tipo !== "historia") {
+    const rev = await revisarTexto(e.texto, e.tipo, await ultimosTextos(c));
+    if (!rev.ok) {
+      await sql`update seo.ig_cola set estado = 'propuesto', error = ${"Control de calidad: " + rev.problemas.join("; ")} where id = ${id}`;
+      return `🛑 <b>No he subido «${esc(e.titulo)}»</b>: no pasa el control de calidad.\n${rev.problemas.map((x) => "• " + esc(x)).join("\n")}\nLo corrijo en cuanto abras Claude Code.`;
+    }
+    if (rev.texto !== e.texto) {
+      e.texto = rev.texto;
+      await sql`update seo.ig_cola set texto = ${rev.texto} where id = ${id}`;
+      if (rev.cambios.length) extra += ` · texto retocado para no repetir (${esc(rev.cambios[0])})`;
+    }
+  }
   try {
     if (e.tipo === "reel") {
       r = await publicarEnInstagram(c, { media_type: "REELS", video_url: e.video_url!, ...(e.portada_url ? { cover_url: e.portada_url } : {}), caption: e.texto, share_to_feed: "true" }, 240_000);
+    } else if (e.tipo === "carrusel") {
+      const imgs = e.datos?.imagenes ?? [];
+      if (imgs.length < 2 || imgs.length > 10) throw new Error(`un carrusel lleva de 2 a 10 imágenes (tiene ${imgs.length})`);
+      const hijos: string[] = [];
+      for (const url of imgs) hijos.push(await igPost(c, `${c.user_id}/media`, { image_url: url, is_carousel_item: "true" }));
+      r = await publicarEnInstagram(c, { media_type: "CAROUSEL", children: hijos.join(","), caption: e.texto }, 60_000);
+    } else if (e.tipo === "historia") {
+      r = await publicarEnInstagram(c, { media_type: "STORIES", image_url: e.historia_url! });
     } else {
       r = await publicarEnInstagram(c, { image_url: e.portada_url!, caption: e.texto });
     }
@@ -200,8 +229,9 @@ export async function subir(id: string): Promise<string> {
       extra = ` · Historia ❌ (${esc((err as Error).message)})`;
     }
   }
-  const [q] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo = 'reel' and estado in ('pendiente', 'propuesto')`.catch(() => [{ n: 0 }]);
-  return `✅ <b>Subido a Instagram</b>: ${esc(e.titulo)}${extra}\n${r.url ?? ""}${e.tipo === "reel" ? `\n\nQuedan ${q.n} reels en la cola (/reel para ver el siguiente).` : ""}`;
+  if (e.tipo === "historia") return `✅ Historia: ${esc(e.titulo)}`;
+  const [q] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto')`.catch(() => [{ n: 0 }]);
+  return `✅ <b>Subido a Instagram</b>: ${esc(e.titulo)}${extra}\n${r.url ?? ""}${e.tipo === "reel" || e.tipo === "carrusel" ? `\n\nQuedan ${q.n} publicaciones en la cola (/reel para ver la siguiente).` : ""}`;
 }
 
 export async function descartar(id: string) {

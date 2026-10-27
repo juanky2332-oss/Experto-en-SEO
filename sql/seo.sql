@@ -378,3 +378,9 @@ create index if not exists ig_movil_fecha on seo.ig_movil (fecha, orden);
 alter table seo.ig_movil add column if not exists reclamada_at timestamptz;
 -- una sola respuesta por comentario aunque coincidan dos ejecuciones
 create unique index if not exists ig_acciones_respuesta_unica on seo.ig_acciones (url) where tipo = 'responder';
+
+-- 2026-10-27 · Historias y carruseles en la cola (variedad de formatos, ver agente-ig/ESTILO-CUENTA.md)
+alter table seo.ig_cola drop constraint if exists ig_cola_tipo_check;
+alter table seo.ig_cola add constraint ig_cola_tipo_check check (tipo in ('reel', 'noticia', 'carrusel', 'historia'));
+alter table seo.ig_cola add column if not exists datos jsonb;   -- historia: {plantilla, tema, ...}; carrusel: {imagenes: [url…]}
+alter table seo.ig_cola add column if not exists orden int;     -- orden de salida de las historias

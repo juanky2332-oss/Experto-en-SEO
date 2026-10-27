@@ -12,7 +12,7 @@ import { getRitmo, proximos, hoyMadrid } from "@/lib/ritmo";
 type Tarea = { tipo: string; detalle: string; ref?: string | null; cuentas?: string[] };
 type Dia = { fecha: string; titulo: string; tareas: Tarea[]; estado: string };
 
-const ICONO: Record<string, string> = { reel: "🎬", seguir: "➕", comentar: "💬", responder: "↩️", informe: "📊", captacion: "🎯", preparar: "🛠" };
+const ICONO: Record<string, string> = { reel: "🎬", seguir: "➕", comentar: "💬", responder: "↩️", informe: "📊", captacion: "🎯", preparar: "🛠", historia: "📸" };
 const hoy = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
 const bonita = (f: string) => new Date(f + "T12:00:00Z").toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
@@ -78,7 +78,7 @@ export async function replanificar() {
   const hoy = hoyMadrid();
   const [hecho] = await sql`select 1 from seo.ig_plan where fecha = ${hoy} and estado in ('hecho', 'rechazado')`;
   const inicio = hecho ? sumar(hoy, 1) : hoy;
-  const reels = await sql<{ id: string; titulo: string }[]>`select id, titulo from seo.ig_cola where tipo = 'reel' and estado in ('pendiente', 'propuesto') order by fecha nulls last, id`;
+  const reels = await sql<{ id: string; titulo: string; tipo: string }[]>`select id, titulo, tipo from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto') order by fecha nulls last, id`;
   const listas = (await sql<{ fecha: string }[]>`select distinct fecha::text from seo.ig_movil where not hecho and fecha >= ${hoy}::date order by 1`).map((x) => x.fecha);
   const dias = proximos(r, Math.max(reels.length, listas.length, 1), inicio);
   // una sola sentencia: los cambios de fecha no se pisan entre sí
@@ -88,13 +88,15 @@ export async function replanificar() {
   await sql`delete from seo.ig_plan where fecha >= ${inicio}::date and estado in ('pendiente', 'propuesto', 'aprobado')`;
   for (const [i, f] of dias.entries()) {
     const tareas: Tarea[] = [];
-    if (reels[i]) tareas.push({ tipo: "reel", ref: reels[i].id, detalle: `Reel: ${reels[i].titulo}` });
+    if (reels[i]) tareas.push({ tipo: "reel", ref: reels[i].id, detalle: `${reels[i].tipo === "carrusel" ? "Carrusel" : "Reel"}: ${reels[i].titulo}` });
+      tareas.push({ tipo: "historia", detalle: "Historias: aviso de la publicación nueva + 2 del banco" });
     if (listas[i]) {
       tareas.push({ tipo: "seguir", detalle: "Seguir las cuentas de la lista (desde el ordenador o, si está apagado, te llega al móvil a las 19:00)" });
       tareas.push({ tipo: "comentar", detalle: "Un comentario corto y natural en una publicación de cada una" });
     }
     if (!tareas.length) continue;
-    const titulo = reels[i] && listas[i] ? "Reel + seguir y comentar" : reels[i] ? "Reel" : "Seguir y comentar";
+    const pieza = reels[i]?.tipo === "carrusel" ? "Carrusel" : "Reel";
+    const titulo = reels[i] && listas[i] ? `${pieza}, historias, seguir y comentar` : reels[i] ? `${pieza} e historias` : "Seguir y comentar";
     await sql`insert into seo.ig_plan (fecha, titulo, tareas) values (${f}, ${titulo}, ${sql.json(tareas as never)})
       on conflict (fecha) do update set titulo = excluded.titulo, tareas = excluded.tareas, estado = 'pendiente' where seo.ig_plan.estado in ('pendiente', 'propuesto', 'aprobado')`;
   }

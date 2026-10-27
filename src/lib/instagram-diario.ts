@@ -119,6 +119,13 @@ export async function mediodia() {
       reelOk = r.startsWith("✅") || r.startsWith("Ya estaba subido");
       lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar a las 19:00; si quieres, escribe /reel."}`);
     }
+    // historias del día: aviso de lo nuevo del feed + las siguientes del banco (agente-ig/ESTILO-CUENTA.md)
+    try {
+      const h = await publicarHistorias(reel && reelOk ? reel : null);
+      if (h) lineas.push(h);
+    } catch (e) {
+      lineas.push(`⚠️ Historias: ${esc((e as Error).message)}`);
+    }
   }
   try {
     const r = await responderComentarios(c);
@@ -139,8 +146,10 @@ export async function mediodia() {
       and texto not like '(sin responder)%' and texto <> '(en curso)' group by cuenta order by n desc limit 10`;
     if (quien.length) lineas.push(`🎯 <b>Han hablado con nosotros:</b> ${quien.map((q) => "@" + esc(q.cuenta)).join(", ")}\nSi alguno es una empresa que encaja, dímelo y te preparo un mensaje.`);
     // avisos de lo que va a faltar (solo cuando falta de verdad)
-    const [quedan] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo = 'reel' and estado in ('pendiente', 'propuesto')`;
-    if (quedan.n <= 1) lineas.push(`🛠 ${quedan.n ? "Solo queda 1 reel" : "No quedan reels"} en la cola. Cuando abras Claude Code, dime «prepara reels nuevos para Instagram».`);
+    const [quedan] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto')`;
+    if (quedan.n <= 1) lineas.push(`🛠 ${quedan.n ? "Solo queda 1 publicación" : "No quedan publicaciones"} en la cola. Cuando abras Claude Code, dime «prepara publicaciones nuevas para Instagram».`);
+    const [hist] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo = 'historia' and estado = 'pendiente' and orden is not null`;
+    if (hist.n < 4) lineas.push(`🛠 Quedan ${hist.n} historias en el banco. Dime «prepara historias para Instagram» y lo relleno.`);
     const manana = new Date(Date.now() + 86400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
     const [siguiente] = proximos(ritmo, 1, manana);
     const [lista] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha = ${siguiente}`;
@@ -189,3 +198,35 @@ export async function movilHecho(fecha: string, hecho: boolean) {
   if (hecho) for (const x of l) await sql`insert into seo.ig_acciones (tipo, cuenta, url, texto, fecha) values (${x.tipo}, ${x.cuenta}, ${x.url}, ${x.texto}, ${fecha})`;
   return hecho ? `👏 Apuntado: ${l.length} tareas hechas. Mañana te cuento si alguien ha respondido.` : "De acuerdo, la de hoy la dejamos.";
 }
+
+// ---------------------------------------------------------------- historias
+const BASE = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
+const urlHistoria = (id: string) => `${BASE}/api/ig/historia?id=${encodeURIComponent(id)}`;
+
+/** El día que toca: aviso de lo que acaba de salir en el feed + 2 historias del banco (una pregunta arrastra su respuesta). */
+async function publicarHistorias(nuevo: string | null) {
+  const hechas: string[] = [];
+  const fallos: string[] = [];
+  const una = async (id: string) => {
+    const r = await subir(id);
+    if (r.startsWith("✅")) hechas.push(r.replace("✅ Historia: ", ""));
+    else fallos.push(r);
+  };
+  if (nuevo) {
+    const [f] = await sql<{ titulo: string; tipo: string }[]>`select titulo, tipo from seo.ig_cola where id = ${nuevo}`;
+    if (f) {
+      const id = `h-aviso-${nuevo}`;
+      const datos = { plantilla: "reel", reel: nuevo, etiqueta: f.tipo === "carrusel" ? "Nuevo en el perfil" : "Nuevo vídeo", titulo: f.titulo, texto: "Lo tienes en el perfil" };
+      await sql`insert into seo.ig_cola (id, tipo, titulo, texto, historia_url, datos) values (${id}, 'historia', ${"Aviso: " + f.titulo}, '', ${urlHistoria(id)}, ${sql.json(datos)})
+        on conflict (id) do nothing`;
+      await una(id);
+    }
+  }
+  const banco = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia' and estado = 'pendiente' and orden is not null order by orden limit 3`;
+  const elegidas = banco.slice(0, 2);
+  if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[2]) elegidas.push(banco[2]);
+  for (const h of elegidas) await una(h.id);
+  if (!hechas.length && !fallos.length) return "";
+  return `📸 <b>Historias</b>: ${hechas.map(esc).join(" · ") || "ninguna"}${fallos.length ? `\n${fallos.join("\n")}` : ""}`;
+}
+
