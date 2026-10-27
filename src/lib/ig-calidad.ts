@@ -41,13 +41,13 @@ function pulir(texto: string) {
   return t.trimEnd() + " ";
 }
 
-export type Revision = { ok: boolean; texto: string; cambios: string[]; problemas: string[] };
+export type Revision = { ok: boolean; texto: string; cambios: string[]; problemas: string[]; nota?: string };
 
 export async function revisarTexto(texto: string, tipo: string, recientes: string[]): Promise<Revision> {
   const original = pulir(texto);
   const problemas = reglasFijas(original, tipo);
   if (problemas.length) return { ok: false, texto: original, cambios: [], problemas };
-  if (!recientes.length || tipo === "historia") return { ok: true, texto: original, cambios: [], problemas: [] };
+  if (!recientes.length || tipo === "historia") return { ok: true, texto: original, cambios: [], problemas: [], nota: "sin publicaciones con las que comparar" };
 
   try {
     const r = await json<{ repetitivo: boolean; motivos: string[]; texto: string }>({
@@ -69,13 +69,13 @@ export async function revisarTexto(texto: string, tipo: string, recientes: strin
         properties: { repetitivo: { type: "boolean" }, motivos: { type: "array", items: { type: "string" } }, texto: { type: "string" } },
       },
     });
-    if (!r.repetitivo || !r.texto.trim()) return { ok: true, texto: original, cambios: [], problemas: [] };
+    if (!r.repetitivo || !r.texto.trim()) return { ok: true, texto: original, cambios: [], problemas: [], nota: `editor: no lo ve repetitivo (${r.motivos.join("; ") || "sin motivos"})` };
     const nuevo = pulir(r.texto);
     // lo reescrito tiene que cumplir las reglas y conservar todas las cifras del original
-    if (reglasFijas(nuevo, tipo).length || numeros(nuevo) !== numeros(original)) return { ok: true, texto: original, cambios: [], problemas: [] };
+    if (reglasFijas(nuevo, tipo).length || numeros(nuevo) !== numeros(original)) return { ok: true, texto: original, cambios: [], problemas: [], nota: "editor: su versión cambiaba cifras o rompía reglas; se queda el original" };
     return { ok: true, texto: nuevo, cambios: r.motivos, problemas: [] };
   } catch (e) {
     console.error("editor_instagram", e);
-    return { ok: true, texto: original, cambios: [], problemas: [] }; // el editor es una mejora: si falla, vale el original (ya cumple las reglas)
+    return { ok: true, texto: original, cambios: [], problemas: [], nota: `editor con error: ${(e as Error).message}` }; // el editor es una mejora: si falla, vale el original (ya cumple las reglas)
   }
 }
