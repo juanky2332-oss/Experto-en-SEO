@@ -136,10 +136,10 @@ const MARQUEE_SECTORES = ['Talleres de mecanizado', 'Calderería y soldadura', '
 const marquee = `<div class="tc-marquee" aria-label="Sectores en los que trabajamos"><span class="tc-marquee__label">Sectores</span><div class="tc-marquee__track"><div class="tc-marquee__row">${[...MARQUEE_SECTORES, ...MARQUEE_SECTORES].map((f) => `<span>${f}</span>`).join('')}</div></div></div>`;
 
 const SERVICIOS = [
-  ['erp', 'ERP para la industria', 'Calculadora de costes y margen, presupuestos, albaranes firmados, facturas, cobros y gastos por foto. Se usa desde el móvil.', '/erp-industria/', 'desde <b>590 €</b>', 'Conocer IndunexIA Gestión'],
+  ['erp', 'IndunexIA Gestión · ERP para la industria', 'Calculadora de costes y margen, presupuestos, albaranes firmados, facturas, cobros y gastos por foto. Se usa desde el móvil.', '/erp-industria/', 'desde <b>590 €</b> + 59 €/mes', 'Conocer IndunexIA Gestión'],
   ['flujo', 'Automatización de procesos', 'Pedidos, albaranes, facturas y correos que hoy se pasan a mano entre programas empiezan a moverse solos.', '/automatizacion-procesos-ia/', 'desde <b>450 €</b>', 'Ver la automatización de procesos'],
   ['chat', 'Asistentes técnicos y chatbots', 'Asesoran a tus clientes 24/7 con tu catálogo y tus fichas técnicas, comparan productos y llevan a la compra en tu tienda online. Pruébalo en la demo.', '/agentes-chatbots-ia/', 'desde <b>900 €</b> + 49 €/mes', 'Ver los asistentes y la demo'],
-  ['carpeta', 'Gestión documental con IA', 'Facturas, albaranes, tickets, certificados y planos: la IA los lee, extrae los datos y los archiva donde toca.', '/gestion-documental-ia/', 'desde <b>450 €</b>', 'Ver la gestión documental con IA'],
+  ['carpeta', 'IndunexIA Documentos', 'Facturas, tickets y albaranes leídos con IA, comprobados y guardados en la carpeta de tu ordenador. Listado para la gestoría en un clic.', '/gestion-documental-ia/', 'desde <b>190 €</b> + 29 €/mes', 'Ver IndunexIA Documentos'],
   ['app', 'Herramientas a medida y SAP', 'Cualquier idea para mejorar vuestro programa, SAP o el que uséis, se puede implementar. Y lo que ningún programa estándar resuelve, a medida.', '/desarrollo-a-medida-ia/', 'desde <b>2.500 €</b>', 'Ver las herramientas a medida y SAP'],
   ['objetivo', 'Consultoría y diagnóstico', 'Analizamos vuestros procesos y te enviamos por escrito qué automatizar primero, cómo y cuánto costaría.', '/contacto/', '<b>Gratis</b>', 'Pedir el diagnóstico gratuito'],
 ];
@@ -147,7 +147,7 @@ const servCards = (cols = 3, ultima = null) => `<div class="tc-grid tc-grid--${c
 
 const SOLUCIONES_CONCRETAS = [
   ['Calculadora de costes y margen', '/erp-industria/'], ['Albaranes firmados en el móvil', '/erp-industria/'], ['Asistente técnico de catálogo', '/distribucion-industrial/'],
-  ['Equivalencias entre marcas', '/distribucion-industrial/'], ['Pedidos del correo al ERP', '/automatizacion-procesos-ia/'], ['Lectura automática de facturas', '/gestion-documental-ia/'],
+  ['Equivalencias entre marcas', '/distribucion-industrial/'], ['Pedidos del correo al ERP', '/automatizacion-procesos-ia/'], ['Lectura automática de facturas', '/gestion-documental-ia/'], ['Presupuesto desde un plano', '/presupuestos-desde-plano/'], ['Bandeja de correo que se ordena sola', '/automatizacion-procesos-ia/'], ['Seguimiento de presupuestos enviados', '/automatizacion-procesos-ia/'], ['Buscador de manuales y fichas técnicas', '/agentes-chatbots-ia/'], ['Recepcionista telefónica con IA', '/agentes-chatbots-ia/'],
   ['Gastos por foto en Telegram', '/erp-industria/'], ['Órdenes de trabajo por mensaje', '/automatizacion-procesos-ia/'], ['Mejoras sobre SAP o tu ERP', '/desarrollo-a-medida-ia/'],
   ['Paquete trimestral para la asesoría', '/gestion-documental-ia/'], ['Informes que llegan solos', '/automatizacion-procesos-ia/'],
 ];
@@ -343,9 +343,9 @@ const casoCard = (id) => { const c = CASOS.find((x) => x.id === id); return `<ar
 // ======================= PÁGINAS =======================
 // ---- Portada: rejillas de soluciones y de sectores (fondos propios en CSS, sin imágenes) ----
 const SOL_HOME = [
-  ['erp', 'ERP para la industria', 'Calcula lo que te cuesta cada trabajo, ponle tu margen y presupuesta, albarana y factura desde el móvil.', '/erp-industria/', 'Ver el ERP para la industria'],
+  ['erp', 'IndunexIA Gestión', 'Calcula lo que te cuesta cada trabajo, ponle tu margen y presupuesta, albarana y factura desde el móvil.', '/erp-industria/', 'Ver IndunexIA Gestión'],
   ['flujo', 'Automatización de procesos', 'Pedidos, albaranes y facturas que hoy se pasan a mano empiezan a moverse solos entre tus programas.', '/automatizacion-procesos-ia/', 'Ver la automatización de procesos'],
-  ['doc', 'Gestión documental con IA', 'La IA lee facturas, albaranes y certificados, extrae los datos y los archiva donde toca.', '/gestion-documental-ia/', 'Ver la gestión documental con IA'],
+  ['doc', 'IndunexIA Documentos', 'Facturas, tickets y albaranes leídos con IA y guardados en su carpeta, sin teclear.', '/gestion-documental-ia/', 'Ver IndunexIA Documentos'],
   ['chat', 'Asistentes técnicos y chatbots', 'Asesoran a tus clientes 24/7 con tu catálogo y tus fichas técnicas y llevan a la compra en tu tienda online.', '/agentes-chatbots-ia/', 'Ver los asistentes y probar la demo'],
   ['app', 'Desarrollo a medida y SAP', 'Mejoras sobre SAP o sobre tu ERP y herramientas hechas a la medida de tu forma de trabajar.', '/desarrollo-a-medida-ia/', 'Ver el desarrollo a medida y SAP'],
   ['caja', 'Distribución industrial', 'Referencias, equivalencias y pedidos para distribuidores y suministros técnicos, con tu catálogo.', '/distribucion-industrial/', 'Ver las soluciones de distribución industrial'],
@@ -543,10 +543,11 @@ ${band('¿Tu caso es distinto?', 'Cuéntanos qué tarea os quita más tiempo y t
 // Familia IndunexIA (27-10-2026): marca paraguas de las apps; Transforma con IA es quien las hace e implanta.
 const FAMILIA = [
   ['erp', 'IndunexIA Gestión', 'El programa de gestión con IA: costes y margen, presupuestos, albaranes firmados, facturas, cobros y gastos.', '/erp-industria/', 'Conocer IndunexIA Gestión', 'Producto principal'],
-  ['calc', 'IndunexIA Presupuestos', 'Del plano o la foto al presupuesto con tus tarifas en un minuto. Suelto o incluido en IndunexIA Gestión Pro.', 'https://presupuestos-ia-eta.vercel.app/demo', 'Ver un presupuesto de ejemplo', 'Nuevo'],
-  ['carpeta', 'IndunexIA Documentos', 'Facturas y albaranes leídos y archivados en su carpeta, sin teclear. Próximamente.', '/contacto/', 'Quiero que me avisen', 'Próximamente'],
+  ['calc', 'IndunexIA Presupuestos', 'Del plano o la foto al presupuesto con tus tarifas en un minuto. Suelto o incluido en IndunexIA Gestión Pro.', '/presupuestos-desde-plano/', 'Ver IndunexIA Presupuestos', 'Nuevo'],
+  ['carpeta', 'IndunexIA Documentos', 'Facturas, tickets y albaranes leídos y guardados en la carpeta de tu ordenador, sin teclear.', '/gestion-documental-ia/', 'Ver IndunexIA Documentos', 'Nuevo'],
 ];
-const familia = sec(head('Familia IndunexIA', 'Apps con IA para la industria, de Transforma con IA', 'Cada app resuelve una tarea concreta. Se contratan sueltas o juntas, y hablan entre ellas.') + `<div class="tc-grid tc-grid--3">${FAMILIA.map(([i, t, p, u, l, b], n) => `<article class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}"><span class="tc-badge">${b}</span>${icon(i)}<h3>${t}</h3><p>${p}</p><a class="tc-link" href="${u}"${u.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${l}</a></article>`).join('')}</div>`, 'tc-sec--tight', 'familia');
+const PRECIO_FAMILIA = { '/erp-industria/': 'desde <b>590 €</b> + 59 €/mes', '/presupuestos-desde-plano/': 'desde <b>290 €</b> + 39 €/mes', '/gestion-documental-ia/': 'desde <b>190 €</b> + 29 €/mes' };
+const familia = sec(head('Familia IndunexIA', 'Apps con IA para la industria, de Transforma con IA', 'Cada app resuelve una tarea concreta. Se contratan sueltas o juntas, y hablan entre ellas.') + `<div class="tc-grid tc-grid--3">${FAMILIA.map(([i, t, p, u, l, b], n) => `<article class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}"><span class="tc-badge">${b}</span>${icon(i)}<h3>${t}</h3><p>${p}</p><p class="tc-price"><span>Orientativo</span> ${PRECIO_FAMILIA[u] || ''}</p><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div>`, 'tc-sec--tight', 'familia');
 
 // Soluciones nuevas (2026-10-27, copia de oferta.json → servicios_nuevos). Sin clientes: son servicios nuevos, no casos.
 const NUEVAS = [
@@ -562,10 +563,10 @@ const nuevasCards = `<div class="tc-grid tc-grid--3">${NUEVAS.map(([i, t, p, pr,
 P['soluciones'] = {
   title: 'Soluciones de IA para empresas',
   seo: ['Soluciones de IA para la industria | Transforma con IA', 'ERP para la industria, automatización de procesos, asistentes técnicos, gestión documental y mejoras sobre SAP o tu ERP, con precios orientativos.', 'soluciones de automatización industrial con IA'],
-  html: page(`${pagehead('<span>Soluciones</span>', 'Soluciones', 'Lo que implantamos, con precio claro', 'Seis formas de empezar. Todas arrancan con un diagnóstico gratuito por escrito y, cuando hay desarrollo, con un piloto que pruebas con tus propios datos antes de pagar el total.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Precios orientativos (sin IVA)', [['Diagnóstico', 'Gratis'], ['ERP para la industria', 'desde 590 €'], ['Automatización', 'desde 450 €'], ['Gestión documental', 'desde 450 €'], ['Asistente técnico', 'desde 900 €'], ['Herramienta a medida', 'desde 2.500 €']]))}
+  html: page(`${pagehead('<span>Soluciones</span>', 'Soluciones', 'Apps y servicios, con precio claro', 'Tres apps de la familia IndunexIA y servicios a medida. Todas arrancan con un diagnóstico gratuito por escrito y, cuando hay desarrollo, con un piloto que pruebas con tus propios datos antes de pagar el total.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Precios orientativos (sin IVA)', [['Diagnóstico', 'Gratis'], ['IndunexIA Gestión', 'desde 590 €'], ['IndunexIA Presupuestos', 'desde 290 €'], ['IndunexIA Documentos', 'desde 190 €'], ['Automatización', 'desde 450 €'], ['Asistente técnico', 'desde 900 €'], ['Herramienta a medida', 'desde 2.500 €']]))}
 ${familia}
-${sec(servCards() + `<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Soluciones concretas</span><p>Lo que montamos con más frecuencia:</p></div>` + chips, 'tc-sec--tight')}
-<section class="tc-sec" id="nuevas"><div class="tc-wrap">${head('Nuevas soluciones', 'Seis tareas más que la IA ya puede quitarte', 'Cada una se monta sola o junto a lo que ya uses. Empiezan igual: diagnóstico gratis por escrito y piloto con tus datos.')}${nuevasCards}</div></section>
+${sec(head('Servicios a medida', 'Cuando lo que necesitas no es una app, sino tu proceso automatizado', 'Lo montamos sobre los programas que ya usas.') + `<div class="tc-grid tc-grid--3">${SERVICIOS.filter(([i]) => ['flujo', 'chat', 'app'].includes(i)).map(([i, t, p, u, pr, l]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p><p class="tc-price"><span>Orientativo</span> ${pr}</p><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div>` + `<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Soluciones concretas</span><p>Lo que montamos con más frecuencia:</p></div>` + chips, 'tc-sec--tight')}
+
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Cómo trabajamos', 'Tres pasos, y en ninguno pagas a ciegas')}${PASOS}</div></section>
 <section class="tc-sec"><div class="tc-wrap">${head('Lo que no prometemos', 'Lo que no prometemos, y lo que sí', 'No prometemos porcentajes de ahorro antes de ver tus datos ni una IA que decida sola. Esto sí:')}<div class="tc-grid tc-grid--4">${GARANTIAS.map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Antes de empezar')}${faq([
@@ -637,7 +638,59 @@ P['agentes-chatbots-ia'] = {
 ${band('¿Quieres uno así para tu empresa?', 'Cuéntanos qué te preguntan tus clientes y te enviamos por escrito cómo sería tu asistente y cuánto costaría. Gratis.')}`),
 };
 
-P['gestion-documental-ia'] = servicio({
+
+// ======================= PÁGINAS DE PRODUCTO (familia IndunexIA) =======================
+// Cada app nueva = una entrada aquí: cabecera, capturas, «cómo se usa», qué incluye, planes, FAQ y CTA. Capturas en web-capturas-productos.json.
+let CAPT = {};
+try { CAPT = JSON.parse(fs.readFileSync(new URL('./web-capturas-productos.json', import.meta.url), 'utf8')); } catch {}
+const planesApp = (lista, sufijo) => `<div class="tc-planes">${lista.map((p) => `<article class="tc-plan${p.top ? ' tc-plan--top' : ''} tc-reveal">${p.top ? '<span class="tc-plan__tag">El más elegido</span>' : ''}<h3>${p.nombre}</h3><p class="tc-plan__para">${p.para}</p><p class="tc-plan__precio"><b>${p.mes} €</b><small>al mes · ${sufijo}</small></p>${list(p.incluye)}</article>`).join('')}</div>`;
+const producto = ({ slug, crumb, eb, h1, lead, seo, resumen, capturas = [], pasos, hace, planes, sufijo, puesta, notaPrecio, faqs, ejemplo, schema }) => ({
+  title: crumb, seo,
+  html: page(`${pagehead(`<a href="/soluciones/">Soluciones</a><span aria-hidden="true">/</span><span>${crumb}</span>`, eb, h1, lead, btn('/contacto/', 'Pide tu diagnóstico gratis') + (ejemplo ? btn(ejemplo[0], ejemplo[1], true) : btn('/soluciones/#familia', 'Ver la familia IndunexIA', true)), facts('En resumen', resumen))}
+${capturas.filter(([k]) => CAPT[k]).length ? sec(shots(capturas.filter(([k]) => CAPT[k]).map(([k, alt, cap]) => [CAPT[k], alt, cap])), 'tc-sec--tight') : ''}
+<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Cómo se usa', pasos[0], pasos[1])}<ol class="tc-steps" style="list-style:none;padding:0;margin:0">${pasos[2].map(([t, p], n) => `<li class="tc-step tc-reveal"><span class="tc-step__when">Paso ${n + 1}</span><h3>${t}</h3><p>${p}</p></li>`).join('')}</ol></div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('Qué incluye', hace[0], hace[1])}<div class="tc-grid tc-grid--3">${hace[2].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
+<section class="tc-sec tc-sec--alt" id="precio"><div class="tc-wrap">${head('Precios', 'Planes sin permanencia', `Precios sin IVA. Puesta en marcha desde ${puesta} € (lo dejamos configurado contigo). ${notaPrecio}`)}${planesApp(planes, sufijo)}</div></section>
+<section class="tc-sec"><div class="tc-wrap">${head('Preguntas frecuentes', 'Dudas habituales')}${faq(faqs)}</div></section>
+${band('¿Lo vemos con tus documentos?', 'Te decimos por escrito si encaja en tu empresa y cuánto costaría. Gratis.')}
+<script type="application/ld+json">${JSON.stringify(schema)}</script>`),
+});
+
+P['presupuestos-desde-plano'] = producto({
+  slug: 'presupuestos-desde-plano', crumb: 'IndunexIA Presupuestos', eb: 'IndunexIA Presupuestos · de la familia IndunexIA',
+  h1: 'Presupuestos desde un plano o una foto, con tus tarifas, en un minuto',
+  lead: 'Subes el plano, el croquis o una foto con medidas. La IA mide piezas, kilos, cortes, soldaduras y horas; el programa aplica tus precios y tu cliente acepta con un enlace.',
+  seo: ['Presupuestos desde plano con IA para talleres | IndunexIA', 'Software de presupuestos con IA para talleres: lee el plano o la foto, mide kilos, cortes, soldadura y horas y aplica tus tarifas. Desde 39 €/mes.', 'presupuestos desde plano con IA'],
+  resumen: [['Desde', '39 €/mes'], ['Puesta en marcha', 'desde 290 €'], ['Lee', 'Planos, croquis, esquemas y fotos'], ['Sectores', 'Mecanizado, calderería, chapa y 7 más']],
+  capturas: [['presu-editor', 'Presupuesto generado desde el plano de una mesa de inoxidable (ejemplo ficticio)', 'Del plano al presupuesto: cada línea dice si sale del plano, si está calculada o estimada'], ['presu-pdf', 'PDF del presupuesto con el logo de la empresa (ejemplo ficticio)', 'El PDF que recibe tu cliente, con tu logo']],
+  pasos: ['Del plano al presupuesto en cuatro pasos', 'Sin tablas ni fórmulas: el programa hace las cuentas con tus precios.', [
+    ['Sube el plano o haz una foto', 'PDF, imagen o una foto del croquis a mano. Varias hojas a la vez.'],
+    ['La IA lo lee y lo mide', 'Material y kilos, metros de corte y soldadura, pliegues, superficies, componentes y horas de máquina.'],
+    ['Revisas y ajustas', 'Todo es editable: cantidades, precios, margen. Eliges si el cliente lo ve desglosado o en una sola línea.'],
+    ['Lo envías y lo aceptan online', 'PDF con tu logo y un enlace para que el cliente acepte con su nombre. Te enteras al momento.']]],
+  hace: ['Pensado para la oficina técnica de un taller', 'La IA mide; los precios son siempre los tuyos.', [
+    ['calc', 'Tus tarifas por sector', 'Mecanizado, calderería, chapa, carpintería metálica, cuadros eléctricos, neumática, reparación, climatización, madera y reformas.'],
+    ['lupa', 'Cada dato dice de dónde sale', '«Del plano», «Calculado» o «Estimado»: revisas en segundos solo lo que hay que revisar.'],
+    ['objetivo', 'Solo pregunta lo que falta', 'Si el plano no trae un dato que cambia el precio (espesor, material…), te prepara la pregunta para el cliente.'],
+    ['doc', 'PDF con tu marca', 'Con tu logo, tus condiciones y el enlace para aceptarlo online.'],
+    ['flujo', 'Conectado a tu ERP', 'API y avisos automáticos para SAP, Sage, a3 o IndunexIA Gestión (plan Profesional).'],
+    ['grafica', 'Aprende tus precios', 'El precio que pones a un componente se recuerda para el siguiente presupuesto.']]],
+  planes: [
+    { nombre: 'Taller', mes: 39, para: 'Para empezar', incluye: ['15 presupuestos al mes', 'Un sector con tus tarifas', 'PDF con tu logo', 'Aceptación online', '1 usuario'] },
+    { nombre: 'Profesional', mes: 69, top: true, para: 'Para talleres que presupuestan cada día', incluye: ['60 presupuestos al mes', 'Todos los sectores', 'Catálogo que aprende tus precios', 'API y avisos a tu ERP', '3 usuarios'] },
+    { nombre: 'Industria', mes: 129, para: 'Para oficinas técnicas con volumen', incluye: ['200 presupuestos al mes', 'Todo lo del Profesional', 'Integración a medida con tu ERP', 'Usuarios ilimitados', 'Soporte prioritario'] }],
+  sufijo: 'sin permanencia', puesta: 290, notaPrecio: 'Si usas IndunexIA Gestión Pro, ya viene incluido.',
+  ejemplo: ['https://presupuestos-ia-eta.vercel.app/demo', 'Ver un presupuesto de ejemplo'],
+  faqs: [
+    ['¿Qué planos lee?', 'Planos de pieza y de conjunto en PDF o imagen, croquis a mano, esquemas eléctricos, neumáticos e hidráulicos, planos de planta y fotos con medidas.'],
+    ['¿Y si la IA se equivoca?', 'Todo es editable antes de enviarlo y cada línea indica de dónde sale el dato. El precio final lo decides tú.'],
+    ['¿Usa mis precios?', 'Sí. Pones tu €/hora de cada máquina, tu €/kg de cada material, tus metros de corte, soldadura o pintura y tu margen. En la puesta en marcha lo dejamos configurado contigo.'],
+    ['¿Se conecta con mi programa?', 'Sí, a partir del plan Profesional: API y avisos automáticos cuando un presupuesto se crea o se acepta. Si tu programa no tiene API, valoramos cómo adaptarlo.'],
+  ],
+  schema: { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'IndunexIA Presupuestos', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'Presupuestos desde plano o foto con IA para talleres e industria, con las tarifas de cada empresa.', offers: { '@type': 'AggregateOffer', priceCurrency: 'EUR', lowPrice: '39', highPrice: '129' }, publisher: { '@type': 'Organization', name: 'Transforma con IA', url: 'https://transformaconia.com' } },
+});
+
+const _servicioDocumentalAntiguo = servicio({
   crumb: 'Gestión documental con IA', eb: 'Gestión documental con IA',
   h1: 'Gestión documental con IA: cada papel, en su sitio y sin teclear',
   lead: 'Facturas de proveedor, albaranes, tickets, certificados, pedidos y planos. La IA los lee desde una foto, un PDF o un correo, extrae los datos, los clasifica y los registra en tu programa.',
@@ -655,6 +708,39 @@ P['gestion-documental-ia'] = servicio({
     ['¿Dónde quedan guardados los documentos?', 'Donde trabajes: en tu ERP, en una carpeta compartida, en Google Drive o en nuestro programa de gestión. Siempre con servidores en la UE cuando es posible.'],
     ['¿Sirve para la asesoría?', 'Sí. Al final de cada trimestre se prepara el paquete de facturas y gastos ordenado para que tu asesor lo tenga completo y a tiempo.'],
   ],
+});
+
+P['gestion-documental-ia'] = producto({
+  slug: 'gestion-documental-ia', crumb: 'IndunexIA Documentos', eb: 'IndunexIA Documentos · gestión documental con IA',
+  h1: 'Gestión documental con IA: facturas y albaranes ordenados solos en tu carpeta',
+  lead: 'Haz una foto o sube el PDF. La IA lee la factura, el ticket o el albarán, comprueba las cuentas y el CIF, avisa de duplicados y lo guarda en la carpeta de tu ordenador con su nombre. Adiós al archivador.',
+  seo: ['Gestión documental con IA: facturas y albaranes | IndunexIA', 'Digitaliza facturas, tickets y albaranes con IA: lee los datos, comprueba las cuentas y los guarda ordenados en tu carpeta. Listado para la gestoría. Desde 29 €/mes.', 'gestión documental con IA'],
+  resumen: [['Desde', '29 €/mes'], ['Puesta en marcha', 'desde 190 €'], ['Lee', 'Facturas, tickets, abonos, albaranes'], ['Guarda en', 'La carpeta de tu PC']],
+  capturas: [['doc-lista', 'Facturas y albaranes leídos y listos para archivar (ejemplo ficticio)', 'Cada documento, leído y con la carpeta donde va'], ['doc-ficha', 'Datos leídos de una factura de ejemplo junto a la imagen', 'Revisas los datos al lado del documento']],
+  pasos: ['De la foto a la carpeta en cuatro pasos', 'Sin instalar nada: funciona en el navegador (Chrome o Edge) y en el móvil.', [
+    ['Foto o PDF', 'Desde el móvil en la nave o arrastrando los PDF del correo. Uno o muchos a la vez.'],
+    ['La IA lo lee', 'Proveedor, CIF, número, fechas, base, IVA, retención, total y pedido.'],
+    ['Se comprueba solo', 'Cuentas que no cuadran, CIF no válido, fecha rara o factura duplicada: te lo marca para revisar.'],
+    ['Se guarda en tu carpeta', 'Tipo / año / trimestre / proveedor, con un nombre que se entiende. Y el listado para la gestoría en Excel.']]],
+  hace: ['Menos papel, menos teclear, nada perdido', 'Lo que hoy es un archivador y una tarde de teclear.', [
+    ['carpeta', 'Ordenado como tú quieras', 'Carpetas por tipo, año, trimestre y proveedor, o tu propia estructura (plan Profesional).'],
+    ['escudo', 'Comprobaciones automáticas', 'Base + IVA = total, CIF válido, duplicados y fechas: lo raro se marca, lo bueno pasa solo.'],
+    ['grafica', 'Listado para la gestoría', 'Libro de facturas recibidas del trimestre en Excel, en un clic.'],
+    ['movil', 'Fotos desde el móvil', 'El encargado hace la foto del albarán en la nave y ya está en la bandeja.'],
+    ['flujo', 'Conectado a tu ERP', 'API y avisos automáticos para pasar cada factura a SAP, Sage, a3 o IndunexIA Gestión (plan Profesional).'],
+    ['euro', 'Tus datos, en tu PC', 'Si quieres, la copia de la nube se borra en cuanto se guarda en tu ordenador.']]],
+  planes: [
+    { nombre: 'Taller', mes: 29, para: 'Para dejar de guardar papeles', incluye: ['60 documentos al mes', 'Ordenados en tu carpeta', 'Fotos desde el móvil', 'Duplicados y cuentas comprobados', 'Listado para la gestoría'] },
+    { nombre: 'Profesional', mes: 49, top: true, para: 'Para la oficina que recibe muchas facturas', incluye: ['300 documentos al mes', 'Tu propia estructura de carpetas', 'API y avisos a tu ERP', '3 usuarios', 'Soporte en 24 h'] },
+    { nombre: 'Industria', mes: 99, para: 'Para varias sedes o mucho volumen', incluye: ['1.000 documentos al mes', 'Todo lo del Profesional', 'Integración a medida con tu ERP', 'Usuarios ilimitados', 'Soporte prioritario'] }],
+  sufijo: 'sin permanencia', puesta: 190, notaPrecio: 'Si usas IndunexIA Gestión Profesional o Pro, los gastos por foto ya vienen incluidos. ¿Certificados, planos o una integración especial? Lo hacemos a medida.',
+  faqs: [
+    ['¿Hay que instalar algo?', 'No. Funciona en el navegador: en Chrome o Edge guarda directamente en la carpeta que elijas; en otros navegadores descarga un ZIP ya ordenado.'],
+    ['¿Lee fotos malas o escaneos?', 'Sí. Si algo no se lee bien, el documento queda marcado para revisar en vez de guardarse con datos dudosos.'],
+    ['¿Sirve para la gestoría?', 'Sí: cada trimestre descargas el libro de facturas recibidas en Excel, con fecha, proveedor, CIF, base, IVA y total.'],
+    ['¿Dónde quedan mis documentos?', 'En tu ordenador, en la carpeta que elijas. La copia en la nube está en servidores de la UE y puedes hacer que se borre al archivar.'],
+  ],
+  schema: { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'IndunexIA Documentos', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'Gestión documental con IA: lee facturas, tickets y albaranes, comprueba los datos y los guarda ordenados en la carpeta del ordenador.', offers: { '@type': 'AggregateOffer', priceCurrency: 'EUR', lowPrice: '29', highPrice: '99' }, publisher: { '@type': 'Organization', name: 'Transforma con IA', url: 'https://transformaconia.com' } },
 });
 
 P['desarrollo-a-medida-ia'] = servicio({

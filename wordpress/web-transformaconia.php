@@ -357,7 +357,7 @@ add_action( 'get_footer', function () {
   <div class="tc-footer__top">
    <div class="tc-footer__brand">
     <a href="<?php echo $u( '/' ); ?>"><img src="<?php echo esc_url( $logo ); ?>" alt="Transforma con IA" width="220" height="35" loading="lazy"></a>
-    <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. ERP para la industria, asistentes técnicos, gestión documental y mejoras sobre SAP o tu ERP.</p>
+    <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. Apps IndunexIA (gestión, presupuestos y documentos), asistentes técnicos y mejoras sobre SAP o tu ERP.</p>
     <a class="tc-footer__mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a>
     <a class="tc-footer__ig" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener me" aria-label="Instagram de Transforma con IA (se abre en otra pestaña)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>@transformaconia.oficial</a>
     <p>Murcia · En persona en la Región de Murcia y en remoto en toda España</p>
@@ -372,11 +372,13 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/otros-sectores/' ); ?>">Otros sectores</a></li>
     <li><a href="<?php echo $u( '/consultor-ia-murcia/' ); ?>">Consultoría de IA en Murcia</a></li>
    </ul></div>
-   <div><h3>Soluciones</h3><ul>
-    <li><a href="<?php echo $u( '/erp-industria/' ); ?>">ERP para la industria</a></li>
+   <div><h3>Apps IndunexIA</h3><ul>
+    <li><a href="<?php echo $u( '/erp-industria/' ); ?>">IndunexIA Gestión · ERP</a></li>
+    <li><a href="<?php echo $u( '/presupuestos-desde-plano/' ); ?>">IndunexIA Presupuestos</a></li>
+    <li><a href="<?php echo $u( '/gestion-documental-ia/' ); ?>">IndunexIA Documentos</a></li>
+   </ul><h3>Servicios</h3><ul>
     <li><a href="<?php echo $u( '/automatizacion-procesos-ia/' ); ?>">Automatización de procesos</a></li>
     <li><a href="<?php echo $u( '/agentes-chatbots-ia/' ); ?>">Asistentes técnicos y chatbots</a></li>
-    <li><a href="<?php echo $u( '/gestion-documental-ia/' ); ?>">Gestión documental con IA</a></li>
     <li><a href="<?php echo $u( '/desarrollo-a-medida-ia/' ); ?>">Herramientas a medida y SAP</a></li>
     <li><a href="<?php echo $u( '/soluciones/' ); ?>">Cómo trabajamos y precios</a></li>
    </ul></div>
@@ -424,7 +426,7 @@ add_filter( 'the_content', function ( $c ) {
 		'gestion-y-facturacion' => array(
 			'¿Sigues tecleando facturas y albaranes a mano?',
 			'Montamos programas de gestión y lectura de documentos con IA para pymes y talleres, siempre con una persona que revisa antes de registrar nada. Te enseñamos cómo quedaría en tu empresa.',
-			array( array( '/erp-industria/', 'ERP para la industria →', true ), array( '/gestion-documental-ia/', 'Gestión documental con IA', false ) ),
+			array( array( '/erp-industria/', 'ERP para la industria →', true ), array( '/gestion-documental-ia/', 'IndunexIA Documentos', false ) ),
 		),
 		'actualidad-ia'         => array(
 			'¿Qué puede hacer esto por tu empresa?',
@@ -532,7 +534,7 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 		'image'       => 'https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png',
 		'email'       => 'info@transformaconia.com',
 		'sameAs'      => array( 'https://www.instagram.com/transformaconia.oficial/' ),
-		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para la industria (talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria e hidráulica), asistentes técnicos de catálogo, gestión documental con IA, automatizaciones y mejoras sobre SAP o cualquier ERP para empresas de toda España.',
+		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para la industria (talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria e hidráulica), asistentes técnicos de catálogo, las apps IndunexIA Presupuestos (presupuestos desde plano) e IndunexIA Documentos (gestión documental con IA), automatizaciones y mejoras sobre SAP o cualquier ERP para empresas de toda España.',
 		'address'     => array( '@type' => 'PostalAddress', 'addressLocality' => 'Murcia', 'addressRegion' => 'Región de Murcia', 'addressCountry' => 'ES' ),
 		'areaServed'  => array( '@type' => 'Country', 'name' => 'España' ),
 		'priceRange'  => '€€',
