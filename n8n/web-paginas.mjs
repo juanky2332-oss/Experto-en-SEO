@@ -554,7 +554,7 @@ const NUEVAS = [
   ['doc', 'Lector de facturas y albaranes', 'Haces una foto o reenvías el PDF: la IA saca proveedor, fecha, líneas e importes y los pasa a tu programa o a tu Excel. Tú solo revisas.', 'desde <b>450 €</b> + 39 €/mes'],
   ['sobre', 'Bandeja de correo inteligente', 'Clasifica lo que entra (pedidos, consultas, facturas, avisos), te resume lo importante y deja preparado el borrador de respuesta.', 'desde <b>450 €</b> + 39 €/mes'],
   ['reloj', 'Seguimiento de presupuestos', 'Ningún presupuesto se queda en el aire: te avisa de los que no han contestado y te deja escrito el correo de seguimiento para cada cliente.', 'desde <b>450 €</b> + 39 €/mes'],
-  ['calc', 'IndunexIA Presupuestos: del plano al presupuesto', 'Subes el plano, un croquis o una foto y en un minuto tienes el presupuesto con tus tarifas: kilos, cortes, soldaduras y horas. Tu cliente lo acepta con un enlace. Pruébalo con un plano de ejemplo.', 'desde <b>290 €</b> + 39 €/mes', 'https://presupuestos-ia-eta.vercel.app/demo', 'Ver un presupuesto de ejemplo'],
+  ['calc', 'IndunexIA Presupuestos: del plano al presupuesto', 'Subes el plano, un croquis o una foto y en un minuto tienes el presupuesto con tus tarifas: kilos, cortes, soldaduras y horas. Tu cliente lo acepta con un enlace. Pruébalo con un plano de ejemplo.', 'desde <b>290 €</b> + 39 €/mes', 'https://presupuestos.transformaconia.com/demo', 'Ver un presupuesto de ejemplo'],
   ['lupa', 'Buscador interno de tu empresa', 'Manuales, fichas técnicas, procedimientos y normas: tu equipo pregunta con palabras normales y recibe la respuesta con el documento de origen.', 'desde <b>1.200 €</b> + 69 €/mes'],
   ['movil', 'Recepcionista telefónica con IA', 'Atiende las llamadas que no puedes coger: responde lo habitual, toma el recado o la cita y te lo manda por escrito. Siempre avisa de que es un asistente.', 'desde <b>900 €</b> + 79 €/mes'],
 ];
@@ -696,7 +696,7 @@ P['presupuestos-desde-plano'] = producto({
     { nombre: 'Profesional', mes: 69, top: true, para: 'Para talleres que presupuestan cada día', incluye: ['60 presupuestos al mes', 'Todos los sectores', 'Catálogo que aprende tus precios', 'API y avisos a tu ERP', '3 usuarios'] },
     { nombre: 'Industria', mes: 129, para: 'Para oficinas técnicas con volumen', incluye: ['200 presupuestos al mes', 'Todo lo del Profesional', 'Integración a medida con tu ERP', 'Usuarios ilimitados', 'Soporte prioritario'] }],
   sufijo: 'sin permanencia', puesta: 290, notaPrecio: 'Si usas IndunexIA Gestión Pro, ya viene incluido.',
-  ejemplo: ['https://presupuestos-ia-eta.vercel.app/demo', 'Ver un presupuesto de ejemplo'],
+  ejemplo: ['https://presupuestos.transformaconia.com/demo', 'Ver un presupuesto de ejemplo'],
   faqs: [
     ['¿Qué planos lee?', 'Planos de pieza y de conjunto en PDF o imagen, croquis a mano, esquemas eléctricos, neumáticos e hidráulicos, planos de planta y fotos con medidas.'],
     ['¿Y si la IA se equivoca?', 'Todo es editable antes de enviarlo y cada línea indica de dónde sale el dato. El precio final lo decides tú.'],
