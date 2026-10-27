@@ -1,6 +1,6 @@
 // Plan diario de Instagram (seo.ig_plan). Lo usan el panel (propuesta por Telegram) y el agente local (Claude + Chrome).
 //
-//   node n8n/ig-plan.mjs cargar                      → carga el plan del 27-10-2026 al 26-11-2026 (no pisa días ya propuestos)
+//   node n8n/ig-plan.mjs cargar                      → OBSOLETO (27-10-2026): el plan se recoloca con /ritmo replanificar
 //   node n8n/ig-plan.mjs hoy                         → JSON del plan de hoy si está APROBADO (lo lee el agente local)
 //   node n8n/ig-plan.mjs hecho "<informe>"           → marca hoy como hecho y manda a Telegram el informe (o por stdin)
 //   node n8n/ig-plan.mjs accion <tipo> <cuenta> [url] [texto]   → apunta lo hecho (seguir|dejar|comentar|responder)
@@ -68,6 +68,9 @@ function planDelDia(f) {
 }
 
 if (cmd === 'cargar') {
+  // OBSOLETO desde el 27-10-2026: el plan va al ritmo de las rutinas (cada 3 días). Se recoloca con «/ritmo replanificar» en Telegram.
+  console.log('Obsoleto: usa /ritmo replanificar en el bot del SEO.');
+  process.exit(0);
   for (let d = new Date('2026-10-27T12:00:00Z'); d <= new Date('2026-11-26T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 1)) {
     const f = d.toISOString().slice(0, 10);
     const p = planDelDia(f);

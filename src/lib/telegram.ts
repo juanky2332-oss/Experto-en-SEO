@@ -13,6 +13,7 @@ import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } f
 import { siguienteReel, colaReels, proponer, subir, descartar, recuperar, instagramConectado, INSTRUCCIONES } from "./redes";
 import { aprobar, rechazar, resumenPlan, subirReelDelPlan } from "./plan-ig";
 import { movilHecho } from "./instagram-diario";
+import { comandoRitmo, comandoCaptar, AYUDA_RITMO } from "./ritmo-telegram";
 
 const APP = process.env.APP_URL ?? "https://experto-en-seo.vercel.app";
 type Respuesta = { text: string; buttons?: Boton[] };
@@ -82,7 +83,7 @@ async function comando(texto: string): Promise<Respuesta | null> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando el siguiente reel con «✅ Subir a Instagram» · /reels — la cola entera · /plan — el plan de Instagram de esta semana\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando el siguiente reel con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
       return pedirIdea(false);
@@ -92,6 +93,11 @@ async function comando(texto: string): Promise<Respuesta | null> {
       return listaReels(arg.trim());
     case "/plan":
       return { text: await resumenPlan() };
+    case "/ritmo":
+    case "/rutinas":
+      return comandoRitmo(arg);
+    case "/captar":
+      return comandoCaptar(arg);
     case "/estado":
       return estado();
     case "/articulos": {
@@ -383,7 +389,7 @@ async function ejecutarHerramienta(l: LlamadaHerramienta, botones: Boton[]): Pro
 
 async function conversar(texto: string): Promise<Respuesta> {
   const ultimo = await ultimoPost();
-  const sistema = `Eres el asistente SEO de transformaconia.com en Telegram. Hablas con Juan Carlos (el dueño), en español de España, breve y claro. Usas las herramientas para consultar y cambiar artículos de WordPress. Antes de cambiar algo, si no sabes el id, búscalo. Para borrar SIEMPRE usas pedir_borrado (nunca borras directamente). Los cambios se pueden deshacer con el botón que aparece. Cuando propongas textos SEO: título ≤60 caracteres, meta 130-155 con la keyword, sin inventar datos ni años. ${ultimo ? `El último artículo del que se habló es el #${ultimo}; si dice "este" o "el artículo" se refiere a ese.` : ""} Responde en texto plano (sin Markdown).`;
+  const sistema = `Eres el asistente SEO de transformaconia.com en Telegram. Hablas con Juan Carlos (el dueño), en español de España, breve y claro. Usas las herramientas para consultar y cambiar artículos de WordPress. Antes de cambiar algo, si no sabes el id, búscalo. Para borrar SIEMPRE usas pedir_borrado (nunca borras directamente). Los cambios se pueden deshacer con el botón que aparece. Cuando propongas textos SEO: título ≤60 caracteres, meta 130-155 con la keyword, sin inventar datos ni años. ${ultimo ? `El último artículo del que se habló es el #${ultimo}; si dice "este" o "el artículo" se refiere a ese.` : ""} Si te pide pausar, reanudar o cambiar cada cuántos días van las rutinas automáticas (publicaciones, captación, Instagram, informe SEO), dile el comando exacto de /ritmo (por ejemplo «/ritmo pausa instagram» o «/ritmo 4»); para buscar empresas, «/captar oficio zona». Responde en texto plano (sin Markdown).`;
   const input: unknown[] = [{ role: "user", content: texto }];
   const botones: Boton[] = [];
   for (let vuelta = 0; vuelta < 5; vuelta++) {

@@ -3,17 +3,18 @@ import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { subir } from "@/lib/redes";
 import { json, MODELO_RAPIDO } from "@/lib/ai";
+import { getRitmo, toca, proximos, bonita } from "@/lib/ritmo";
 
-// Instagram en automático (decidido el 26-10-2026: «hazlo tú y dame el informe después»).
-// 13:00 (cron de Vercel): el servidor publica el reel del plan, responde a los comentarios de nuestras publicaciones
-//   y manda el informe (los lunes con números de la semana, los viernes con posibles clientes).
+// Instagram en automático (decidido el 26-10-2026: «hazlo tú y dame el informe después»; el 27-10: cada 3 días y
+// a Telegram SOLO si ha pasado algo, ver src/lib/ritmo.ts).
+// 13:00 (n8n, todos los días): responde a los comentarios de nuestras publicaciones; el día que toca, además, publica el
+//   reel del plan y añade números y posibles clientes. Si no ha pasado nada, no se manda nada.
 // Seguir y comentar en otras cuentas no se puede por la API: lo hace el agente local (Claude + Chrome) si el PC está
 //   encendido; si a las 19:00 sigue pendiente (n8n llama a ?fase=tarde), se le manda la lista al móvil.
 
 const IG = "https://graph.instagram.com/v21.0";
 const NOSOTROS = "transformaconia.oficial";
 const hoy = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
-const diaSemana = () => new Date().toLocaleDateString("en-GB", { timeZone: "Europe/Madrid", weekday: "long" });
 
 type Cred = { token: string; user_id: string };
 async function cred(): Promise<Cred | null> {
@@ -84,18 +85,18 @@ async function responderComentarios(c: Cred) {
 }
 
 // ---------------------------------------------------------------- números
-async function numeros(c: Cred) {
+async function numeros(c: Cred, dias: number) {
   const p = await ig<{ followers_count?: number; media_count?: number }>(c, "me?fields=followers_count,media_count");
-  const desde = Math.floor(Date.now() / 1000) - 7 * 86400;
+  const desde = Math.floor(Date.now() / 1000) - dias * 86400;
   const ins = await ig<{ data?: { name: string; total_value?: { value: number } }[] }>(c, `${c.user_id}/insights?metric=reach,profile_views,website_clicks&period=day&metric_type=total_value&since=${desde}&until=${Math.floor(Date.now() / 1000)}`);
   const v = (n: string) => ins.data?.find((x) => x.name === n)?.total_value?.value ?? 0;
-  const [web] = await sql<{ n: number }[]>`select count(*)::int n from seo.visitas where created_at > now() - interval '7 days' and evento = 'visita' and coalesce(ref,'') ilike '%instagram%'`;
-  const [cont] = await sql<{ n: number }[]>`select count(*)::int n from seo.contactos where created_at > now() - interval '7 days' and not coalesce(es_prueba, false)`;
-  // seguidores de hace una semana (se guarda uno por día)
+  const [web] = await sql<{ n: number }[]>`select count(*)::int n from seo.visitas where created_at > now() - make_interval(days => ${dias}) and evento = 'visita' and coalesce(ref,'') ilike '%instagram%'`;
+  const [cont] = await sql<{ n: number }[]>`select count(*)::int n from seo.contactos where created_at > now() - make_interval(days => ${dias}) and not coalesce(es_prueba, false)`;
+  // seguidores de hace `dias` días (se guarda uno por día)
   const [h] = await sql<{ value: Record<string, number> }[]>`select value from seo.settings where key = 'ig_seguidores'`;
   const hist = { ...(h?.value ?? {}), [hoy()]: p.followers_count ?? 0 };
   await sql`insert into seo.settings (key, value) values ('ig_seguidores', ${sql.json(hist)}) on conflict (key) do update set value = excluded.value, updated_at = now()`;
-  const hace7 = new Date(Date.now() - 7 * 86400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
+  const hace7 = new Date(Date.now() - dias * 86400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
   const antes = Object.entries(hist).filter(([f]) => f <= hace7).sort().pop()?.[1];
   return { seguidores: p.followers_count ?? 0, nuevos: antes === undefined ? null : (p.followers_count ?? 0) - antes, alcance: v("reach"), visitasPerfil: v("profile_views"), clics: v("website_clicks"), web: web.n, contactos: cont.n };
 }
@@ -104,47 +105,57 @@ async function numeros(c: Cred) {
 export async function mediodia() {
   const c = await cred();
   if (!c) return { ok: false, motivo: "Instagram no conectado" };
+  const ritmo = await getRitmo();
+  if (ritmo.pausas.instagram) return { ok: true, pausa: true };
+  const tocaHoy = toca(ritmo);
   const lineas: string[] = [];
-  const dia = diaSemana();
   const [plan] = await sql<{ tareas: { tipo: string; ref?: string | null }[]; estado: string }[]>`select tareas, estado from seo.ig_plan where fecha = ${hoy()}`;
   let reelOk = true;
-  if (plan && plan.estado !== "hecho" && plan.estado !== "rechazado") {
+  // el reel solo el día que toca (por si quedara una fila vieja del plan diario)
+  if (tocaHoy && plan && plan.estado !== "hecho" && plan.estado !== "rechazado") {
     const reel = plan.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
     if (reel) {
       const r = await subir(reel);
       reelOk = r.startsWith("✅") || r.startsWith("Ya estaba subido");
-      lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar en la próxima pasada; si quieres, escribe /reel."}`);
+      lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar a las 19:00; si quieres, escribe /reel."}`);
     }
   }
   try {
     const r = await responderComentarios(c);
-    lineas.push(r.hechas.length ? `↩️ <b>He respondido ${r.hechas.length} comentario(s):</b>\n${r.hechas.map((x) => "• " + esc(x)).join("\n")}` : "↩️ Ningún comentario nuevo que responder.");
-    if (r.ignorados.length) lineas.push(`🙈 Sin responder (spam o sin sentido):\n${r.ignorados.map((x) => "• " + esc(x)).join("\n")}`);
+    if (r.hechas.length) {
+      lineas.push(`↩️ <b>He respondido ${r.hechas.length} comentario(s):</b>\n${r.hechas.map((x) => "• " + esc(x)).join("\n")}`);
+      if (r.ignorados.length) lineas.push(`🙈 Sin responder (spam o sin sentido):\n${r.ignorados.map((x) => "• " + esc(x)).join("\n")}`);
+    }
   } catch (e) {
     lineas.push(`⚠️ No he podido revisar los comentarios: ${esc((e as Error).message)}`);
   }
-  const n = await numeros(c).catch(() => null);
-  if (n && (dia === "Monday" || dia === "Friday")) {
-    lineas.push(`📊 <b>Últimos 7 días</b>\nSeguidores: <b>${n.seguidores}</b>${n.nuevos !== null ? ` (${n.nuevos >= 0 ? "+" : ""}${n.nuevos})` : ""} · Cuentas alcanzadas: <b>${n.alcance}</b> · Visitas al perfil: ${n.visitasPerfil} · Clics a la web: ${n.clics}\nVisitas a la web desde Instagram: ${n.web} · Contactos por la web: ${n.contactos}`);
+  if (tocaHoy) {
+    const n = await numeros(c, ritmo.cada).catch(() => null);
+    // los números solo si se ha movido algo
+    if (n && (n.nuevos || n.contactos || n.clics || n.web)) {
+      lineas.push(`📊 <b>Últimos ${ritmo.cada} días</b>\nSeguidores: <b>${n.seguidores}</b>${n.nuevos !== null ? ` (${n.nuevos >= 0 ? "+" : ""}${n.nuevos})` : ""} · Cuentas alcanzadas: <b>${n.alcance}</b> · Visitas al perfil: ${n.visitasPerfil} · Clics a la web: ${n.clics}\nVisitas a la web desde Instagram: ${n.web} · Contactos por la web: ${n.contactos}`);
+    }
+    const quien = await sql<{ cuenta: string; n: number }[]>`select cuenta, count(*)::int n from seo.ig_acciones where tipo = 'responder' and fecha > current_date - ${ritmo.cada}::int
+      and texto not like '(sin responder)%' and texto <> '(en curso)' group by cuenta order by n desc limit 10`;
+    if (quien.length) lineas.push(`🎯 <b>Han hablado con nosotros:</b> ${quien.map((q) => "@" + esc(q.cuenta)).join(", ")}\nSi alguno es una empresa que encaja, dímelo y te preparo un mensaje.`);
+    // avisos de lo que va a faltar (solo cuando falta de verdad)
+    const [quedan] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo = 'reel' and estado in ('pendiente', 'propuesto')`;
+    if (quedan.n <= 1) lineas.push(`🛠 ${quedan.n ? "Solo queda 1 reel" : "No quedan reels"} en la cola. Cuando abras Claude Code, dime «prepara reels nuevos para Instagram».`);
+    const manana = new Date(Date.now() + 86400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
+    const [siguiente] = proximos(ritmo, 1, manana);
+    const [lista] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha = ${siguiente}`;
+    if (!lista.n) lineas.push(`📝 No tengo lista de cuentas para seguir y comentar el ${esc(bonita(siguiente))}. Cuando abras Claude Code, dime «prepara la lista de Instagram» y la dejo lista.`);
   }
-  if (dia === "Friday") {
-    const quien = await sql<{ cuenta: string; n: number }[]>`select cuenta, count(*)::int n from seo.ig_acciones where tipo = 'responder' and fecha > current_date - 7 and texto not like '(sin responder)%' group by cuenta order by n desc limit 10`;
-    lineas.push(quien.length ? `🎯 <b>Han hablado con nosotros esta semana:</b> ${quien.map((q) => "@" + esc(q.cuenta)).join(", ")}\nMíralos: si alguno es una empresa que encaja, dímelo y te preparo un mensaje.` : "🎯 Esta semana aún no nos ha escrito ninguna empresa. Es normal al principio: seguimos sembrando.");
-  }
-  // la lista de seguir/comentar se prepara mirando las publicaciones de cada cuenta (Claude + Chrome): si la semana no la tiene, se le recuerda
-  const [semana] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha >= ${hoy()}::date and fecha < ${hoy()}::date + 5`;
-  if (!semana.n && dia === "Monday") lineas.push("📝 Esta semana no tengo lista de cuentas para seguir y comentar. Cuando abras Claude Code, dime «prepara la lista de Instagram de la semana» y la dejo lista en 10 minutos.");
-  const pend = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha = ${hoy()} and not hecho`;
-  if (pend[0].n) lineas.push(`➕💬 Seguir y comentar (${pend[0].n} tareas): lo hago desde el ordenador en cuanto esté encendido. Si a las 19:00 no he podido, te llega la lista al móvil.`);
-  if (plan && reelOk) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now(), informe = ${lineas.join("\n\n")} where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
-  if (lineas.length) await enTrozos(`📲 <b>Instagram hoy</b>`, lineas);
-  return { ok: true };
+  if (tocaHoy && plan && reelOk) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now(), informe = ${lineas.join("\n\n")} where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
+  if (lineas.length) await enTrozos(`📲 <b>Instagram</b>`, lineas);
+  return { ok: true, toca: tocaHoy, enviado: lineas.length > 0 };
 }
 
 // ---------------------------------------------------------------- 19:00 (lista al móvil si el PC no lo ha hecho)
 type Movil = { id: number; tipo: string; cuenta: string; url: string; texto: string | null };
 
 export async function tarde() {
+  if ((await getRitmo()).pausas.instagram) return { ok: true, pausa: true };
   // si el reel de mediodía falló, segundo intento
   const [plan] = await sql<{ tareas: { tipo: string; ref?: string | null }[] }[]>`select tareas from seo.ig_plan where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
   const reel = plan?.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
