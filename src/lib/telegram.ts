@@ -84,10 +84,13 @@ async function comando(texto: string): Promise<Respuesta | null> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/idea — la mejor publicación para ahora (con noticias frescas) y otras 5 para elegir; si te gusta, «✍️ Redactar y publicar ahora»
+      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/queredactar (o /idea) — te digo qué publicaría yo ahora y por qué (web, Instagram y noticias con más movimiento), con el resumen de la noticia; confirmas y lo redacto y publico. Y otras 5 para elegir; si te gusta, «✍️ Redactar y publicar ahora»
 /noticias — las mejores noticias de IA e industria para el blog (0 € si ya se buscaron hoy); también vale escribir «búscame noticias»\n\n/reel — te mando la siguiente publicación con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram · /revisar — cómo saldría el texto de la siguiente tras el control de calidad\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
+    case "/queredactar":
+    case "/quepublico":
+    case "/redactar":
       return pedirIdea(false);
     case "/noticias":
     case "/noticia":
@@ -214,6 +217,7 @@ async function pedirIdea(saltarActual: boolean, recId?: number): Promise<Respues
     try {
       const { darIdea, otrasIdeas } = await import("./que-publicar/idea");
       const id = await darIdea({ origin: "telegram", descartarActual: saltarActual ? "saltada" : undefined, recId });
+      await telegram(await recomendacion(id));
       if (recId) return; // eligió una de la lista: le llega su propuesta y basta
       const otras = await otrasIdeas(id);
       if (otras.length)
@@ -232,6 +236,30 @@ async function pedirIdea(saltarActual: boolean, recId?: number): Promise<Respues
   };
 }
 
+
+/** El «porqué» del experto: qué publicaría, por qué ahora y, si nace de una noticia, su resumen. */
+async function recomendacion(recId: number | string): Promise<string> {
+  const [r] = await sql<{ titulo: string; keyword: string; pilar: string | null; por_que: { senal: string; detalle: string }[]; radar_id: number | null; cta: string | null }[]>`
+    select titulo, keyword, pilar, por_que, radar_id, cta from seo.qp_recs where id = ${String(recId)}::bigint`;
+  if (!r) return "🧠 Idea preparada.";
+  const [n] = r.radar_id
+    ? await sql<{ title: string; source: string; url: string; resumen: string | null; snippet: string | null; published_at: Date | null }[]>`
+        select title, source, url, resumen, snippet, published_at from seo.radar where id = ${r.radar_id}`
+    : [];
+  const lineas = [
+    "🧠 <b>Lo que yo publicaría ahora</b>",
+    `<b>${esc(r.titulo)}</b>`,
+    `🔑 <code>${esc(r.keyword)}</code>${r.pilar ? ` · ${esc(r.pilar)}` : ""}`,
+    "",
+    "<b>Por qué:</b>",
+    ...(r.por_que || []).slice(0, 3).map((p) => `• ${esc(p.detalle)}`),
+  ];
+  if (n)
+    lineas.push("", `🗞 <b>La noticia</b> (${esc(n.source)}${n.published_at ? `, ${n.published_at.toLocaleDateString("es-ES")}` : ""}):`, esc((n.resumen || n.snippet || n.title).slice(0, 500)), n.url);
+  if (r.cta) lineas.push("", `🎯 Lleva a: ${esc(r.cta)}`);
+  lineas.push("", "En un minuto te llega cómo quedará (titular, secciones y SEO) con «✍️ Redactar y publicar ahora». Si prefieres otra, abajo tienes 5 más.");
+  return lineas.join("\n");
+}
 
 // ---------------------------------------------------------------- noticias para el blog (0 € si ya se buscaron hoy)
 async function buscarNoticias(): Promise<Respuesta> {
@@ -475,6 +503,7 @@ export async function atender(update: Update) {
   try {
     if (update.callback_query?.data?.startsWith("app:")) r = await boton(update.callback_query.data);
     else if (update.message?.text?.startsWith("/")) r = await comando(update.message.text);
+    else if (update.message?.text && /qu[eé] (redacto|redactamos|publico|publicamos|escribo|subo)/i.test(update.message.text)) r = await pedirIdea(false);
     else if (update.message?.text && /\bnoticias?\b/i.test(update.message.text) && /\b(busca|búscame|buscame|dame|trae|tráeme|traeme|hay|qué|que|ver|enséñame|ensename)\b/i.test(update.message.text)) r = await buscarNoticias();
     else if (update.message?.text) r = await conversar(update.message.text);
     else if (update.message?.voice) r = { text: "De momento solo entiendo texto. Escríbemelo y lo hago 🙂" };
