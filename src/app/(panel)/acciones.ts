@@ -440,6 +440,15 @@ export async function darIdeaAccion(descartarActual?: "saltada" | "no_interesa")
   });
 }
 
+/** Elegir una de las «otras 5»: se aparta la que estaba en preparación y se prepara esta. */
+export async function elegirIdeaAccion(recId: number) {
+  return seguro(async () => {
+    const { darIdea } = await import("@/lib/que-publicar/idea");
+    await darIdea({ origin: "app", descartarActual: "saltada", recId });
+    revalidatePath("/", "layout");
+  }, "Preparando esa idea: en un minuto ves cómo quedará");
+}
+
 export async function redactarIdeaAccion(recId: number) {
   return seguro(async () => {
     const { redactarIdea } = await import("@/lib/que-publicar/idea");

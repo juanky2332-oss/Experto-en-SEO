@@ -203,10 +203,29 @@ async function arreglar(id: number): Promise<Respuesta> {
 }
 
 // ---------------------------------------------------------------- «Dame una idea» desde Telegram
-async function pedirIdea(saltarActual: boolean): Promise<Respuesta> {
-  const { darIdea } = await import("./que-publicar/idea");
-  await darIdea({ origin: "telegram", descartarActual: saltarActual ? "saltada" : undefined });
-  return { text: "💡 Miro cómo está la web y hacia dónde vamos… En un minuto te llega la propuesta con cómo quedará (titular, palabras clave, secciones y objetivo SEO)." };
+// Busca noticias frescas (si hace falta), mira la web y la guía, lanza la principal y manda las otras 5 para elegir.
+// Va después de contestar: la búsqueda de noticias puede tardar un par de minutos.
+async function pedirIdea(saltarActual: boolean, recId?: number): Promise<Respuesta> {
+  after(async () => {
+    try {
+      const { darIdea, otrasIdeas } = await import("./que-publicar/idea");
+      const id = await darIdea({ origin: "telegram", descartarActual: saltarActual ? "saltada" : undefined, recId });
+      if (recId) return; // eligió una de la lista: le llega su propuesta y basta
+      const otras = await otrasIdeas(id);
+      if (otras.length)
+        await telegram(
+          `📋 <b>Otras ${otras.length} ideas</b> por si prefieres otra (la principal te llega ahora con cómo quedará):\n\n${otras.map((o, i) => `${i + 1}. ${o.noticia ? "🗞 " : ""}${esc(o.titulo)}\n   <code>${esc(o.keyword)}</code>`).join("\n")}`,
+          otras.map((o, i) => ({ text: `✍️ La ${i + 1}`, data: `app:ideax:${o.id}` })),
+        );
+    } catch (e) {
+      await telegram(`⚠️ No he podido preparar la idea: ${esc((e as Error).message)}`);
+    }
+  });
+  return {
+    text: recId
+      ? "✍️ Hecho: te preparo esa. En un minuto te llega cómo quedará (titular, palabras clave, secciones y objetivo SEO)."
+      : "💡 Busco noticias frescas de IA e industria, miro cómo está la web y la guía… En 2-3 minutos te llegan la idea principal (con cómo quedará) y otras 5 para elegir.",
+  };
 }
 
 
@@ -271,6 +290,9 @@ async function boton(data: string): Promise<Respuesta | null> {
       if (!esLaActual && /^[0-9a-f-]{36}$/.test(valor ?? "")) await publicador({ action: "reject", brief_id: valor }).catch(() => null);
       return pedirIdea(esLaActual);
     }
+    case "ideax":
+      // una de las «otras 5»: la que hubiera en preparación se aparta y se prepara esta
+      return pedirIdea(true, id);
     case "fix":
       return arreglar(id);
     case "borrador":

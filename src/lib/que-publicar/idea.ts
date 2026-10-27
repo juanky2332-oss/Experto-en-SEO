@@ -7,7 +7,7 @@ import "server-only";
 //      Solo si el control de calidad lo frena queda en borrador, con «🚀 Publicar ahora».
 // El brief se enlaza a la idea en n8n (Guardar brief usa rec_id), así panel y Telegram ven lo mismo.
 import { sql } from "../db";
-import { publicador } from "../gateway";
+import { publicador, lanzarRadar } from "../gateway";
 import { editar, type Origen } from "../acciones";
 import { ahoraWp } from "../wp";
 import { generarQuePublicar } from "./generar";
@@ -18,7 +18,8 @@ export type Propuesta = {
   interes: number; motivo: string; categoria: string; publico: string; canibaliza?: { post_id: number; titulo: string } | null;
 };
 export type EstadoBrief = { id: string; status: string; post_id: number | null; post_url: string | null; seo_score: number | null; error: string | null; propuesta: Propuesta | null };
-export type Idea = { rec: Rec; brief: EstadoBrief | null; desde: string; atascada: boolean };
+export type Otra = { id: number; titulo: string; keyword: string; pilar: string | null; noticia: boolean };
+export type Idea = { rec: Rec; brief: EstadoBrief | null; desde: string; atascada: boolean; otras: Otra[] };
 
 const CLAVE = "idea_actual";
 
@@ -42,7 +43,40 @@ export async function ideaActual(): Promise<Idea | null> {
     : [];
   // pedida hace más de 10 minutos y sin brief = algo se quedó a medias: se ofrece pedir otra
   const atascada = r.estado === "en_brief" && !b && Date.now() - new Date(fila.value.desde).getTime() > 10 * 60 * 1000;
-  return { rec: r, brief: b ?? null, desde: fila.value.desde, atascada };
+  return { rec: r, brief: b ?? null, desde: fila.value.desde, atascada, otras: await otrasIdeas(r.id) };
+}
+
+/** Las 5 siguientes mejores ideas de artículo (para elegir otra sin volver a pedir). */
+export async function otrasIdeas(salvo: number | string): Promise<Otra[]> {
+  const f = await sql<{ id: number; titulo: string; keyword: string; pilar: string | null; radar_id: number | null }[]>`
+    select id, titulo, keyword, pilar, radar_id from seo.qp_recs where estado = 'abierta' and destino = 'articulo' and id <> ${String(salvo)}::bigint
+    order by prioridad desc, id limit 5`;
+  return f.map((x) => ({ id: Number(x.id), titulo: x.titulo, keyword: x.keyword, pilar: x.pilar, noticia: !!x.radar_id }));
+}
+
+/**
+ * Noticias frescas al pedir una idea: si la última búsqueda tiene más de 18 h, lanza el radar ahora
+ * (manual: funciona aunque la búsqueda diaria esté apagada) y espera a que termine (máx. ~3 min).
+ */
+export async function asegurarNoticias(): Promise<"recientes" | "buscadas" | "sin_respuesta"> {
+  const hora = async () => {
+    const [e] = await sql<{ h: string | null }[]>`select value->>'hora' h from seo.settings where key = 'radar_estado'`;
+    return e?.h ? Date.parse(e.h) : 0;
+  };
+  const antes = await hora();
+  if (Date.now() - antes < 18 * 3600 * 1000) return "recientes";
+  await lanzarRadar();
+  const inicio = Date.now();
+  // el radar marca su hora al empezar; se espera a que deje de entrar material nuevo
+  let ultimo = -1, quietos = 0;
+  while (Date.now() - inicio < 180_000) {
+    await new Promise((r) => setTimeout(r, 10_000));
+    if ((await hora()) <= antes) continue;
+    const [c] = await sql<{ n: number }[]>`select count(*)::int n from seo.radar where created_at > to_timestamp(${inicio / 1000})`;
+    if (c.n > 0 && c.n === ultimo) { if (++quietos >= 2) return "buscadas"; } else quietos = 0;
+    ultimo = c.n;
+  }
+  return ultimo > 0 ? "buscadas" : "sin_respuesta";
 }
 
 const candidata = async (saltar: (number | string)[]) =>
@@ -54,7 +88,7 @@ const candidata = async (saltar: (number | string)[]) =>
  * La de antes, si no se llegó a redactar, queda «saltada» (o «no interesa», que sí enseña al estratega)
  * y su brief pendiente se descarta.
  */
-export async function darIdea(o: { origin: Origen; descartarActual?: "saltada" | "no_interesa" }) {
+export async function darIdea(o: { origin: Origen; descartarActual?: "saltada" | "no_interesa"; recId?: number | string; conNoticias?: boolean }) {
   const actual = await ideaActual();
   const sinRedactar = actual && (!actual.brief || actual.brief.status === "pending" || actual.brief.status === "rejected");
   if (actual && sinRedactar && actual.rec.estado !== "publicada") {
@@ -65,9 +99,19 @@ export async function darIdea(o: { origin: Origen; descartarActual?: "saltada" |
     if (actual.brief?.status === "pending") await publicador({ action: "reject", brief_id: actual.brief.id }).catch(() => null);
   }
   const saltar = actual ? [actual.rec.id] : [];
-  // 0 € si nada ha cambiado desde el último lote (reutiliza los candidatos)
-  await generarQuePublicar({ origin: o.origin });
-  let id = await candidata(saltar);
+  let id: string | null = null;
+  if (o.recId) {
+    // elegida de entre las «otras 5»
+    const [x] = await sql<{ id: string }[]>`select id from seo.qp_recs where id = ${String(o.recId)}::bigint and estado = 'abierta'`;
+    id = x?.id ?? null;
+    if (!id) throw new Error("Esa idea ya no está disponible. Pide ideas otra vez.");
+  } else {
+    // noticias frescas (si las de ayer ya están, no se vuelve a buscar) y después el estratega
+    if (o.conNoticias !== false) await asegurarNoticias().catch((e) => console.error("radar", e));
+    // 0 € si nada ha cambiado desde el último lote (reutiliza los candidatos)
+    await generarQuePublicar({ origin: o.origin });
+    id = await candidata(saltar);
+  }
   if (!id) {
     await generarQuePublicar({ origin: o.origin, forzar: true }); // temas nuevos (~0,03 €)
     id = await candidata(saltar);
@@ -75,15 +119,24 @@ export async function darIdea(o: { origin: Origen; descartarActual?: "saltada" |
   if (!id) throw new Error("Ahora mismo no encuentro un tema que no hayas visto ya. Prueba a cambiar los temas preferidos.");
   // se reclama de forma atómica (dos clics no lanzan dos briefs)
   const [r] = await sql<Rec[]>`update seo.qp_recs set estado = 'en_brief' where id = ${id} and estado = 'abierta'
-    returning id, keyword, secundarias, intencion, publico, pilar, destino, destino_ref, enlaces, cta, titulo, tipo`;
+    returning id, keyword, secundarias, intencion, publico, pilar, destino, destino_ref, enlaces, cta, titulo, tipo, radar_id`;
   if (!r) throw new Error("Esa idea la acaba de coger otra petición. Vuelve a pulsar.");
   await guardar(r.id);
+  // Si nace de una noticia, el redactor la recibe entera (titular, fuente, enlace y resumen) para basarse en ella y citarla.
+  const [n] = r.radar_id
+    ? await sql<{ title: string; source: string; url: string; resumen: string | null; snippet: string | null; published_at: Date | null }[]>`
+        select title, source, url, resumen, snippet, published_at from seo.radar where id = ${r.radar_id}`
+    : [];
+  if (n) await sql`update seo.radar set status = 'seen' where id = ${r.radar_id} and status = 'new'`;
+  const notas = n
+    ? `ARTÍCULO A PARTIR DE UNA NOTICIA RECIENTE. Noticia: «${n.title}» (${n.source}${n.published_at ? `, ${n.published_at.toISOString().slice(0, 10)}` : ""}). Enlace: ${n.url}. Resumen: ${(n.resumen || n.snippet || "").slice(0, 600)}. Explica qué ha pasado con datos solo de la noticia, qué significa para una empresa industrial española o de Murcia y qué puede hacer ya; cita y enlaza la fuente; nada inventado.`
+    : undefined;
   try {
     await publicador({
       action: "brief_pista", rec_id: Number(r.id),
       pista: {
         keyword: r.keyword, secundarias: r.secundarias, intencion: r.intencion, publico: r.publico, pilar: r.pilar, categoria: r.pilar,
-        destino: r.destino, destino_ref: r.destino_ref, enlaces: r.enlaces, cta: r.cta, titulo: r.titulo, tipo: r.tipo,
+        destino: r.destino, destino_ref: r.destino_ref, enlaces: r.enlaces, cta: r.cta, titulo: r.titulo, tipo: r.tipo, notas,
       },
     });
   } catch (e) {

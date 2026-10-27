@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Lightbulb, PenLine, RefreshCw, ThumbsDown, Send, ExternalLink, Pencil, Loader2, CheckCircle2, X, Target, KeyRound, ListOrdered } from "lucide-react";
 import { Badge } from "@/components/ui";
 import { BotonAccion } from "@/components/BotonAccion";
-import { darIdeaAccion, redactarIdeaAccion, publicarIdeaAccion, cerrarIdeaAccion } from "../acciones";
+import { darIdeaAccion, elegirIdeaAccion, redactarIdeaAccion, publicarIdeaAccion, cerrarIdeaAccion } from "../acciones";
 import type { Idea } from "@/lib/que-publicar/idea";
 import { SENAL_UI } from "./Tarjeta";
 
@@ -33,7 +33,7 @@ export function IdeaAhora({ idea, sitio }: { idea: Idea | null; sitio: string })
 
   const pedir = (texto = "Dame una idea") => (
     <BotonAccion accion={() => darIdeaAccion()} className="btn btn-primary"
-      confirmar="Miro cómo está la web y hacia dónde vamos y te propongo UNA publicación para ahora, con cómo quedará. Coste: ~0,05 € (la propuesta). Llega aquí y a Telegram en ~1 minuto. ¿Seguimos?">
+      confirmar="Busco noticias frescas de IA e industria (si las de hoy no están ya), miro cómo está la web y la guía y te propongo la mejor publicación para ahora, con cómo quedará, y otras 5 para elegir. Coste: ~0,05-0,10 €. Tarda 1-3 minutos. ¿Seguimos?">
       <Lightbulb size={15} /> {texto}
     </BotonAccion>
   );
@@ -45,7 +45,7 @@ export function IdeaAhora({ idea, sitio }: { idea: Idea | null; sitio: string })
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900"><Lightbulb size={18} className="text-amber-500" /> ¿Qué publico ahora?</h2>
-          <p className="text-[13px] text-slate-500">Una idea para publicar hoy, según lo que ya tiene la web y hacia dónde queremos llevarla. También en Telegram con <code>/idea</code>. Nada se programa.</p>
+          <p className="text-[13px] text-slate-500">La mejor publicación para hoy (noticias frescas + lo que ya tiene la web + la guía) y otras 5 para elegir. También en Telegram con <code>/idea</code>. Nada se programa.</p>
         </div>
         {!idea && pedir()}
       </div>
@@ -121,6 +121,19 @@ export function IdeaAhora({ idea, sitio }: { idea: Idea | null; sitio: string })
             {idea.atascada && <p className="w-full text-sm text-rose-600">La propuesta no llegó a prepararse. Pide otra.</p>}
 
             {terminada && pedir(publicada ? "Dame otra idea" : "Pedir otra idea")}
+            {(pendiente || preparando) && idea.otras.length > 0 && (
+              <div className="w-full border-t border-[var(--line)] pt-3">
+                <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">Otras {idea.otras.length} ideas</p>
+                <ul className="mt-2 grid gap-1.5">
+                  {idea.otras.map((o) => (
+                    <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                      <span className="min-w-0">{o.noticia && <Badge tone="blue">Noticia</Badge>} <b className="text-slate-800">{o.titulo}</b> <span className="text-xs text-slate-500">· {o.keyword}</span></span>
+                      <BotonAccion accion={() => elegirIdeaAccion(o.id)} className="btn btn-ghost">Elegir esta</BotonAccion>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <BotonAccion accion={() => cerrarIdeaAccion()} className="btn btn-ghost ml-auto"><X size={15} /> Cerrar</BotonAccion>
           </div>
         </div>

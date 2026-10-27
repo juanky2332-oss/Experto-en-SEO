@@ -44,11 +44,10 @@ export async function recogerSenales(): Promise<Senales> {
   const [inv, guia, radarCfg] = await Promise.all([inventario(), getGuia(), getRadarConfig()]);
   // tanda 2: 3 consultas
   const [radar, visitas, conv] = await Promise.all([
-    radarCfg.activo
-      ? sql<{ id: number; titulo: string; keyword: string; score: number }[]>`
-          select id, title titulo, coalesce(keyword, '') keyword, score from seo.radar
-          where score >= 60 and created_at > now() - interval '14 days' and status in ('new', 'sent', 'seen') order by score desc limit 25`
-      : Promise.resolve([]),
+    // Las noticias buscadas al pedir una idea cuentan aunque la búsqueda diaria esté apagada (27-10-2026)
+    sql<{ id: number; titulo: string; keyword: string; score: number }[]>`
+      select id, title titulo, coalesce(keyword, '') keyword, score from seo.radar
+      where score >= 55 and created_at > now() - interval '7 days' and status in ('new', 'sent', 'seen') order by score desc limit 25`,
     sql<{ ruta: string; n: number; desde: Date | null }[]>`
       select ruta, count(*)::int n, min(created_at) desde from seo.visitas where evento = 'visita' and created_at > now() - interval '30 days' group by ruta`,
     sql<{ etiqueta: string; n: number }[]>`
