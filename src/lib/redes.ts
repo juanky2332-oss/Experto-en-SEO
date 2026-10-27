@@ -285,3 +285,15 @@ export async function compartirNuevos(base: string) {
     on conflict (key) do update set value = excluded.value, updated_at = now()`;
   return resultado;
 }
+
+/** Ensayo del control de calidad (no publica nada): cómo saldría el texto de un elemento de la cola. */
+export async function ensayar(id?: string) {
+  const c = await credencial();
+  if (!c) return { ok: false as const, motivo: "Instagram no conectado" };
+  const [e] = id
+    ? await sql<ElementoCola[]>`select * from seo.ig_cola where id = ${id}`
+    : await sql<ElementoCola[]>`select * from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto') order by fecha nulls last, id limit 1`;
+  if (!e) return { ok: false as const, motivo: "No encuentro ese elemento" };
+  const rev = await revisarTexto(e.texto, e.tipo, await ultimosTextos(c));
+  return { ok: true as const, id: e.id, titulo: e.titulo, fecha: e.fecha, original: e.texto, pasa: rev.ok, texto: rev.texto, cambios: rev.cambios, problemas: rev.problemas };
+}

@@ -10,7 +10,8 @@ import { inventario, anioActual } from "./seo/inventario";
 import { agente, type LlamadaHerramienta } from "./ai";
 import { investigarTema } from "./temas";
 import { getRadarConfig, guardarRadarConfig, describirRadar, pedirCambioGuia } from "./guia";
-import { siguienteReel, colaReels, proponer, subir, descartar, recuperar, instagramConectado, INSTRUCCIONES } from "./redes";
+import { siguienteReel, colaReels, proponer, subir, descartar, recuperar, instagramConectado, INSTRUCCIONES, ensayar } from "./redes";
+import { bonita } from "./ritmo";
 import { aprobar, rechazar, resumenPlan, subirReelDelPlan } from "./plan-ig";
 import { movilHecho } from "./instagram-diario";
 import { comandoRitmo, comandoCaptar, AYUDA_RITMO } from "./ritmo-telegram";
@@ -83,7 +84,7 @@ async function comando(texto: string): Promise<Respuesta | null> {
     case "/start":
     case "/ayuda":
     case "/help":
-      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando el siguiente reel con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
+      return { text: `🤖 <b>Experto en SEO</b>\n\n${AYUDA_RITMO}\n\n/idea — una publicación para ahora: te enseño cómo quedará y, si te gusta, «✍️ Redactar y publicar ahora»\n\n/reel — te mando la siguiente publicación con «✅ Subir a Instagram» · /reels — la cola entera · /plan — los próximos días de Instagram · /revisar — cómo saldría el texto de la siguiente tras el control de calidad\n\n/tema texto · /radar on|off|diario|semanal|panel|ahora · /guia cambio · /estado · /articulos · /post ID · /titulo ID texto · /meta ID texto · /keyword ID texto · /arreglar ID · /publicar ID · /borrador ID · /borrar ID · /radar · /recomendaciones · /buscar texto\n\nTambién me puedes escribir normal («mejora la meta del artículo de GPT-6») o pegar el enlace de una noticia para publicarla.\n\nPanel: ${APP}` };
     case "/idea":
     case "/ideas":
       return pedirIdea(false);
@@ -98,6 +99,14 @@ async function comando(texto: string): Promise<Respuesta | null> {
       return comandoRitmo(arg);
     case "/captar":
       return comandoCaptar(arg);
+    case "/revisar": {
+      // ensayo del control de calidad de la siguiente publicación (no sube nada)
+      const r = await ensayar(arg.trim() || undefined);
+      if (!r.ok) return { text: `🔍 ${esc(r.motivo)}` };
+      const cab = `🔍 <b>${esc(r.titulo)}</b>${r.fecha ? ` · sale el ${esc(bonita(String(r.fecha).slice(0, 10)))}` : ""}\n`;
+      if (!r.pasa) return { text: `${cab}🛑 No pasaría el control:\n${r.problemas.map((x) => "• " + esc(x)).join("\n")}` };
+      return { text: `${cab}${r.cambios.length ? `✏️ Lo retocaría para no repetir: ${esc(r.cambios.join("; "))}` : "✅ Pasa el control tal cual."}\n\n<i>${esc(r.texto.slice(0, 3000))}</i>` };
+    }
     case "/estado":
       return estado();
     case "/articulos": {

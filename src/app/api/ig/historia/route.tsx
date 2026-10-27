@@ -38,11 +38,11 @@ async function aDataUrl(url: string, ancho: number, alto?: number) {
   return `data:image/jpeg;base64,${buf.toString("base64")}`;
 }
 
-const Marca = ({ icono, claro }: { icono: string | null; claro: boolean }) => (
+const Marca = ({ icono, claro, blanco }: { icono: string | null; claro: boolean; blanco?: boolean }) => (
   <div style={{ display: "flex", alignItems: "center" }}>
     {icono ? <img src={icono} width={60} height={60} style={{ borderRadius: 16 }} /> : null}
     <div style={{ display: "flex", marginLeft: 16, fontSize: 36, fontWeight: 600, color: claro ? C.tinta : "#fff" }}>
-      Transforma<span style={{ color: claro ? C.gris : C.suave, fontWeight: 500, margin: "0 9px" }}>con</span><span style={{ color: claro ? C.morado : C.rosa }}>IA</span>
+      Transforma<span style={{ color: blanco ? "rgba(255,255,255,0.8)" : claro ? C.gris : C.suave, fontWeight: 500, margin: "0 9px" }}>con</span><span style={{ color: blanco ? "#fff" : claro ? C.morado : C.rosa }}>IA</span>
     </div>
   </div>
 );
@@ -159,7 +159,7 @@ export async function GET(req: Request) {
         ) : null}
         {claro ? <div style={{ position: "absolute", top: -260, right: -260, width: 640, height: 640, borderRadius: 320, display: "flex", background: "rgba(224,92,255,0.14)" }} /> : null}
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "200px 80px 230px" }}>
-          <Marca icono={icono} claro={claro} />
+          <Marca icono={icono} claro={claro} blanco={degradado} />
           <div style={{ display: "flex", flexDirection: "column" }}>{cuerpo}</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 30, fontWeight: 500, color: suave }}>
             <span>{d.nota && !claro ? d.nota : "transformaconia.com"}</span>
