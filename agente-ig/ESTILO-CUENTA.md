@@ -39,3 +39,14 @@ Cuando haya historias publicadas: «IndunexIA Gestión», «Consejos», «Diagn�
 ## Mejorar siempre
 - Cada informe del día que toca trae números solo si se mueven. Una vez al mes (o al preparar la siguiente tanda), mirar qué formato y qué tema han tenido más alcance, guardados y visitas al perfil, y ajustar la mezcla de la siguiente tanda: más de lo que funciona y cambiar el ángulo de lo que no.
 - Cada tanda nueva (reels, carruseles o historias) se revisa entera en miniatura antes de cargarla: que alterne claro/oscuro, que no repita temas seguidos y que se lea en el móvil.
+
+
+## Normas desde el 27-10-2026 (pedido del dueño: «no seas cansino con la publicidad»)
+
+- **Regla 2 de 3**: de cada tres publicaciones, dos aportan valor sin vender (consejos, errores típicos, comparativas, noticias explicadas, casos tipo de la industria de Murcia con datos ficticios) y como mucho una es de producto.
+- Las de valor **no llevan «pide tu diagnóstico»**: terminan con una pregunta concreta para conversar o con «guárdalo para…». La llamada al diagnóstico vive en la bio y en /enlaces/.
+- Nunca dos publicaciones de producto seguidas ni el mismo tema (cobros, calculadora, tickets…) a menos de 3 semanas.
+- Producto = una app de la familia IndunexIA (Gestión, Presupuestos, Documentos), con su nombre completo.
+- Voz de los vídeos: SIEMPRE «cedar» con las instrucciones de locutor de Madrid (como `videos/n1-tareas-taller.json`). La voz por defecto suena robótica: no usarla.
+- Bio: presenta la cuenta entera (apps + trucos), no un solo producto. Enlace de la bio: transformaconia.com/enlaces/ (lo cambia el dueño desde el móvil).
+- Historias de producto: como mucho una de cada cuatro.

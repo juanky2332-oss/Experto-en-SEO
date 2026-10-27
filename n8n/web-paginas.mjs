@@ -580,6 +580,22 @@ ${sec(head('Servicios a medida', 'Cuando lo que necesitas no es una app, sino tu
 ${band('Empieza por lo que más horas os quita', 'Te enviamos el diagnóstico por escrito, gratis y sin compromiso.')}`),
 };
 
+// Enlace de la bio de Instagram: todo lo útil en un vistazo, pensado para el móvil.
+P['enlaces'] = {
+  title: 'Enlaces',
+  seo: ['Enlaces · Transforma con IA', 'Diagnóstico gratis, apps IndunexIA para la industria y el blog de Transforma con IA, en un solo sitio.', ''],
+  html: page(`<section class="tc-sec" style="padding-top:110px"><div class="tc-wrap" style="max-width:560px">
+<div class="tc-head tc-reveal" style="text-align:center;display:block"><div>${eyebrow('Transforma con IA · Murcia')}<h1 style="font-size:clamp(28px,6vw,40px)">IA práctica para la industria</h1><p>Apps que quitan papeleo y automatizaciones a medida. Elige por dónde empezar:</p></div></div>
+<div style="display:grid;gap:12px;margin-top:22px">
+${[['/contacto/', '📝 Diagnóstico gratis por escrito', 'Nos cuentas cómo trabajas y en 48 h te decimos qué automatizar primero'],
+   ['/erp-industria/', '⚙️ IndunexIA Gestión', 'El programa de gestión con IA para talleres e industria'],
+   ['/presupuestos-desde-plano/', '📐 IndunexIA Presupuestos', 'Del plano o la foto al presupuesto con tus tarifas'],
+   ['/gestion-documental-ia/', '📁 IndunexIA Documentos', 'Facturas y albaranes ordenados solos en tu carpeta'],
+   ['/blog/', '📰 Blog', 'Casos de IA en la industria y novedades explicadas'],
+   ['/casos/', '🏭 Casos', 'Qué hemos montado y cómo funciona']].map(([u, t, d], n) => `<a class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}" href="${u}" style="display:block;text-decoration:none"><h3 style="margin:0 0 4px">${t}</h3><p style="margin:0">${d}</p></a>`).join('')}
+</div></div></section>`),
+};
+
 const servicio = ({ crumb, eb, h1, lead, seo, resumen, que, como, precio, faqs, extra = '' }) => ({
   title: crumb, seo,
   html: page(`${pagehead(`<a href="/soluciones/">Soluciones</a><span aria-hidden="true">/</span><span>${crumb}</span>`, eb, h1, lead, btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('En resumen', resumen))}
