@@ -31,15 +31,15 @@ const PROHIBIDO: [RegExp, string][] = [
 ];
 
 const hashtags = (t: string) => t.match(/#[\p{L}\p{N}_]+/gu) ?? [];
-// cifras del texto: sin los emojis numerados (1️⃣ 2️⃣…), sin los números de una lista («1.», «2)» al empezar línea) y sin
-// hashtags, que son forma y no datos; repetidas cuentan una vez (precios, horas, porcentajes… tienen que seguir estando)
 const PALABRAS = ["dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez"];
 // Cifras del texto: sin los emojis numerados (1️⃣ 2️⃣…), sin los números de una lista («1.», «2)» al empezar línea) y sin
 // hashtags, que son forma y no datos. Con `letras`, «tres» cuenta como 3 (para no dar por perdida una cifra que se ha escrito con letra).
 const cifras = (t: string, letras: boolean) => {
-  let x = t.replace(/\d️?⃣/g, "").replace(/(^|
-)\s*\d{1,2}[.)]\s/g, "$1").replace(/#[\p{L}\p{N}_]+/gu, "");
-  if (letras) x = x.replace(/(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)/gi, (p) => String(PALABRAS.indexOf(p.toLowerCase()) + 2));
+  let x = t
+    .replace(/\d️?⃣/g, "")
+    .replace(/(^|\n)\s*\d{1,2}[.)]\s/g, "$1")
+    .replace(/#[\p{L}\p{N}_]+/gu, "");
+  if (letras) x = x.replace(/\b(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\b/gi, (p) => String(PALABRAS.indexOf(p.toLowerCase()) + 2));
   return [...new Set(x.match(/\d+(?:[.,]\d+)?/g) ?? [])];
 };
 
