@@ -16,6 +16,7 @@ Lo que se ve en las publicaciones con más interacción (y en las guías de Late
 - Pregunta en más o menos 1 de cada 3 comentarios, solo si sale natural.
 - Nada de sorteos, esquelas, sucesos, política ni temas tristes. En medios y ayuntamientos, solo seguir salvo algo de empresa, empleo o jóvenes.
 - No inventar nada ni hablar de nosotros.
+- Castellano de aquí, natural y educado (como se habla en Murcia, sin localismos forzados ni giros de traductor). Decir «empresas», no «cooperativas» ni otros términos de nicho que se repitan.
 - Nunca la misma cuenta dos veces en la semana ni la misma publicación nunca (la carga lo comprueba contra `seo.ig_acciones`).
 
 ## Ejemplos
@@ -23,7 +24,7 @@ Lo que se ve en las publicaciones con más interacción (y en las guías de Late
 - Taller que explica precios: «Muy bien explicado. Ojalá más talleres contaran así por qué un trabajo vale lo que vale.»
 - Fachada: «Qué fachada más espectacular. Diseño de Murcia en Costa Rica 👌»
 - Aniversario: «45 años ya, ¡enhorabuena por la trayectoria!»
-- Jornada de IA: «Muy buena iniciativa. ¿Qué uso de la IA os pareció el más útil para las cooperativas?»
+- Jornada de IA: «Muy buena iniciativa. ¿Qué uso de la IA os pareció el más útil para las empresas?»
 
 ## Cómo se prepara la lista de la semana
 Con Chrome: abrir el perfil de cada cuenta, leer las 3-4 últimas publicaciones (texto `alt` de `main a[href*="/p/"]`), elegir una reciente y escribir su comentario con estas reglas. Cargar con un script como `n8n/ig-movil-semana1.mjs` (no repite lo hecho).

@@ -24,7 +24,7 @@ const DIAS = {
     comentar: [
       ['saxun_solar', '/p/Det-sIHiOOt/', 'Qué fachada más espectacular. Diseño de Murcia en Costa Rica 👌'],
       ['arq.mod.internacional', '/p/DetzUccChNl/', 'Impresiona verla ya terminada en la parcela. ¿Cuánto tiempo pasa desde la nave hasta la entrega?'],
-      ['aytomolina', '/p/De8-W3fJuGF/', 'Muy buena iniciativa. Saber debatir sirve para todo en la vida.'],
+      ['aytomolina', '/p/De8-W3fJuGF/', 'Qué buena idea. Saber debatir les va a servir para todo.'],
       ['hefame_es', '/p/Debquv2AmZs/', 'Bonito compromiso, cada paso suma 🌱'],
       ['n7netcom', '/p/DerIEuHCorC/', '¡Enhorabuena por la nueva imagen! La web ha quedado muy limpia.'],
     ],
