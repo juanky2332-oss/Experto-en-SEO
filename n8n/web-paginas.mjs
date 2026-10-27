@@ -543,7 +543,7 @@ ${band('¿Tu caso es distinto?', 'Cuéntanos qué tarea os quita más tiempo y t
 // Familia IndunexIA (27-10-2026): marca paraguas de las apps; Transforma con IA es quien las hace e implanta.
 const FAMILIA = [
   ['erp', 'IndunexIA Gestión', 'El programa de gestión con IA: costes y margen, presupuestos, albaranes firmados, facturas, cobros y gastos.', '/erp-industria/', 'Conocer IndunexIA Gestión', 'Producto principal'],
-  ['calc', 'IndunexIA Presupuestos', 'Del plano o la foto al presupuesto con tus tarifas en un minuto. Suelto o incluido en IndunexIA Gestión Pro.', 'https://presupuestos-ia-eta.vercel.app/demo', 'Probar con un plano', 'Nuevo'],
+  ['calc', 'IndunexIA Presupuestos', 'Del plano o la foto al presupuesto con tus tarifas en un minuto. Suelto o incluido en IndunexIA Gestión Pro.', 'https://presupuestos-ia-eta.vercel.app/demo', 'Ver un presupuesto de ejemplo', 'Nuevo'],
   ['carpeta', 'IndunexIA Documentos', 'Facturas y albaranes leídos y archivados en su carpeta, sin teclear. Próximamente.', '/contacto/', 'Quiero que me avisen', 'Próximamente'],
 ];
 const familia = sec(head('Familia IndunexIA', 'Apps con IA para la industria, de Transforma con IA', 'Cada app resuelve una tarea concreta. Se contratan sueltas o juntas, y hablan entre ellas.') + `<div class="tc-grid tc-grid--3">${FAMILIA.map(([i, t, p, u, l, b], n) => `<article class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}"><span class="tc-badge">${b}</span>${icon(i)}<h3>${t}</h3><p>${p}</p><a class="tc-link" href="${u}"${u.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${l}</a></article>`).join('')}</div>`, 'tc-sec--tight', 'familia');
@@ -553,7 +553,7 @@ const NUEVAS = [
   ['doc', 'Lector de facturas y albaranes', 'Haces una foto o reenvías el PDF: la IA saca proveedor, fecha, líneas e importes y los pasa a tu programa o a tu Excel. Tú solo revisas.', 'desde <b>450 €</b> + 39 €/mes'],
   ['sobre', 'Bandeja de correo inteligente', 'Clasifica lo que entra (pedidos, consultas, facturas, avisos), te resume lo importante y deja preparado el borrador de respuesta.', 'desde <b>450 €</b> + 39 €/mes'],
   ['reloj', 'Seguimiento de presupuestos', 'Ningún presupuesto se queda en el aire: te avisa de los que no han contestado y te deja escrito el correo de seguimiento para cada cliente.', 'desde <b>450 €</b> + 39 €/mes'],
-  ['calc', 'IndunexIA Presupuestos: del plano al presupuesto', 'Subes el plano, un croquis o una foto y en un minuto tienes el presupuesto con tus tarifas: kilos, cortes, soldaduras y horas. Tu cliente lo acepta con un enlace. Pruébalo con un plano de ejemplo.', 'desde <b>290 €</b> + 39 €/mes', 'https://presupuestos-ia-eta.vercel.app/demo', 'Probar con un plano'],
+  ['calc', 'IndunexIA Presupuestos: del plano al presupuesto', 'Subes el plano, un croquis o una foto y en un minuto tienes el presupuesto con tus tarifas: kilos, cortes, soldaduras y horas. Tu cliente lo acepta con un enlace. Pruébalo con un plano de ejemplo.', 'desde <b>290 €</b> + 39 €/mes', 'https://presupuestos-ia-eta.vercel.app/demo', 'Ver un presupuesto de ejemplo'],
   ['lupa', 'Buscador interno de tu empresa', 'Manuales, fichas técnicas, procedimientos y normas: tu equipo pregunta con palabras normales y recibe la respuesta con el documento de origen.', 'desde <b>1.200 €</b> + 69 €/mes'],
   ['movil', 'Recepcionista telefónica con IA', 'Atiende las llamadas que no puedes coger: responde lo habitual, toma el recado o la cita y te lo manda por escrito. Siempre avisa de que es un asistente.', 'desde <b>900 €</b> + 79 €/mes'],
 ];
