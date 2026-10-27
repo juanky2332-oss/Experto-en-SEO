@@ -540,11 +540,23 @@ P['otros-sectores'] = {
 ${band('¿Tu caso es distinto?', 'Cuéntanos qué tarea os quita más tiempo y te decimos si tiene solución y cuánto costaría.')}`),
 };
 
+// Soluciones nuevas (2026-10-27, copia de oferta.json → servicios_nuevos). Sin clientes: son servicios nuevos, no casos.
+const NUEVAS = [
+  ['doc', 'Lector de facturas y albaranes', 'Haces una foto o reenvías el PDF: la IA saca proveedor, fecha, líneas e importes y los pasa a tu programa o a tu Excel. Tú solo revisas.', 'desde <b>450 €</b> + 39 €/mes'],
+  ['sobre', 'Bandeja de correo inteligente', 'Clasifica lo que entra (pedidos, consultas, facturas, avisos), te resume lo importante y deja preparado el borrador de respuesta.', 'desde <b>450 €</b> + 39 €/mes'],
+  ['reloj', 'Seguimiento de presupuestos', 'Ningún presupuesto se queda en el aire: te avisa de los que no han contestado y te deja escrito el correo de seguimiento para cada cliente.', 'desde <b>450 €</b> + 39 €/mes'],
+  ['calc', 'Presupuesto desde plano o foto', 'Subes el plano o una foto del trabajo y la IA propone medidas, operaciones y un presupuesto con tus precios para que lo revises.', 'desde <b>690 €</b> + 49 €/mes'],
+  ['lupa', 'Buscador interno de tu empresa', 'Manuales, fichas técnicas, procedimientos y normas: tu equipo pregunta con palabras normales y recibe la respuesta con el documento de origen.', 'desde <b>1.200 €</b> + 69 €/mes'],
+  ['movil', 'Recepcionista telefónica con IA', 'Atiende las llamadas que no puedes coger: responde lo habitual, toma el recado o la cita y te lo manda por escrito. Siempre avisa de que es un asistente.', 'desde <b>900 €</b> + 79 €/mes'],
+];
+const nuevasCards = `<div class="tc-grid tc-grid--3">${NUEVAS.map(([i, t, p, pr]) => `<article class="tc-box tc-reveal">${icon(i)}<span class="tc-eyebrow tc-eyebrow--plain">Nuevo</span><h3>${t}</h3><p>${p}</p><p class="tc-price"><span>Orientativo</span> ${pr}</p><a class="tc-link" href="/contacto/">Pedir diagnóstico</a></article>`).join('')}</div><p class="tc-nota tc-reveal" style="margin-top:18px">Se apoyan en la misma tecnología que ya usamos en nuestro programa de gestión y en nuestros asistentes técnicos. Las llamadas de la recepcionista se cobran aparte según el uso. El plan Pro de IndunexIA ya incluye el presupuesto desde plano.</p>`;
+
 P['soluciones'] = {
   title: 'Soluciones de IA para empresas',
   seo: ['Soluciones de IA para la industria | Transforma con IA', 'ERP para la industria, automatización de procesos, asistentes técnicos, gestión documental y mejoras sobre SAP o tu ERP, con precios orientativos.', 'soluciones de automatización industrial con IA'],
   html: page(`${pagehead('<span>Soluciones</span>', 'Soluciones', 'Lo que implantamos, con precio claro', 'Seis formas de empezar. Todas arrancan con un diagnóstico gratuito por escrito y, cuando hay desarrollo, con un piloto que pruebas con tus propios datos antes de pagar el total.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Precios orientativos (sin IVA)', [['Diagnóstico', 'Gratis'], ['ERP para la industria', 'desde 590 €'], ['Automatización', 'desde 450 €'], ['Gestión documental', 'desde 450 €'], ['Asistente técnico', 'desde 900 €'], ['Herramienta a medida', 'desde 2.500 €']]))}
 ${sec(servCards() + `<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Soluciones concretas</span><p>Lo que montamos con más frecuencia:</p></div>` + chips, 'tc-sec--tight')}
+<section class="tc-sec" id="nuevas"><div class="tc-wrap">${head('Nuevas soluciones', 'Seis tareas más que la IA ya puede quitarte', 'Cada una se monta sola o junto a lo que ya uses. Empiezan igual: diagnóstico gratis por escrito y piloto con tus datos.')}${nuevasCards}</div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Cómo trabajamos', 'Tres pasos, y en ninguno pagas a ciegas')}${PASOS}</div></section>
 <section class="tc-sec"><div class="tc-wrap">${head('Lo que no prometemos', 'Lo que no prometemos, y lo que sí', 'No prometemos porcentajes de ahorro antes de ver tus datos ni una IA que decida sola. Esto sí:')}<div class="tc-grid tc-grid--4">${GARANTIAS.map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Antes de empezar')}${faq([
