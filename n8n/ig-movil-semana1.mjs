@@ -19,7 +19,7 @@ const DIAS = {
       ['ucam_universidad', '/p/De3tSKzjSnl/', '¡Enhorabuena a todos! Lo mejor está por venir 🎓'],
     ],
   },
-  '2026-10-28': {
+  '2026-10-30': {
     seguir: ['laopiniondemurcia', 'diario.laverdad', 'ayuntamientodemurcia', 'aytocartagenaes', 'aytomolina', 'elpozoalimentacion', 'hefame_es', 'saxun_solar', 'arq.mod.internacional', 'n7netcom'],
     comentar: [
       ['saxun_solar', '/p/Det-sIHiOOt/', 'Qué fachada más espectacular. Diseño de Murcia en Costa Rica 👌'],
@@ -29,7 +29,7 @@ const DIAS = {
       ['n7netcom', '/p/DerIEuHCorC/', '¡Enhorabuena por la nueva imagen! La web ha quedado muy limpia.'],
     ],
   },
-  '2026-10-29': {
+  '2026-11-02': {
     seguir: ['mecanizadosjjceldran', 'inoxpaser', 'metalcon.ind', 'pritecgrupo', 'cercadosonline', 'aluminiosros', 'glass__stock', 'siasuministros'],
     comentar: [
       ['mecanizadosjjceldran', '/reel/DetI6BzoKWy/', 'Diseñar, fabricar y verificar en casa… así da gusto. ¡Qué nivel! 👏'],
@@ -39,7 +39,7 @@ const DIAS = {
       ['cercadosonline', '/reel/Da4sIfAE4RW/', 'Qué bien se ve el día a día del taller, de la llamada a la carga 👌'],
     ],
   },
-  '2026-10-30': {
+  '2026-11-05': {
     seguir: ['gruporenauto', 'tapiceriasnavarro', 'carpell_hnos_cb', 'salazonesgarre', 'scentiumflavours', 'laboratorios_prady', 'crcampocartagena', 'gestoriacarvajal', 'sermomur', 'ferreteriafercasasl'],
     comentar: [
       ['salazonesgarre', '/p/De8-qhrtsWX/', '¡Enhorabuena por la certificación! Gran noticia para los celíacos.'],
