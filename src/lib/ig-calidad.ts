@@ -34,20 +34,14 @@ const hashtags = (t: string) => t.match(/#[\p{L}\p{N}_]+/gu) ?? [];
 // cifras del texto: sin los emojis numerados (1️⃣ 2️⃣…), sin los números de una lista («1.», «2)» al empezar línea) y sin
 // hashtags, que son forma y no datos; repetidas cuentan una vez (precios, horas, porcentajes… tienen que seguir estando)
 const PALABRAS = ["dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez"];
-const numeros = (t: string) =>
-  [
-    ...new Set(
-      t
-        // «tres» y «3» son la misma cifra
-        .replace(/\b(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\b/gi, (p) => String(PALABRAS.indexOf(p.toLowerCase()) + 2))
-        .replace(/\d️?⃣/g, "")
-        .replace(/(^|\n)\s*\d{1,2}[.)]\s/g, "$1")
-        .replace(/#[\p{L}\p{N}_]+/gu, "")
-        .match(/\d+(?:[.,]\d+)?/g) ?? [],
-    ),
-  ]
-    .sort()
-    .join("|");
+// Cifras del texto: sin los emojis numerados (1️⃣ 2️⃣…), sin los números de una lista («1.», «2)» al empezar línea) y sin
+// hashtags, que son forma y no datos. Con `letras`, «tres» cuenta como 3 (para no dar por perdida una cifra que se ha escrito con letra).
+const cifras = (t: string, letras: boolean) => {
+  let x = t.replace(/\d️?⃣/g, "").replace(/(^|
+)\s*\d{1,2}[.)]\s/g, "$1").replace(/#[\p{L}\p{N}_]+/gu, "");
+  if (letras) x = x.replace(/(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)/gi, (p) => String(PALABRAS.indexOf(p.toLowerCase()) + 2));
+  return [...new Set(x.match(/\d+(?:[.,]\d+)?/g) ?? [])];
+};
 
 /** Problemas de reglas fijas. `noticia`: el texto viene del blog ya revisado; ahí se permite nombrar herramientas (es actualidad). */
 export function reglasFijas(texto: string, tipo: string): string[] {
@@ -181,16 +175,16 @@ export async function revisarTexto(
       const nuevo = pulir(r.texto);
       // lo reescrito tiene que cumplir las reglas y conservar todas las cifras del original
       const rotas = reglasFijas(nuevo, tipo);
-      const [a, b] = [numeros(original), numeros(nuevo)];
-      if (!rotas.length && a === b)
+      // los datos escritos con números (precios, horas, %) tienen que seguir; y no puede aparecer ninguna cifra nueva
+      const faltan = cifras(original, false).filter((x) => !cifras(nuevo, true).includes(x));
+      const sobran = cifras(nuevo, false).filter((x) => !cifras(original, true).includes(x));
+      if (!rotas.length && !faltan.length && !sobran.length)
         return {
           ok: true,
           texto: nuevo,
           cambios: [...obligatorio, ...r.motivos].slice(0, 4),
           problemas: [],
         };
-      const faltan = a.split("|").filter((x) => x && !b.split("|").includes(x));
-      const sobran = b.split("|").filter((x) => x && !a.split("|").includes(x));
       fallo = [
         ...rotas,
         faltan.length
