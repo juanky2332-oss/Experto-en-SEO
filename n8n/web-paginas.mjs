@@ -368,7 +368,7 @@ P['transforma-con-ia'] = {
   id: 5851, title: 'Transforma con IA',
   seo: ['Consultoría de IA industrial | Transforma con IA', 'Consultoría de IA industrial en Murcia y toda España: ERP para la industria, automatización de pedidos, albaranes y facturas, y asistentes técnicos.', 'consultoría de IA industrial'],
   html: page(`
-<div class="tc-3dz"><div class="tc-3dz__layer" aria-hidden="true"><div class="tc-3dz__pin"><div class="tc-3dz__stage" id="tc-3d"></div><div class="tc-3dz__labels"><span>Ø 120 mm</span><span>6 × Ø 12</span><span>Ø 70 × 45</span></div></div></div>
+<div class="tc-3dz"><div class="tc-3dz__layer" aria-hidden="true"><div class="tc-3dz__pin"><div class="tc-3dz__stage" id="tc-3d"></div><div class="tc-3dz__labels"><span>Z 28 · m 2</span><span>Z 14 · m 2</span><span>Eje Ø 20 h7</span></div></div></div>
 <header class="tc-hero tc-hero--home tc-hero--c">${DECO('a')}<div class="tc-wrap"><div class="tc-hero__copy">
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
@@ -389,8 +389,8 @@ P['transforma-con-ia'] = {
     <div class="tc-story__bar" aria-hidden="true"><i></i></div>
   </div>
   <div class="tc-hud" aria-hidden="true">
-    <div class="tc-hud__box tc-hud__chips" data-hud="1"><b>Datos leídos del plano</b><span>Material <em>S275JR</em></span><span>Cantidad <em>12 uds</em></span><span>Tolerancia <em>±0,05</em></span><span>Plazo <em>10 días</em></span><small>Ejemplo ficticio</small></div>
-    <div class="tc-hud__box tc-hud__budget" data-hud="2"><b>Presupuesto P-0127</b><span>Material <em>186 €</em></span><span>Mecanizado 4,5 h <em>270 €</em></span><span>Tratamiento <em>64 €</em></span><span>Margen 25 % <em>130 €</em></span><span class="tc-hud__tot">Total <em>650 €</em></span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__chips" data-hud="1"><b>Datos leídos del plano</b><span>Pieza <em>Par de engranajes</em></span><span>Material <em>42CrMo4</em></span><span>Cantidad <em>12 juegos</em></span><span>Plazo <em>10 días</em></span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__budget" data-hud="2"><b>Presupuesto P-0127</b><span>Material <em>186 €</em></span><span>Tallado 4,5 h <em>270 €</em></span><span>Temple <em>64 €</em></span><span>Margen 25 % <em>130 €</em></span><span class="tc-hud__tot">Total <em>650 €</em></span><small>Ejemplo ficticio</small></div>
     <div class="tc-hud__box tc-hud__docs" data-hud="3"><b>En tu ERP</b><span>✓ Pedido registrado</span><span>✓ Albarán firmado</span><span>✓ Factura emitida</span><span>◷ Cobro a 30 días</span><small>Ejemplo ficticio</small></div>
   </div>
 </div></div></section>

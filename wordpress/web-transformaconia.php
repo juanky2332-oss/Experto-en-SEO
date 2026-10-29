@@ -1162,11 +1162,12 @@ add_filter( 'the_content', function ( $c ) {
 	return ( is_string( $m ) ? $m : '' ) . $c;
 }, 5 );
 
-/* Portada en 3D «Del plano a la factura» (29-10-2026): una brida mecanizada en WebGL que, al bajar, pasa a plano,
- * la IA la reconstruye con un anillo de escáner, sale el presupuesto y termina en vista explosionada.
- * - La clase tc-3d se pone en <head> (sin reducir movimiento, sin ahorro de datos y con WebGL) para que el diseño
- *   alto de la sección no salte después. Sin ella, la sección es una rejilla normal de 4 pasos.
- * - El texto de los pasos lo mueve un script normal; la librería 3D se carga aparte, después de la carga,
+/* Portada en 3D «Del plano a la factura» (29-10-2026): dos engranajes en WebGL engranando (automatización = engranajes
+ * que giran solos). Al bajar, la historia va POR PASOS: cada golpe de rueda o deslizamiento pasa al siguiente con
+ * su propia perspectiva (plano → la IA lo lee → presupuesto → ERP con vista explosionada).
+ * - La clase tc-3d se pone en <head> (sin reducir movimiento, sin ahorro de datos y con WebGL) y se protege porque
+ *   Salient reescribe las clases de <html>. Sin ella, la sección es una rejilla normal de 4 pasos.
+ * - El texto y los pasos los lleva un script normal; la librería 3D se carga aparte, después de la carga,
  *   y si falla la página sigue entera (solo falta la pieza). */
 add_action( 'wp_head', function () {
 	if ( ! is_front_page() ) {
@@ -1185,15 +1186,45 @@ add_action( 'wp_footer', function () {
 (function(){
   var d=document.documentElement,z=document.querySelector('.tc-3dz');
   if(!z||!d.classList.contains('tc-3d'))return;
-  var st=z.querySelector('.tc-story'),he=z.querySelector('.tc-hero'),bar=st.querySelector('.tc-story__bar i'),m={},q=0;
+  var st=z.querySelector('.tc-story'),he=z.querySelector('.tc-hero'),bar=st.querySelector('.tc-story__bar i'),m={},q=0,N=3;
   var cl=function(v){return v<0?0:v>1?1:v;};
   window.tcStory={p:0,h:0,paso:0};
-  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;upd();}
+  // posición de scroll de cada paso (0..3) dentro de la sección fija
+  var pos=function(k){return m.st+(k/N)*(m.sh-m.vh);};
+  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.fin=pos(N);upd();}
   function upd(){q=0;var y=scrollY,s=window.tcStory;s.h=cl((y-m.ht)/Math.max(1,m.hh*.85));s.p=cl((y-m.st)/Math.max(1,m.sh-m.vh));
-    var n=Math.min(3,Math.floor(s.p*4));if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n);}
+    var n=Math.round(s.p*N);if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n);}
     bar.style.transform='scaleX('+s.p.toFixed(4)+')';
-    var den=y>m.st-m.vh*.5&&y<m.st+m.sh-m.vh*.5;if(den!==m.den){m.den=den;document.body.classList.toggle('tc-en-historia',den);}}
-  addEventListener('scroll',function(){if(!q)q=requestAnimationFrame(upd);},{passive:true});
+    var den=y>m.st-m.vh*.5&&y<m.fin+m.vh*.5;if(den!==m.den){m.den=den;document.body.classList.toggle('tc-en-historia',den);}}
+  // paso a paso: un golpe de rueda o un deslizamiento = un paso, con transición animada
+  var anim=false,finA=0,espera=false,ultW=0,toca=false,ty=null,yIni=0,yAnt=scrollY,tFin=0;
+  var dentro=function(y){return y>=m.st-6&&y<=m.fin+6;};
+  var actual=function(){return Math.round(window.tcStory.p*N);};
+  var sale=function(dir,y){return (dir>0&&actual()>=N&&y>=m.fin-6)||(dir<0&&actual()<=0&&y<=m.st+6);};
+  function ir(k){k=Math.max(0,Math.min(N,k));var y0=scrollY,y1=Math.round(pos(k)),t0=performance.now(),D=Math.min(900,420+Math.abs(y1-y0)*.35);
+    if(Math.abs(y1-y0)<2)return;anim=true;espera=true;
+    (function f(t){var x=Math.min(1,(t-t0)/D),e=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;scrollTo(0,y0+(y1-y0)*e);
+      if(x<1)requestAnimationFrame(f);else{anim=false;finA=performance.now();}})(t0);}
+  addEventListener('wheel',function(e){if(e.ctrlKey)return;var y=scrollY,now=performance.now(),gap=now-ultW;ultW=now;
+    if(!dentro(y))return;var dir=e.deltaY>0?1:e.deltaY<0?-1:0;if(!dir||sale(dir,y))return;
+    e.preventDefault();if(anim)return;
+    // la inercia del trackpad sigue mandando eventos: no cuentan como otro golpe hasta que haya una pausa
+    if(espera){if(gap>160||now-finA>900)espera=false;else return;}
+    ir(actual()+dir);},{passive:false});
+  addEventListener('touchstart',function(e){toca=true;ty=e.touches[0].clientY;yIni=scrollY;},{passive:true});
+  addEventListener('touchmove',function(e){if(ty===null)return;var y=scrollY;if(!dentro(y))return;var dy=ty-e.touches[0].clientY;if(Math.abs(dy)<2)return;
+    if(sale(dy>0?1:-1,y))return;if(e.cancelable)e.preventDefault();},{passive:false});
+  addEventListener('touchend',function(e){toca=false;if(ty===null)return;var dy=ty-e.changedTouches[0].clientY;ty=null;var y=scrollY;
+    if(!dentro(y)||anim)return;var dir=dy>0?1:-1;
+    // si el gesto empezó fuera de la historia, se entra por el primer (o el último) paso
+    if(dir>0&&yIni<m.st-6){ir(0);return;}if(dir<0&&yIni>m.fin+6){ir(N);return;}
+    if(Math.abs(dy)<24||sale(dir,y))return;ir(actual()+dir);},{passive:true});
+  addEventListener('scroll',function(){if(!q)q=requestAnimationFrame(upd);var y=scrollY;
+    // si llega lanzado desde arriba o desde abajo, se para en el primer o último paso
+    if(!anim&&!toca&&m.st){if(yAnt<m.st-2&&y>m.st+2&&y<m.fin)ir(0);else if(yAnt>m.fin+2&&y<m.fin-2&&y>m.st)ir(N);}
+    yAnt=y;clearTimeout(tFin);
+    // al parar a medias (teclado, barra de scroll) se coloca en el paso más cercano
+    tFin=setTimeout(function(){var y=scrollY;if(anim||toca||!(y>m.st+6&&y<m.fin-6))return;var k=Math.round((y-m.st)/(m.fin-m.st)*N);if(Math.abs(y-pos(k))>6)ir(k);},180);},{passive:true});
   addEventListener('resize',medir);addEventListener('load',medir);medir();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(medir);
 })();
@@ -1209,81 +1240,91 @@ function init(T){
   const mob=matchMedia('(max-width:820px)').matches,raton=matchMedia('(hover:hover) and (pointer:fine)').matches;
   let r;try{r=new T.WebGLRenderer({antialias:!mob,alpha:true,powerPreference:'high-performance'});}catch(e){return;}
   r.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.75:2));r.outputColorSpace=T.SRGBColorSpace;
-  r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.05;r.localClippingEnabled=true;
+  r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.08;r.localClippingEnabled=true;
   stage.appendChild(r.domElement);
   const sc=new T.Scene(),cam=new T.PerspectiveCamera(30,1,.1,100);cam.position.set(0,0,10);
   // estudio de luz propio (caja oscura y paneles luminosos) para que el metal tenga reflejos
   const pm=new T.PMREMGenerator(r),es=new T.Scene();
   es.add(new T.Mesh(new T.BoxGeometry(20,20,20),new T.MeshBasicMaterial({color:0x0d0b14,side:T.BackSide})));
   const panel=(c,k,x,y,z,w,h)=>{const p=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:new T.Color(c).multiplyScalar(k),side:T.DoubleSide}));p.position.set(x,y,z);p.lookAt(0,0,0);es.add(p);};
-  panel(0xffffff,6,0,8,2,9,3);panel(0xd27bff,6,-8,1,3,3,7);panel(0x8a6cff,4,8,-1,-1,3,7);panel(0xffffff,2.5,0,-3,9,7,2);
+  panel(0xffffff,3.6,0,8,2,9,3);panel(0xd27bff,6,-8,1,3,3,7);panel(0x8a6cff,4,8,-1,-1,3,7);panel(0xffffff,1.1,0,-3,9,7,2);
   sc.environment=pm.fromScene(es,.04).texture;pm.dispose();
   const rim=new T.PointLight(0xb020ff,40,30);rim.position.set(-4,3,2);sc.add(rim);
-  // la pieza: brida con buje y 6 tornillos
+  // materiales: por debajo del corte, metal; por encima, líneas de plano
   const cortaSol=new T.Plane(new T.Vector3(0,-1,0),0),cortaLin=new T.Plane(new T.Vector3(0,1,0),0);
-  const acero=new T.MeshStandardMaterial({color:0xc6c0d2,metalness:.92,roughness:.28,side:T.DoubleSide,clippingPlanes:[cortaSol]});
+  const acero=new T.MeshStandardMaterial({color:0xb8b1c8,metalness:.93,roughness:.3,side:T.DoubleSide,clippingPlanes:[cortaSol]});
+  const bronce=new T.MeshStandardMaterial({color:0xb58cff,metalness:.9,roughness:.3,side:T.DoubleSide,clippingPlanes:[cortaSol]});
   const linea=new T.LineBasicMaterial({color:0xd27bff,transparent:true,opacity:.95,clippingPlanes:[cortaLin]});
-  const rig=new T.Group(),pieza=new T.Group(),partes=[];rig.add(pieza);pieza.position.y=-.1;sc.add(rig);
-  const parte=(gs,pos,ex)=>{const g=new T.Group();gs.forEach(x=>{g.add(new T.Mesh(x,acero));g.add(new T.LineSegments(new T.EdgesGeometry(x,28),linea));});g.position.copy(pos);g.userData={b:pos.clone(),ex};pieza.add(g);partes.push(g);};
-  const s=new T.Shape();s.absarc(0,0,1.6,0,Math.PI*2,false);
-  const agujero=(x,y,rr)=>{const h=new T.Path();h.absarc(x,y,rr,0,Math.PI*2,true);s.holes.push(h);};
-  agujero(0,0,.55);for(let i=0;i<6;i++){const a=i*Math.PI/3;agujero(Math.cos(a)*1.15,Math.sin(a)*1.15,.16);}
-  const placa=new T.ExtrudeGeometry(s,{depth:.3,bevelEnabled:true,bevelThickness:.04,bevelSize:.04,bevelSegments:2,curveSegments:48});
-  placa.rotateX(-Math.PI/2);placa.translate(0,-.15,0);
-  parte([placa],new T.Vector3(),new T.Vector3(0,-.55,0));
-  const buje=new T.LatheGeometry([[.55,.15],[.86,.15],[.86,.9],[.8,.98],[.55,.98],[.55,.15]].map(([x,y])=>new T.Vector2(x,y)),64);
-  parte([buje],new T.Vector3(),new T.Vector3(0,1.05,0));
-  for(let i=0;i<6;i++){const a=i*Math.PI/3,x=Math.cos(a)*1.15,zz=-Math.sin(a)*1.15;
-    const cab=new T.CylinderGeometry(.2,.2,.13,6);cab.translate(0,.215,0);const vas=new T.CylinderGeometry(.1,.1,.6,16);vas.translate(0,-.05,0);
-    parte([cab,vas],new T.Vector3(x,0,zz),new T.Vector3(x*.45,1.75,zz*.45));}
+  const rig=new T.Group(),pieza=new T.Group(),partes=[];rig.add(pieza);sc.add(rig);
+  const malla=(g,mat,dest)=>{dest.add(new T.Mesh(g,mat));dest.add(new T.LineSegments(new T.EdgesGeometry(g,30),linea));};
+  const parte=(pos,ex)=>{const g=new T.Group();g.position.copy(pos);g.userData={b:pos.clone(),ex};pieza.add(g);partes.push(g);return g;};
+  // engranaje recto: dientes trapezoidales con flanco curvado, aligeramientos y agujero del eje
+  const engranaje=(Z,m,bore,alig)=>{const rp=m*Z/2,ra=rp+m,rf=rp-1.25*m,p=2*Math.PI/Z,s=new T.Shape(),pts=[];
+    for(let i=0;i<Z;i++){const c=i*p;[[rf,-.5],[rf,-.29],[rp,-.2],[ra,-.12],[ra,.12],[rp,.2],[rf,.29]].forEach(([rr,a])=>pts.push([rr*Math.cos(c+a*p),rr*Math.sin(c+a*p)]));}
+    s.moveTo(pts[0][0],pts[0][1]);pts.slice(1).forEach(q=>s.lineTo(q[0],q[1]));s.closePath();
+    const hueco=(x,y,rr)=>{const h=new T.Path();h.absarc(x,y,rr,0,Math.PI*2,true);s.holes.push(h);};
+    hueco(0,0,bore);if(alig){const rh=(rf+bore*2.1)/2,n=6;for(let i=0;i<n;i++){const a=i*2*Math.PI/n+Math.PI/n;hueco(Math.cos(a)*rh,Math.sin(a)*rh,(rf-bore*2.1)*.32);}}
+    const g=new T.ExtrudeGeometry(s,{depth:.3,bevelEnabled:true,bevelThickness:.025,bevelSize:.02,bevelSegments:1,curveSegments:20});
+    g.rotateX(-Math.PI/2);g.translate(0,-.15,0);return g;};
+  const cubo=(ro,ri,h)=>new T.LatheGeometry([[ri,.15],[ro,.15],[ro,.15+h],[ro-.04,.19+h],[ri,.19+h],[ri,.15]].map(([x,y])=>new T.Vector2(x,y)),48);
+  const Z1=28,Z2=14,M=.1,R1=M*Z1/2,R2=M*Z2/2,X1=-.72,X2=X1+R1+R2;
+  const g1=parte(new T.Vector3(X1,0,0),new T.Vector3(-.25,1.05,0)),s1=new T.Group();g1.add(s1);
+  malla(engranaje(Z1,M,.2,true),acero,s1);malla(cubo(.42,.2,.18),acero,s1);
+  const g2=parte(new T.Vector3(X2,0,0),new T.Vector3(.35,1.55,0)),s2=new T.Group();g2.add(s2);
+  malla(engranaje(Z2,M,.2,false),bronce,s2);malla(cubo(.36,.2,.12),bronce,s2);
+  const eje=()=>{const e=new T.CylinderGeometry(.19,.19,1.25,28);return e;};
+  const e1=parte(new T.Vector3(X1,-.05,0),new T.Vector3(0,-.55,0));malla(eje(),acero,e1);
+  const e2=parte(new T.Vector3(X2,-.05,0),new T.Vector3(0,-.75,0));malla(eje(),acero,e2);
+  pieza.position.x=.02;
   // rejilla de plano y anillo de escáner
-  const rej=new T.GridHelper(7,28,0xb020ff,0x6d0fb0);rej.material.transparent=true;rej.material.opacity=0;rej.material.depthWrite=false;rej.position.y=-.8;rig.add(rej);
+  const rej=new T.GridHelper(8,32,0xb020ff,0x6d0fb0);rej.material.transparent=true;rej.material.opacity=0;rej.material.depthWrite=false;rej.position.y=-.75;rig.add(rej);
   const aditivo=o=>new T.MeshBasicMaterial(Object.assign({color:0xd27bff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide},o));
-  const disco=new T.Mesh(new T.CircleGeometry(1.95,64),aditivo({})),aro=new T.Mesh(new T.RingGeometry(1.9,1.98,96),aditivo({color:0xf0d4ff}));
+  const disco=new T.Mesh(new T.CircleGeometry(2.55,72),aditivo({})),aro=new T.Mesh(new T.RingGeometry(2.5,2.58,128),aditivo({color:0xf0d4ff}));
   const scan=new T.Group(),scanIn=new T.Group();scanIn.add(disco,aro);scanIn.rotation.x=-Math.PI/2;scan.add(scanIn);rig.add(scan);
   // cotas en HTML que siguen a la pieza
   const caja=stage.parentNode.querySelector('.tc-3dz__labels'),etq=caja?[...caja.querySelectorAll('span')]:[];
-  const anc=[new T.Vector3(1.64,0,0),new T.Vector3(Math.cos(Math.PI/3)*1.15,.15,-Math.sin(Math.PI/3)*1.15),new T.Vector3(-.86,.9,0)];
+  const anc=[new T.Vector3(X1-R1-M,.15,0),new T.Vector3(X2+R2+M,.15,0),new T.Vector3(X1,.62,0)];
   let W=1,H=1;
   const medir=()=>{W=stage.clientWidth||1;H=stage.clientHeight||1;r.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix();};
   new ResizeObserver(medir).observe(stage);medir();
-  // ratón (solo escritorio)
   let mx=0,my=0,sx=0,sy=0;if(raton)addEventListener('pointermove',e=>{mx=e.clientX/innerWidth*2-1;my=e.clientY/innerHeight*2-1;},{passive:true});
-  // solo se dibuja con la zona a la vista y la pestaña activa
   let vis=true;new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis)pedir();}).observe(stage.closest('.tc-3dz'));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)pedir();});
   const L=(a,b,t)=>a+(b-a)*t,cl=v=>v<0?0:v>1?1:v,suave=v=>{v=cl(v);return v*v*(3-2*v);},tramo=(p,a,b)=>suave((p-a)/(b-a));
+  // perspectiva de cada paso: inclinación, giro, zoom y despiece
+  const P={tilt:[.62,.5,.82,.42],yaw:[0,.7,1.75,2.6],zoom:[1,1.04,1.14,.94],ex:[0,0,0,1]};
+  const por=(arr,s)=>{const i=Math.min(2,Math.floor(s)),f=suave(s-i);return L(arr[i],arr[i+1],f);};
   const v3=new T.Vector3(),nrm=new T.Vector3(),pt=new T.Vector3();
-  let hs=0,ps=0,giro=0,ult=performance.now(),raf=0,listo=false,opAnt=-1,cotAnt=-1;
+  let hs=0,ps=0,giro=0,rueda=0,ult=performance.now(),raf=0,listo=false,cotAnt=-1;
   function pedir(){if(!raf)raf=requestAnimationFrame(frame);}
   function frame(t){raf=0;if(!vis||document.hidden)return;
     if(mob&&t-ult<31){pedir();return;}const dt=Math.min(.05,Math.max(0,(t-ult)/1000));ult=t;
-    const S=window.tcStory||{p:0,h:0};hs=L(hs,S.h,.12);ps=L(ps,S.p,.12);sx=L(sx,mx,.06);sy=L(sy,my,.06);
-    const w=suave(hs);
-    // dónde va la pieza: cabecera → historia (en el móvil, detrás del texto y luego arriba)
+    const S=window.tcStory||{p:0,h:0};hs=L(hs,S.h,.14);ps=L(ps,S.p,.16);sx=L(sx,mx,.06);sy=L(sy,my,.06);
+    const w=suave(hs),s=ps*3;
+    // sitio de la pieza: cabecera → historia
     const hy=cam.position.z*Math.tan(T.MathUtils.degToRad(cam.fov/2)),hx=hy*cam.aspect,peq=Math.min(hx,hy);
-    const nx=mob?L(.12,-.16,w):L(.5,.42,w),ny=mob?L(-.68,.3,w):L(-.02,0,w),k=mob?L(.6,.7,w):L(.62,.6,w);
-    rig.position.set(nx*hx,ny*hy,0);rig.scale.setScalar(peq*k/1.75);
-    // guion de la historia
-    const p=ps,sol=(hs<.98||p<.001)?1:p<.25?1-tramo(p,.02,.2):p<.5?tramo(p,.27,.48):1;
-    const ex=tramo(p,.76,.94),cot=Math.min(tramo(p,.1,.2),1-tramo(p,.45,.52));
-    giro+=dt*(.22+(1-w)*.1);
-    rig.rotation.set(.55+sy*.12+ex*.12,giro+p*Math.PI*1.4+sx*.3,.06);
+    const nx=mob?L(.1,-.04,w):L(.5,.42,w),ny=mob?L(-.66,.3,w):L(-.02,0,w),k=(mob?L(.66,.78,w):L(.68,.64,w))*L(1,por(P.zoom,s),w);
+    rig.position.set(nx*hx,ny*hy,0);rig.scale.setScalar(peq*k/2.35);
+    // engranajes siempre girando (relación real Z1:Z2) y la cámara cambia en cada paso
+    rueda+=dt*.55;s1.rotation.y=rueda;s2.rotation.y=-rueda*Z1/Z2+Math.PI/Z2;
+    giro+=dt*.07;
+    const tilt=L(.55,por(P.tilt,s),w),yaw=L(-.35,por(P.yaw,s),w),ex=w*por(P.ex,s);
+    rig.rotation.set(tilt+sy*.12,giro+yaw+sx*.3,.05);
     partes.forEach(g=>{g.position.copy(g.userData.b).addScaledVector(g.userData.ex,ex);});
-    rej.material.opacity=.06+(1-sol)*.3*w;
-    // corte: por debajo del anillo, metal; por encima, líneas de plano
+    // metal en la cabecera, plano al entrar en la historia, el escáner lo reconstruye hacia el paso 2
+    const sol=w<.999?1-w:(s<1?tramo(s,.08,.92):1);
+    rej.material.opacity=.05+(1-sol)*.32*w;
     rig.updateMatrixWorld();
-    const lvl=sol>=.999?20:sol<=.001?-20:L(-.95,.95,sol);
+    const lvl=sol>=.999?20:sol<=.001?-20:L(-.7,.7,sol);
     nrm.set(0,1,0).applyQuaternion(rig.quaternion);pt.set(0,lvl,0);rig.localToWorld(pt);
     cortaSol.setFromNormalAndCoplanarPoint(v3.copy(nrm).negate(),pt);cortaLin.setFromNormalAndCoplanarPoint(nrm,pt);
-    const scanOp=(sol>.001&&sol<.999)?1:0;scan.position.y=L(-.95,.95,sol);
-    disco.material.opacity=L(disco.material.opacity,scanOp*.09,.3);aro.material.opacity=L(aro.material.opacity,scanOp*.9,.3);scan.visible=aro.material.opacity>.02;
+    const scanOp=(sol>.001&&sol<.999)?1:0;scan.position.y=L(-.7,.7,sol);
+    disco.material.opacity=L(disco.material.opacity,scanOp*.08,.3);aro.material.opacity=L(aro.material.opacity,scanOp*.9,.3);scan.visible=aro.material.opacity>.02;
     r.render(sc,cam);
-    // cotas
-    const co=cot>.01?cot:0;if(caja&&Math.abs(co-cotAnt)>.01){caja.style.opacity=co.toFixed(2);cotAnt=co;}
-    if(co)etq.forEach((e,i)=>{v3.copy(anc[i]);pieza.localToWorld(v3);v3.project(cam);e.style.transform='translate('+((v3.x*.5+.5)*W).toFixed(1)+'px,'+((-v3.y*.5+.5)*H).toFixed(1)+'px)';});
-    const op=1;if(!listo){listo=true;stage.classList.add('is-ready');}
-    if(Math.abs(op-opAnt)>.01){stage.style.setProperty('--tc-3d-op',op.toFixed(2));opAnt=op;}
+    const co=w>.5?(1-tramo(s,.35,.75))*tramo(w,.5,1):0;
+    if(caja&&Math.abs(co-cotAnt)>.01){caja.style.opacity=co.toFixed(2);cotAnt=co;}
+    if(co>.01)etq.forEach((e,i)=>{v3.copy(anc[i]);pieza.localToWorld(v3);v3.project(cam);e.style.transform='translate('+Math.min(W-112,Math.max(8,(v3.x*.5+.5)*W)).toFixed(1)+'px,'+((-v3.y*.5+.5)*H).toFixed(1)+'px)';});
+    if(!listo){listo=true;stage.classList.add('is-ready');}
     pedir();}
   pedir();
 }
