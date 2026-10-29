@@ -791,7 +791,9 @@ a.tc-box:active,.tc-sector:active{transform:scale(.985)!important}
 .tc-3dz__pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:#07060a}
 .tc-esc,.tc-foto{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover}
 .tc-esc{opacity:0;visibility:hidden;transform:scale(1.04);display:none}
-html.tc-3d .tc-esc{display:block}html.tc-3d .tc-foto{display:none}
+html.tc-3d .tc-esc{display:block}
+/* el fondo de la cabecera se ve desde el principio, sin esperar al JS (es el elemento grande de la portada para Google) */
+html.tc-3d .tc-esc[data-t="-1"]{opacity:1;visibility:visible}html.tc-3d .tc-foto{display:none}
 .tc-3dz__stage{position:absolute;inset:0;opacity:0;transition:opacity 1s var(--tc-out)}
 .tc-3dz__stage.is-ready{opacity:1}
 .tc-3dz__stage canvas{display:block;width:100%!important;height:100%!important}
@@ -876,8 +878,9 @@ html.tc-3d .tc-story__kicker{display:none}
 html.tc-3d .tc-story__txt{padding:16px 18px 14px}
 html.tc-3d .tc-story__steps .tc-story__cta{margin-top:4px;padding:12px 18px}
 html.tc-3d .tc-story__bar{margin-top:14px}
-html.tc-3d .tc-hero--home .tc-live{display:none}
-html.tc-3d .tc .tc-hero--home .tc-lead{font-size:15px;line-height:1.5}
+/* sin depender de la clase tc-3d (Salient la quita un instante al arrancar y el texto daba un salto) */
+.tc-hero--home .tc-live{display:none}
+.tc .tc-hero--home .tc-lead{font-size:15px;line-height:1.5}
 }
 @media (prefers-reduced-motion:reduce){.tc-esc{transform:none!important}}
 body.tc-en-historia .tc-sticky{transform:translateY(140%)!important}
