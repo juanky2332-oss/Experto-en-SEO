@@ -1162,19 +1162,19 @@ add_filter( 'the_content', function ( $c ) {
 	return ( is_string( $m ) ? $m : '' ) . $c;
 }, 5 );
 
-/* Portada «Del plano a la factura» (29-10-2026, versión fotográfica): escenas hiperrealistas a pantalla completa
- * (cabecera con el centro de mecanizado y 5 pasos: plano → la IA lo lee → presupuesto → entrega → todo encaja en la
- * máquina). La historia va POR PASOS: cada golpe de rueda o deslizamiento pasa al siguiente con una transición de cine.
- * - La clase tc-3d se pone en <head> (sin reducir movimiento ni ahorro de datos) y se protege porque Salient reescribe
- *   las clases de <html>. Sin ella, la sección es una rejilla normal de 5 pasos y solo se ve la foto de la cabecera.
- * - Las fotos de los pasos se piden después de la carga (data-src), para no competir con la de la cabecera. */
+/* Portada «Del plano a la factura» (29-10-2026, v4): engranajes en 3D realista (acero torneado, sombras) sobre fondos
+ * fotográficos desenfocados que cambian en cada paso. La historia va POR PASOS (un golpe de rueda o un deslizamiento
+ * = un paso): plano en líneas → el escáner lo reconstruye en acero → presupuesto → despiece → la máquina se monta
+ * alrededor y los engranajes quedan dentro, girando.
+ * - La clase tc-3d se pone en <head> (sin reducir movimiento ni ahorro de datos, con WebGL) y se protege porque
+ *   Salient reescribe las clases de <html>. Sin ella: foto de cabecera y rejilla normal de 5 pasos.
+ * - El texto y los pasos los lleva un script normal; la librería 3D se carga aparte, después de la carga. */
 add_action( 'wp_head', function () {
 	if ( ! is_front_page() ) {
 		return;
 	}
 	?>
-<link rel="preload" as="image" href="https://demo.transformaconia.com/web/portada/hero-1920.webp" imagesrcset="https://demo.transformaconia.com/web/portada/hero-960.webp 960w, https://demo.transformaconia.com/web/portada/hero-1920.webp 1920w" imagesizes="100vw" fetchpriority="high">
-<script>(function(){try{var d=document.documentElement;if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;if(navigator.connection&&navigator.connection.saveData)return;var on=function(){if(!d.classList.contains('tc-3d'))d.classList.add('tc-3d');};on();var mo=new MutationObserver(on);mo.observe(d,{attributes:true,attributeFilter:['class']});addEventListener('load',function(){setTimeout(function(){mo.disconnect();on();},1500);});}catch(e){}})()</script>
+<script>(function(){try{var d=document.documentElement;if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;if(navigator.connection&&navigator.connection.saveData)return;if(!window.WebGLRenderingContext)return;var on=function(){if(!d.classList.contains('tc-3d'))d.classList.add('tc-3d');};on();var mo=new MutationObserver(on);mo.observe(d,{attributes:true,attributeFilter:['class']});addEventListener('load',function(){setTimeout(function(){mo.disconnect();on();},1500);});}catch(e){}})()</script>
 	<?php
 }, 1 );
 add_action( 'wp_footer', function () {
@@ -1187,45 +1187,33 @@ add_action( 'wp_footer', function () {
   var d=document.documentElement,z=document.querySelector('.tc-3dz');
   if(!z||!d.classList.contains('tc-3d'))return;
   var st=z.querySelector('.tc-story'),he=z.querySelector('.tc-hero'),bar=st.querySelector('.tc-story__bar i'),pin=z.querySelector('.tc-3dz__pin');
-  var esc=[].slice.call(pin.querySelectorAll('.tc-esc')),gear=pin.querySelector('.tc-gear'),flash=pin.querySelector('.tc-gear__flash');
-  var m={},q=0,N=4,mob=matchMedia('(max-width:820px)').matches,raton=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var esc=[].slice.call(pin.querySelectorAll('.tc-esc'));
+  var m={},q=0,N=4,mob=matchMedia('(max-width:820px)').matches;
   var cl=function(v){return v<0?0:v>1?1:v;},L=function(a,b,t){return a+(b-a)*t;},suave=function(v){v=cl(v);return v*v*(3-2*v);};
   window.tcStory={p:0,h:0,paso:0};
-  // fotos de los pasos: después de la carga, la versión del tamaño de la pantalla
-  addEventListener('load',function(){setTimeout(function(){esc.concat(gear).forEach(function(i){var s=(mob&&i.getAttribute('data-srcm'))||i.getAttribute('data-src');if(s&&!i.src)i.src=s;});},200);});
+  // fondos de los pasos: después de la carga, la versión del tamaño de la pantalla
+  addEventListener('load',function(){setTimeout(function(){esc.forEach(function(i){var s=(mob&&i.getAttribute('data-srcm'))||i.getAttribute('data-src');if(s&&!i.src)i.src=s;});},200);});
   var pos=function(k){return m.st+(k/N)*(m.sh-m.vh);};
-  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.vw=innerWidth;m.fin=pos(N);upd();}
+  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.fin=pos(N);upd();}
   function upd(){q=0;var y=scrollY,s=window.tcStory;s.h=cl((y-m.ht)/Math.max(1,m.hh*.85));s.p=cl((y-m.st)/Math.max(1,m.sh-m.vh));
     var n=Math.round(s.p*N);if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n);}
     bar.style.transform='scaleX('+s.p.toFixed(4)+')';
     var den=y>m.st-m.vh*.5&&y<m.fin+m.vh*.5;if(den!==m.den){m.den=den;document.body.classList.toggle('tc-en-historia',den);}
     pedir();}
-  // escenas: t va de -1 (cabecera) a N (último paso); cada foto entra con fundido y un zoom que se asienta
-  var raf=0,ts=-1,mx=0,my=0,sx=0,sy=0;
-  if(raton)addEventListener('pointermove',function(e){mx=e.clientX/innerWidth*2-1;my=e.clientY/innerHeight*2-1;pedir();},{passive:true});
+  // fondos: t va de -1 (cabecera) a N (último paso); cada foto entra con fundido y un zoom que se asienta
+  var raf=0,ts=-1;
   function pedir(){if(!raf)raf=requestAnimationFrame(pintar);}
-  function pintar(){raf=0;var S=window.tcStory,w=suave(S.h),t=-1+w+S.p*N;ts=L(ts,t,.18);sx=L(sx,mx,.08);sy=L(sy,my,.08);
-    for(var k=0;k<esc.length;k++){var dd=ts-(k-1),a=cl(1-Math.abs(dd));var e=esc[k];
-      if(a<=.001){if(e._a!==0){e.style.opacity=0;e._a=0;}continue;}
-      var sc=1.02+.1*(1-a)+(dd<0?.04*(-dd):0);e._a=a;
-      e.style.opacity=a.toFixed(3);e.style.transform='translate3d('+(sx*-10).toFixed(1)+'px,'+(sy*-8).toFixed(1)+'px,0) scale('+sc.toFixed(4)+')';}
-    // el engranaje entra volando en la máquina entre el paso 4 y el 5 (posición del engranaje en la foto: 63 % · 44 %)
-    var g=cl(ts-(N-1));if(gear){var vis=g>.02&&g<.995;
-      if(vis){var W=m.vw,H=m.vh,iw=1536,ih=1024,k2=Math.max(W/iw,H/ih),ox=(W-iw*k2)*.62,oy=(H-ih*k2)*.45;
-        var tx=ox+.628*iw*k2,ty=oy+.442*ih*k2,tam=.36*iw*k2,e2=g*g*(3-2*g);
-        var x=L(mob?W*.15:W*.2,tx,e2),y=L(-H*.35,ty,e2),sz=L(tam*1.9,tam,e2),rot=L(-140,0,e2);
-        gear.style.opacity=(g<.85?1:1-(g-.85)/.15).toFixed(3);gear.style.width=Math.round(sz)+'px';
-        gear.style.transform='translate3d('+(x-sz/2).toFixed(1)+'px,'+(y-sz/2).toFixed(1)+'px,0) rotate('+rot.toFixed(1)+'deg)';}
-      else if(gear._v)gear.style.opacity=0;gear._v=vis;
-      var fl=g>.8&&g<1?Math.sin((g-.8)/.2*Math.PI):0;flash.style.opacity=fl.toFixed(3);
-      if(fl){var W2=m.vw,H2=m.vh,k3=Math.max(W2/1536,H2/1024);flash.style.transform='translate3d('+((W2-1536*k3)*.62+.628*1536*k3).toFixed(1)+'px,'+((H2-1024*k3)*.45+.442*1024*k3).toFixed(1)+'px,0) translate(-50%,-50%) scale('+(.6+(g-.8)*3).toFixed(3)+')';}}
-    if(Math.abs(ts-t)>.002||Math.abs(sx-mx)>.002||Math.abs(sy-my)>.002)pedir();}
+  function pintar(){raf=0;var S=window.tcStory,t=-1+suave(S.h)+S.p*N;ts=L(ts,t,.16);
+    for(var k=0;k<esc.length;k++){var e=esc[k],dd=ts-(+e.getAttribute('data-t')),a=cl(1-Math.abs(dd));
+      if(a<=.001){if(e._a!==0){e.style.opacity=0;e._a=0;}continue;}e._a=a;
+      e.style.opacity=a.toFixed(3);e.style.transform='scale('+(1.04+.1*(1-a)).toFixed(4)+')';}
+    if(Math.abs(ts-t)>.002)pedir();}
   // paso a paso: un golpe de rueda o un deslizamiento = un paso, con transición animada
   var anim=false,finA=0,espera=false,ultW=0,toca=false,ty=null,yIni=0,yAnt=scrollY,tFin=0;
   var dentro=function(y){return y>=m.st-6&&y<=m.fin+6;};
   var actual=function(){return Math.round(window.tcStory.p*N);};
   var sale=function(dir,y){return (dir>0&&actual()>=N&&y>=m.fin-6)||(dir<0&&actual()<=0&&y<=m.st+6);};
-  function ir(k){k=Math.max(0,Math.min(N,k));var y0=scrollY,y1=Math.round(pos(k)),t0=performance.now(),D=Math.min(1000,520+Math.abs(y1-y0)*.3);
+  function ir(k){k=Math.max(0,Math.min(N,k));var y0=scrollY,y1=Math.round(pos(k)),t0=performance.now(),D=Math.min(1100,600+Math.abs(y1-y0)*.3);
     if(Math.abs(y1-y0)<2)return;anim=true;espera=true;
     (function f(t){var x=Math.min(1,(t-t0)/D),e=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;scrollTo(0,y0+(y1-y0)*e);
       if(x<1)requestAnimationFrame(f);else{anim=false;finA=performance.now();}})(t0);}
@@ -1252,6 +1240,145 @@ add_action( 'wp_footer', function () {
   addEventListener('resize',medir);addEventListener('load',medir);medir();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(medir);
 })();
+</script>
+<script type="module" id="tc-3d-js">
+const d=document.documentElement,stage=document.getElementById('tc-3d');
+if(stage&&d.classList.contains('tc-3d')){
+  const go=()=>import('https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js').then(init).catch(()=>{});
+  const tarde=()=>('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:1200}):setTimeout(go,300);
+  if(document.readyState==='complete')tarde();else addEventListener('load',tarde,{once:true});
+}
+function init(T){
+  const mob=matchMedia('(max-width:820px)').matches,raton=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  let r;try{r=new T.WebGLRenderer({antialias:!mob,alpha:true,powerPreference:'high-performance'});}catch(e){return;}
+  r.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.75:2));r.outputColorSpace=T.SRGBColorSpace;
+  r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.02;r.localClippingEnabled=true;
+  r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;
+  stage.appendChild(r.domElement);
+  const sc=new T.Scene(),cam=new T.PerspectiveCamera(30,1,.1,100);cam.position.set(0,0,10);
+  // estudio de luz: cajas de luz cálidas y frías y un contraluz violeta, para reflejos de acero creíbles
+  const pm=new T.PMREMGenerator(r),es=new T.Scene();
+  es.add(new T.Mesh(new T.SphereGeometry(30,32,16),new T.MeshBasicMaterial({color:0x1d1a24,side:T.BackSide})));
+  const panel=(c,k,x,y,z,w,h)=>{const p=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:new T.Color(c).multiplyScalar(k),side:T.DoubleSide}));p.position.set(x,y,z);p.lookAt(0,0,0);es.add(p);};
+  panel(0xfff1e0,1.05,0,9,1,10,2.5);panel(0xf4ecff,1.5,0,6,-7,14,5);panel(0xffa860,3.2,-8,2,4,2.5,8);panel(0xb98cff,1.5,8,0,-2,2.5,8);panel(0xffffff,2.4,7,4,3,3,6);panel(0xffffff,1.8,2,-1,9,8,1.5);panel(0x6a4cff,.7,-3,-6,-4,8,2);
+  sc.environment=pm.fromScene(es,.03).texture;sc.environmentIntensity=1.3;pm.dispose();
+  const key=new T.DirectionalLight(0xffe2c4,2.4);key.position.set(-3,6,4);key.castShadow=true;key.shadow.mapSize.set(mob?1024:2048,mob?1024:2048);
+  Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.5,far:20});key.shadow.bias=-.0006;key.shadow.normalBias=.02;sc.add(key);sc.add(key.target);
+  const rim=new T.PointLight(0xb020ff,16,30);rim.position.set(4,2,-3);sc.add(rim);
+  // marcas de torneado (anillos) como mapa de rugosidad: el acero deja de parecer de plástico
+  const anillos=R=>{const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle='#8c8c8c';x.fillRect(0,0,512,512);
+    for(let rr=1;rr<256;rr+=1.1){const g=120+Math.random()*100|0;x.strokeStyle='rgba('+g+','+g+','+g+',.6)';x.lineWidth=.5+Math.random()*.9;x.beginPath();x.arc(256,256,rr,0,7);x.stroke();}
+    const t=new T.CanvasTexture(c);t.repeat.set(1/(2*R),1/(2*R));t.offset.set(.5,.5);return t;};
+  // materiales: por debajo del corte, metal; por encima, líneas de plano
+  const cortaSol=new T.Plane(new T.Vector3(0,-1,0),0),cortaLin=new T.Plane(new T.Vector3(0,1,0),0);
+  const metal=(o)=>new T.MeshPhysicalMaterial(Object.assign({color:0xe2dfe8,metalness:1,roughness:.42,clearcoat:.35,clearcoatRoughness:.3,side:T.DoubleSide,clippingPlanes:[cortaSol],clipShadows:true},o));
+  const Z1=28,Z2=14,M=.1,R1=M*Z1/2,R2=M*Z2/2,X1=-.72,X2=X1+R1+R2;
+  const acero1=metal({roughnessMap:anillos(R1+M)}),acero2=metal({color:0xc9ccd8,roughnessMap:anillos(R2+M)}),pulido=metal({roughness:.18,clearcoat:.6});
+  const linea=new T.LineBasicMaterial({color:0xeadcff,transparent:true,opacity:.85,clippingPlanes:[cortaLin]});
+  const rig=new T.Group(),pieza=new T.Group(),partes=[];rig.add(pieza);sc.add(rig);
+  const malla=(g,mat,dest,lin=true)=>{const me=new T.Mesh(g,mat);me.castShadow=me.receiveShadow=true;dest.add(me);if(lin)dest.add(new T.LineSegments(new T.EdgesGeometry(g,30),linea));};
+  const parte=(pos,ex)=>{const g=new T.Group();g.position.copy(pos);g.userData={b:pos.clone(),ex};pieza.add(g);partes.push(g);return g;};
+  // engranaje recto: dientes con flanco curvado, aligeramientos y agujero del eje
+  const engranaje=(Z,m,bore,alig)=>{const rp=m*Z/2,ra=rp+m,rf=rp-1.25*m,p=2*Math.PI/Z,s=new T.Shape(),pts=[];
+    for(let i=0;i<Z;i++){const c=i*p;[[rf,-.5],[rf,-.29],[rp,-.2],[ra,-.12],[ra,.12],[rp,.2],[rf,.29]].forEach(([rr,a])=>pts.push([rr*Math.cos(c+a*p),rr*Math.sin(c+a*p)]));}
+    s.moveTo(pts[0][0],pts[0][1]);pts.slice(1).forEach(q=>s.lineTo(q[0],q[1]));s.closePath();
+    const hueco=(x,y,rr)=>{const h=new T.Path();h.absarc(x,y,rr,0,Math.PI*2,true);s.holes.push(h);};
+    hueco(0,0,bore);if(alig){const rh=(rf+bore*2.1)/2,n=6;for(let i=0;i<n;i++){const a=i*2*Math.PI/n+Math.PI/n;hueco(Math.cos(a)*rh,Math.sin(a)*rh,(rf-bore*2.1)*.32);}}
+    const g=new T.ExtrudeGeometry(s,{depth:.3,bevelEnabled:true,bevelThickness:.025,bevelSize:.02,bevelSegments:2,curveSegments:24});
+    g.rotateX(-Math.PI/2);g.translate(0,-.15,0);return g;};
+  const cubo=(ro,ri,h)=>new T.LatheGeometry([[ri,.15],[ro,.15],[ro,.15+h],[ro-.04,.19+h],[ri,.19+h],[ri,.15]].map(([x,y])=>new T.Vector2(x,y)),48);
+  const g1=parte(new T.Vector3(X1,0,0),new T.Vector3(-.25,1.05,0)),s1=new T.Group();g1.add(s1);
+  malla(engranaje(Z1,M,.2,true),acero1,s1);malla(cubo(.42,.2,.18),acero1,s1);
+  const g2=parte(new T.Vector3(X2,0,0),new T.Vector3(.35,1.55,0)),s2=new T.Group();g2.add(s2);
+  malla(engranaje(Z2,M,.2,false),acero2,s2);malla(cubo(.36,.2,.12),acero2,s2);
+  const e1=parte(new T.Vector3(X1,-.05,0),new T.Vector3(0,-.55,0));malla(new T.CylinderGeometry(.19,.19,1.25,32),pulido,e1);
+  const e2=parte(new T.Vector3(X2,-.05,0),new T.Vector3(0,-.75,0));malla(new T.CylinderGeometry(.19,.19,1.25,32),pulido,e2);
+  pieza.position.x=.02;
+  // la máquina: bancada, paredes, puente con rodamientos y tornillos; se monta alrededor en el último paso
+  const fund=new T.MeshPhysicalMaterial({color:0x4b4757,metalness:.55,roughness:.45,clearcoat:.5,clearcoatRoughness:.4});
+  const mec=new T.MeshPhysicalMaterial({color:0xc9c6d2,metalness:1,roughness:.25});
+  const casa=new T.Group();pieza.add(casa);const piezasCasa=[];
+  const xa=X1-R1-M-.28,xb=X2+R2+M+.28,cx=(xa+xb)/2,ancho=xb-xa,fondo=3.55;
+  const caja=(w,h,dd,mat)=>{const g=new T.BoxGeometry(w,h,dd);const me=new T.Mesh(g,mat);me.castShadow=me.receiveShadow=true;return me;};
+  const pc=(obj,pos,desde,orden)=>{obj.position.copy(pos);const g=new T.Group();g.add(obj);g.userData={b:new T.Vector3(),desde,orden};casa.add(g);piezasCasa.push(g);return g;};
+  pc(caja(ancho+.3,.24,fondo+.3,fund),new T.Vector3(cx,-.8,0),new T.Vector3(0,-3.2,0),0);
+  pc(caja(ancho,1.05,.16,fund),new T.Vector3(cx,-.15,-fondo/2),new T.Vector3(0,0,-3.5),1);
+  pc(caja(.16,1.05,fondo,fund),new T.Vector3(xa,-.15,0),new T.Vector3(-3.5,0,0),2);
+  pc(caja(.16,1.05,fondo,fund),new T.Vector3(xb,-.15,0),new T.Vector3(3.5,0,0),2);
+  pc(caja(ancho,.42,.16,fund),new T.Vector3(cx,-.47,fondo/2),new T.Vector3(0,0,3.5),3);
+  const puente=new T.Group();puente.add(caja(X2-X1+.9,.13,.5,fund));
+  const tapa=new T.LatheGeometry([[.2,0],[.34,0],[.34,.12],[.3,.16],[.2,.16],[.2,0]].map(([x,y])=>new T.Vector2(x,y)),48);
+  [X1-cx,X2-cx].forEach(x=>{const ro=new T.Mesh(tapa,mec);ro.position.set(x,.06,0);ro.castShadow=true;puente.add(ro);});
+  pc(puente,new T.Vector3(cx,.66,0),new T.Vector3(0,3.4,0),4);
+  // filos mecanizados en lo alto de las paredes
+  pc(caja(ancho,.05,.18,mec),new T.Vector3(cx,.4,-fondo/2),new T.Vector3(0,0,-3.5),1);pc(caja(.18,.05,fondo,mec),new T.Vector3(xa,.4,0),new T.Vector3(-3.5,0,0),2);pc(caja(.18,.05,fondo,mec),new T.Vector3(xb,.4,0),new T.Vector3(3.5,0,0),2);
+  // motor eléctrico encima del piñón, con aletas de refrigeración: es el que mueve los engranajes
+  const motor=new T.Group(),pintura=new T.MeshPhysicalMaterial({color:0x5a2f8f,metalness:.55,roughness:.32,clearcoat:1,clearcoatRoughness:.15});
+  const cuerpo=new T.Mesh(new T.CylinderGeometry(.36,.36,.85,48),pintura);cuerpo.position.y=.5;cuerpo.castShadow=true;motor.add(cuerpo);
+  for(let i=0;i<7;i++){const al=new T.Mesh(new T.TorusGeometry(.37,.022,8,48),pintura);al.rotation.x=Math.PI/2;al.position.y=.18+i*.1;motor.add(al);}
+  const brida=new T.Mesh(new T.CylinderGeometry(.42,.42,.08,48),mec);brida.position.y=.06;brida.castShadow=true;motor.add(brida);
+  const tapaM=new T.Mesh(new T.CylinderGeometry(.3,.36,.1,48),mec);tapaM.position.y=.97;tapaM.castShadow=true;motor.add(tapaM);
+  pc(motor,new T.Vector3(X2,.78,0),new T.Vector3(0,3.6,0),6);
+  [[xa+.12,fondo/2-.06],[xb-.12,fondo/2-.06],[xa+.12,-fondo/2+.06],[xb-.12,-fondo/2+.06]].forEach(([x,zz],i)=>{const t=new T.Mesh(new T.CylinderGeometry(.08,.08,.08,6),mec);t.castShadow=true;pc(t,new T.Vector3(x,-.64,zz),new T.Vector3(0,2.2,0),5+i*.25);});
+  // suelo que recoge la sombra, rejilla de plano y anillo de escáner
+  const suelo=new T.Mesh(new T.PlaneGeometry(14,14),new T.ShadowMaterial({opacity:.45}));suelo.rotation.x=-Math.PI/2;suelo.position.y=-.93;suelo.receiveShadow=true;rig.add(suelo);
+  const rej=new T.GridHelper(8,32,0xb020ff,0x6d0fb0);rej.material.transparent=true;rej.material.opacity=0;rej.material.depthWrite=false;rej.position.y=-.92;rig.add(rej);
+  const aditivo=o=>new T.MeshBasicMaterial(Object.assign({color:0xd27bff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide},o));
+  const disco=new T.Mesh(new T.CircleGeometry(2.55,72),aditivo({})),aro=new T.Mesh(new T.RingGeometry(2.5,2.58,128),aditivo({color:0xf0d4ff}));
+  const scan=new T.Group(),scanIn=new T.Group();scanIn.add(disco,aro);scanIn.rotation.x=-Math.PI/2;scan.add(scanIn);rig.add(scan);
+  // cotas en HTML que siguen a la pieza
+  const caja2=stage.parentNode.querySelector('.tc-3dz__labels'),etq=caja2?[...caja2.querySelectorAll('span')]:[];
+  const anc=[new T.Vector3(X1-R1-M,.15,0),new T.Vector3(X2+R2+M,.15,0),new T.Vector3(X1,.62,0)];
+  let W=1,H=1;
+  const medir=()=>{W=stage.clientWidth||1;H=stage.clientHeight||1;r.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix();};
+  new ResizeObserver(medir).observe(stage);medir();
+  let mx=0,my=0,sx=0,sy=0;if(raton)addEventListener('pointermove',e=>{mx=e.clientX/innerWidth*2-1;my=e.clientY/innerHeight*2-1;},{passive:true});
+  let vis=true;new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis)pedir();}).observe(stage.closest('.tc-3dz'));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)pedir();});
+  const L=(a,b,t)=>a+(b-a)*t,cl=v=>v<0?0:v>1?1:v,suave=v=>{v=cl(v);return v*v*(3-2*v);},tramo=(p,a,b)=>suave((p-a)/(b-a));
+  // plano de cada paso: inclinación, giro, zoom, despiece y máquina
+  const P={tilt:[.62,.5,.8,.45,.7],yaw:[0,.7,1.6,2.5,3.5],zoom:[1,1.04,1.12,.92,.82],ex:[0,0,0,1,0],casa:[0,0,0,0,1]};
+  const por=(arr,s)=>{const i=Math.min(arr.length-2,Math.floor(s)),f=suave(s-i);return L(arr[i],arr[i+1],f);};
+  const v3=new T.Vector3(),nrm=new T.Vector3(),pt=new T.Vector3();
+  let hs=0,ps=0,giro=0,rueda=0,ult=performance.now(),raf=0,listo=false,cotAnt=-1;
+  function pedir(){if(!raf)raf=requestAnimationFrame(frame);}
+  function frame(t){raf=0;if(!vis||document.hidden)return;
+    if(mob&&t-ult<31){pedir();return;}const dt=Math.min(.05,Math.max(0,(t-ult)/1000));ult=t;
+    const S=window.tcStory||{p:0,h:0};hs=L(hs,S.h,.14);ps=L(ps,S.p,.12);sx=L(sx,mx,.06);sy=L(sy,my,.06);
+    const w=suave(hs),s=ps*4;
+    // a mitad de cada cambio de paso: la cámara se abre un poco, la luz barre el metal y el contraluz violeta se enciende
+    const tr=Math.sin(Math.PI*(s-Math.floor(s)))*w;
+    // sitio de la pieza: cabecera → historia
+    const hy=cam.position.z*Math.tan(T.MathUtils.degToRad(cam.fov/2)),hx=hy*cam.aspect,peq=Math.min(hx,hy);
+    const nx=mob?L(.04,-.04,w):L(.5,.42,w),ny=mob?L(.56,.3,w):L(-.02,0,w),k=(mob?L(.74,.8,w):L(.68,.64,w))*L(1,por(P.zoom,s),w)*(1-.08*tr);
+    rig.position.set(nx*hx,ny*hy,0);rig.scale.setScalar(peq*k/2.35);
+    // engranajes siempre girando (relación real Z1:Z2); la cámara cambia en cada paso
+    rueda+=dt*.55;s1.rotation.y=rueda;s2.rotation.y=-rueda*Z1/Z2+Math.PI/Z2;giro+=dt*.05;
+    const tilt=L(.55,por(P.tilt,s),w),yaw=L(-.35,por(P.yaw,s),w),ex=w*por(P.ex,s),ca=w*por(P.casa,s);
+    rig.rotation.set(tilt+sy*.1,giro+yaw+sx*.25,.04);
+    partes.forEach(g=>{g.position.copy(g.userData.b).addScaledVector(g.userData.ex,ex);});
+    // la máquina entra pieza a pieza (bancada, paredes, puente, tornillos)
+    casa.visible=ca>.002;
+    if(casa.visible)piezasCasa.forEach(g=>{const o=g.userData.orden,e=tramo(ca,o*.09,.55+o*.07);g.position.copy(g.userData.desde).multiplyScalar(1-e);g.visible=e>.001;});
+    // metal en la cabecera, plano al entrar en la historia, el escáner lo reconstruye hacia el paso 2
+    const sol=w<.999?1-w:(s<1?tramo(s,.08,.92):1);
+    rej.material.opacity=(1-sol)*.3*w;suelo.material.opacity=.45*sol;
+    rig.updateMatrixWorld();
+    const lvl=sol>=.999?20:sol<=.001?-20:L(-.7,.7,sol);
+    nrm.set(0,1,0).applyQuaternion(rig.quaternion);pt.set(0,lvl,0);rig.localToWorld(pt);
+    cortaSol.setFromNormalAndCoplanarPoint(v3.copy(nrm).negate(),pt);cortaLin.setFromNormalAndCoplanarPoint(nrm,pt);
+    const scanOp=(sol>.001&&sol<.999)?1:0;scan.position.y=L(-.7,.7,sol);
+    disco.material.opacity=L(disco.material.opacity,scanOp*.08,.3);aro.material.opacity=L(aro.material.opacity,scanOp*.9,.3);scan.visible=aro.material.opacity>.02;
+    // la luz principal sigue a la pieza para que la sombra caiga siempre bien
+    key.target.position.copy(rig.position);key.position.set(rig.position.x-3+tr*7,rig.position.y+6,4-tr*2);rim.intensity=16+tr*46;
+    r.render(sc,cam);
+    const co=w>.5?(1-tramo(s,.35,.75))*tramo(w,.5,1):0;
+    if(caja2&&Math.abs(co-cotAnt)>.01){caja2.style.opacity=co.toFixed(2);cotAnt=co;}
+    if(co>.01)etq.forEach((e,i)=>{v3.copy(anc[i]);pieza.localToWorld(v3);v3.project(cam);e.style.transform='translate('+Math.min(W-112,Math.max(8,(v3.x*.5+.5)*W)).toFixed(1)+'px,'+((-v3.y*.5+.5)*H).toFixed(1)+'px)';});
+    if(!listo){listo=true;stage.classList.add('is-ready');}
+    pedir();}
+  pedir();
+}
 </script>
 	<?php
 }, 40 );
