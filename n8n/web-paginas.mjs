@@ -368,6 +368,7 @@ P['transforma-con-ia'] = {
   id: 5851, title: 'Transforma con IA',
   seo: ['Consultoría de IA industrial | Transforma con IA', 'Consultoría de IA industrial en Murcia y toda España: ERP para la industria, automatización de pedidos, albaranes y facturas, y asistentes técnicos.', 'consultoría de IA industrial'],
   html: page(`
+<div class="tc-3dz"><div class="tc-3dz__layer" aria-hidden="true"><div class="tc-3dz__pin"><div class="tc-3dz__stage" id="tc-3d"></div><div class="tc-3dz__labels"><span>Ø 120 mm</span><span>6 × Ø 12</span><span>Ø 70 × 45</span></div></div></div>
 <header class="tc-hero tc-hero--home tc-hero--c">${DECO('a')}<div class="tc-wrap"><div class="tc-hero__copy">
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
@@ -375,6 +376,25 @@ P['transforma-con-ia'] = {
   <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${DOC_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
   <ul class="tc-proof"><li><span><b>Diagnóstico por escrito</b> en 48&nbsp;h · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
+<section class="tc-story" id="como-trabajamos" aria-labelledby="tc-story-h" data-paso="0"><div class="tc-story__pin"><div class="tc-wrap tc-story__grid">
+  <div class="tc-story__txt">
+    <p class="tc-story__kicker">Así trabaja la IA en una empresa industrial</p>
+    <h2 id="tc-story-h">Del plano a la factura, <span class="tc-grad">sin teclear</span></h2>
+    <ol class="tc-story__steps">
+      <li data-paso="0"><span class="tc-story__n">01</span><h3>Llega el trabajo</h3><p>Un plano, un pedido por correo o una petición de oferta. Llega como siempre, no cambias nada.</p></li>
+      <li data-paso="1"><span class="tc-story__n">02</span><h3>La IA lo lee</h3><p>Saca medidas, material, cantidades y plazo del plano o del PDF, y lo deja apuntado sin que nadie teclee.</p></li>
+      <li data-paso="2"><span class="tc-story__n">03</span><h3>Presupuesto con tu margen</h3><p>Calcula material, horas de máquina y tratamientos con tus tarifas, aplica tu margen y el presupuesto sale en minutos.</p></li>
+      <li data-paso="3"><span class="tc-story__n">04</span><h3>Todo queda en tu ERP</h3><p>Pedido, albarán firmado en el móvil, factura y cobro, unidos y sin escribir dos veces el mismo dato.</p></li>
+    </ol>
+    <div class="tc-story__bar" aria-hidden="true"><i></i></div>
+  </div>
+  <div class="tc-hud" aria-hidden="true">
+    <div class="tc-hud__box tc-hud__chips" data-hud="1"><b>Datos leídos del plano</b><span>Material <em>S275JR</em></span><span>Cantidad <em>12 uds</em></span><span>Tolerancia <em>±0,05</em></span><span>Plazo <em>10 días</em></span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__budget" data-hud="2"><b>Presupuesto P-0127</b><span>Material <em>186 €</em></span><span>Mecanizado 4,5 h <em>270 €</em></span><span>Tratamiento <em>64 €</em></span><span>Margen 25 % <em>130 €</em></span><span class="tc-hud__tot">Total <em>650 €</em></span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__docs" data-hud="3"><b>En tu ERP</b><span>✓ Pedido registrado</span><span>✓ Albarán firmado</span><span>✓ Factura emitida</span><span>◷ Cobro a 30 días</span><small>Ejemplo ficticio</small></div>
+  </div>
+</div></div></section>
+</div>
 
 <section class="tc-sec" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${solHome}</div></section>
 
