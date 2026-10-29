@@ -329,6 +329,21 @@ add_action( 'wp_footer', function () {
   document.querySelectorAll('[data-tc-hace]').forEach(function(e){var t=Date.parse(e.getAttribute('data-tc-hace'));if(!t)return;var d=(Date.now()-t)/1000,x;
     if(d<3600)x='hace '+Math.max(1,Math.floor(d/60))+' min';else if(d<86400)x='hace '+Math.floor(d/3600)+' h';else if(d<172800)x='ayer';else if(d<604800)x='hace '+Math.floor(d/86400)+' días';else x=new Date(t).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Madrid'});e.textContent=x;});
   var q=new URLSearchParams(location.search).get('estado'), m=document.getElementById('tc-estado');
+  // lectura de cotas tipo CAD en el hero de la portada: cruz que sigue al ratón con X/Y sobre la rejilla del plano.
+  // Solo escritorio con ratón y sin «reducir movimiento»; se mueve con transform y el bucle se para al llegar.
+  var hz=document.querySelector('.tc-hero--home');
+  if(hz&&matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    var cad=document.createElement('div');cad.className='tc-cad';cad.setAttribute('aria-hidden','true');
+    cad.innerHTML='<i class="tc-cad__x"></i><i class="tc-cad__y"></i><b class="tc-cad__t"></b>';hz.appendChild(cad);
+    var cx=cad.children[0],cy=cad.children[1],ct=cad.children[2],tx=0,ty=0,px=0,py=0,run=0,txt='';
+    var paso=function(){px+=(tx-px)*.22;py+=(ty-py)*.22;var fin=Math.abs(tx-px)<.3&&Math.abs(ty-py)<.3;if(fin){px=tx;py=ty;}
+      cx.style.transform='translateY('+py+'px)';cy.style.transform='translateX('+px+'px)';ct.style.transform='translate('+(px+14)+'px,'+(py+14)+'px)';
+      var t='X '+String(Math.round(px)).padStart(4,'0')+' · Y '+String(Math.round(py)).padStart(4,'0');if(t!==txt){ct.textContent=t;txt=t;}
+      run=fin?0:requestAnimationFrame(paso);};
+    hz.addEventListener('pointermove',function(e){var r=hz.getBoundingClientRect();tx=e.clientX-r.left;ty=e.clientY-r.top;
+      if(!cad.classList.contains('is-on')){px=tx;py=ty;cad.classList.add('is-on');}if(!run)run=requestAnimationFrame(paso);},{passive:true});
+    hz.addEventListener('pointerleave',function(){cad.classList.remove('is-on');});
+  }
   if(q&&m){var t={ok:['is-ok','¡Listo! Suscripción confirmada. El próximo lunes recibirás tu primer boletín.'],baja:['is-ok','Te has dado de baja. No recibirás más correos del boletín.'],error:['is-err','El enlace no es válido o ha caducado. Vuelve a apuntarte con tu correo.']}[q];if(t){m.className='tc-msg '+t[0];m.textContent=t[1];}}
 })();
 </script>

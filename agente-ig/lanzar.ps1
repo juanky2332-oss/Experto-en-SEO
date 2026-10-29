@@ -18,7 +18,7 @@ try {
   if ($hoy -match 'nada_que_hacer') { "$(Get-Date -Format s) nada pendiente" | Out-File -Append $log; exit 0 }
 
   $prompt = "Eres el agente diario de Instagram de Transforma con IA. Sigue al pie de la letra agente-ig/INSTRUCCIONES.md (léelo primero). Tareas pendientes de hoy:`n$hoy"
-  $tools = 'Read,ToolSearch,Bash(node n8n/ig-plan.mjs:*),mcp__plugin_ecc_chrome-devtools'
+  $tools = 'Read,ToolSearch,Bash(node n8n/ig-plan.mjs:*),mcp__chrome-ig,mcp__plugin_ecc_chrome-devtools'
   $salida = Join-Path $PSScriptRoot ("logs\" + (Get-Date -Format 'yyyy-MM-dd_HHmm') + '-claude.log')
   $p = Start-Process -FilePath "$env:USERPROFILE\.local\bin\claude.exe" -NoNewWindow -PassThru `
     -ArgumentList @('-p', ('"' + $prompt.Replace('"', '\"') + '"'), '--allowedTools', $tools, '--max-turns', '200') `

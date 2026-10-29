@@ -755,3 +755,33 @@ body .tc-plan .tc-plan__mes b{color:#fff!important;font-size:1.1rem}
 .tc-movil-shots img{width:100%;height:auto;border-radius:18px;border:1px solid var(--tc-line);box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .tc-movil-shots figcaption{font-family:var(--tc-display);font-size:.85rem;color:var(--tc-dim)}
 @media (max-width:620px){.tc-movil-shots{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tc-movil-shots figcaption{font-size:.75rem}}
+/* Pulido 29-10-2026 (criterio emil-design-eng: animar solo con propósito, curvas fuertes, nada de hover en táctil) */
+:root{--tc-out:cubic-bezier(.23,1,.32,1);--tc-inout:cubic-bezier(.77,0,.175,1)}
+/* botones y tarjetas que responden al pulsar */
+.tc-btn,.tc-sticky a{transition:transform .16s var(--tc-out),box-shadow .25s,background .25s}
+.tc-btn:active,.tc-sticky a:active{transform:scale(.97)!important}
+a.tc-box:active,.tc-sector:active{transform:scale(.985)!important}
+.tc-sector{transition:transform .35s var(--tc-ease),border-color .35s}
+/* en táctil el hover se queda «pegado» tras tocar: fuera los levantamientos */
+@media (hover:none){.tc-box:hover,.tc-sector:hover,.tc-card:hover,.tc-btn:hover{transform:none}.tc-btn:hover::after{transform:translateX(-120%)}}
+/* paso entre páginas con fundido nativo (navegadores que lo soportan; los demás, como siempre) */
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:tc-vt-out .18s var(--tc-out) both}
+::view-transition-new(root){animation:tc-vt-in .26s var(--tc-out) both}
+@keyframes tc-vt-out{to{opacity:0}}
+@keyframes tc-vt-in{from{opacity:0;transform:translateY(6px)}}
+/* barra de avance de lectura con marcas de regla en las páginas de diseño propio (en los artículos ya estaba) */
+@supports (animation-timeline:scroll()){body.tc-landing::before{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-index:100000;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 23px,rgba(8,7,11,.55) 23px 24px),linear-gradient(90deg,#6d0fb0,#b020ff,#d27bff);transform-origin:0 50%;transform:scaleX(0);animation:tc-prog linear both;animation-timeline:scroll(root)}}
+/* hero de la portada: barrido de escáner una sola vez al cargar (la IA «leyendo» el plano) */
+.tc-hero--home .tc-wrap{position:relative}
+.tc-hero--home>.tc-wrap::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:min(100vw,1600px);transform:translateX(-50%);pointer-events:none;z-index:-1;background:linear-gradient(180deg,transparent 0,rgba(210,123,255,.0) 46%,rgba(210,123,255,.55) 50%,rgba(210,123,255,0) 54%,transparent 100%) 0 -120%/100% 220% no-repeat;mask-image:radial-gradient(ellipse 60% 70% at 50% 45%,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse 60% 70% at 50% 45%,#000 20%,transparent 75%);opacity:.0;animation:tc-scan 1.8s var(--tc-inout) .35s 1 both}
+@keyframes tc-scan{0%{background-position:0 -120%;opacity:0}12%{opacity:.9}88%{opacity:.9}100%{background-position:0 220%;opacity:0}}
+/* lectura de cotas tipo CAD que sigue al ratón (el JS la crea solo en escritorio) */
+.tc-cad{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .2s var(--tc-out)}
+.tc-cad.is-on{opacity:1}
+.tc-cad i{position:absolute;left:0;top:0;will-change:transform}
+.tc-cad__x{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(210,123,255,.35) 20%,rgba(210,123,255,.35) 80%,transparent)}
+.tc-cad__y{width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(210,123,255,.35) 20%,rgba(210,123,255,.35) 80%,transparent)}
+.tc-cad__t{position:absolute;left:0;top:0;padding:3px 7px;border-radius:6px;font:600 11px/1.2 var(--tc-mono,ui-monospace),monospace;letter-spacing:.06em;color:var(--tc-m2);background:rgba(8,7,11,.75);box-shadow:inset 0 0 0 1px rgba(210,123,255,.3);white-space:nowrap;font-variant-numeric:tabular-nums;will-change:transform}
+.tc-hero--home .tc-hero__copy{position:relative;z-index:1}
+@media (prefers-reduced-motion:reduce){body.tc-landing::before{display:none}.tc-hero--home>.tc-wrap::before{animation:none;display:none}::view-transition-old(root),::view-transition-new(root){animation:none}}

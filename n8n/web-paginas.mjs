@@ -360,7 +360,7 @@ const SECT_HOME = [
   ['mapa', 'IA para empresas de la Región de Murcia', 'Consultoría de IA cercana: puesta en marcha en tu empresa si estás en la Región de Murcia y en remoto en el resto de España.', ['Diagnóstico gratuito por escrito', 'Piloto con tus datos antes de comprometer el presupuesto', 'Soporte en persona y en remoto'], '/consultor-ia-murcia/', 'Ver soluciones para empresas de Murcia'],
 ];
 const sectHome = `<div class="tc-sects">${SECT_HOME.map(([i, t, f, it, u, l], n) => `<article class="tc-sectc tc-sectc--${n + 1} tc-reveal">${icon(i)}<h3>${t}</h3><p>${f}</p><ul class="tc-checks">${it.map((x) => `<li>${x}</li>`).join('')}</ul><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div><p class="tc-sects__otros tc-reveal">¿Tu empresa es de otro sector? <a class="tc-link" href="/otros-sectores/">Mira los otros sectores</a></p>`;
-const CAL_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+const DOC_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
 
 const P = {};
 
@@ -372,8 +372,8 @@ P['transforma-con-ia'] = {
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
   <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP. Presencial en la Región de Murcia y en remoto en toda España.</p>
-  <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${CAL_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
-  <ul class="tc-proof"><li><span><b>30&nbsp;min</b> gratis · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
+  <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${DOC_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
+  <ul class="tc-proof"><li><span><b>Diagnóstico por escrito</b> en 48&nbsp;h · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
 
 <section class="tc-sec" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${solHome}</div></section>
