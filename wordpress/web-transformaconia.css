@@ -893,3 +893,28 @@ html.tc-snap .tc-story__txt{background:rgba(12,10,17,.9)}html.tc-snap .tc-hud__b
 /* en táctil los pasos van más juntos: un deslizamiento normal pasa siempre al siguiente */
 html.tc-3d.tc-snap .tc-story{height:260vh}
 @media (max-width:820px){html.tc-3d.tc-snap .tc-story{height:230vh}}
+/* contacto (29-10-2026): cabecera corta y el formulario lo primero; en escritorio el formulario un poco más ancho */
+.tc-pagehead--corta{padding-block:clamp(28px,4vw,56px) clamp(8px,2vw,20px)!important}
+.tc-split--form{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
+@media (max-width:900px){.tc-split--form{grid-template-columns:minmax(0,1fr)}}
+/* Portada en 6 bloques (29-10-2026): demos en primer plano y soluciones con foto real, en el lenguaje de la cabecera */
+.tc-home .tc-sec{background:#07060a}
+.tc-home .tc-sec--alt{background:#0c0a11}
+.tc-demo{display:grid;grid-template-rows:auto 1fr;border-radius:var(--tc-r);overflow:hidden;background:linear-gradient(180deg,#14111b,#0c0a11);border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px -45px #000;min-width:0;transition:transform .35s var(--tc-out),border-color .35s}
+.tc-demo__img{position:relative;display:block;aspect-ratio:16/10;overflow:hidden;background:#0d0b12;border-bottom:1px solid rgba(255,255,255,.08)}
+.tc-demo__img .tc-shot__bar{position:absolute;top:0;left:0;right:0;z-index:1;height:26px;display:flex;gap:6px;align-items:center;padding:0 10px;background:rgba(10,8,14,.85)}
+.tc-demo__img img{position:absolute;inset:26px 0 0;width:100%!important;height:calc(100% - 26px)!important;object-fit:cover;object-position:top left;transition:transform .7s var(--tc-out)}
+.tc-demo__tag{position:absolute;right:10px;bottom:10px;z-index:1;padding:4px 9px;border-radius:99px;font:600 11px/1 var(--tc-display);letter-spacing:.04em;color:#fff;background:rgba(10,8,14,.75);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.tc-demo__txt{display:grid;gap:12px;align-content:start;padding:22px 22px 24px}
+.tc-demo__txt p{font-size:15.5px}
+.tc-demo__txt .tc-btns{margin-top:4px}
+@media (hover:hover) and (pointer:fine){.tc-demo:hover{transform:translateY(-4px);border-color:rgba(210,123,255,.35)}.tc-demo:hover .tc-demo__img img{transform:scale(1.03)}}
+.tc-fsol{position:relative;display:block;aspect-ratio:4/5;border-radius:var(--tc-r);overflow:hidden;isolation:isolate;border:1px solid rgba(255,255,255,.1);min-width:0;background:#0d0b12}
+.tc-fsol img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover;z-index:-2;transition:transform .9s var(--tc-out)}
+.tc-fsol::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,6,10,.05) 25%,rgba(7,6,10,.6) 55%,rgba(7,6,10,.95) 100%)}
+.tc-fsol__txt{position:absolute;left:0;right:0;bottom:0;display:grid;gap:8px;padding:22px}
+.tc-fsol__txt h3{font-size:21px}
+.tc-fsol__txt>span:not(.tc-link){font-size:15px;line-height:1.5;color:#d4cede}
+.tc-fsol .tc-link{margin-top:4px}
+@media (hover:hover) and (pointer:fine){.tc-fsol:hover img{transform:scale(1.05)}.tc-fsol:hover{border-color:rgba(210,123,255,.4)}}
+@media (max-width:620px){.tc-fsol{aspect-ratio:4/5}.tc-demo__txt{padding:18px}}

@@ -243,7 +243,7 @@ export const GUIA_INICIAL: Guia = {
   ],
   tipos: TIPOS_BASE,
   ritmo: [
-    "Base de 4 artículos por semana: 1 de «IA en la industria» (un caso real con su fuente), 1 de proceso de «Gestión y facturación» (facturas, presupuestos, partes, ERP, stock, informes), 1 de sector o de la Región de Murcia y 1 de «Actualidad IA» solo si hay algo que cambie de verdad para una empresa.",
+    "Base de 4 artículos por semana: 1 de «IA en la industria» (un caso real con su fuente), 1 de proceso de «Gestión y facturación» (facturas, presupuestos, partes, ERP, stock, informes), 1 de sector o de la Región de Murcia y 1 de «Actualidad IA» solo si es normativa o ayudas que obliguen o beneficien a una empresa industrial (nunca lanzamientos de modelos ni herramientas de programación: esa categoría queda fuera de Google).",
     "Cada mes: un artículo pilar nuevo o una actualización fuerte de una página de sector o local.",
     "Cada trimestre: revisar los 10 artículos con más tráfico y actualizar versiones, precios y fechas.",
   ],

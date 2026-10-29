@@ -1404,3 +1404,33 @@ function init(T){
 </script>
 	<?php
 }, 40 );
+
+/* Blog centrado en el cliente industrial (29-10-2026): las noticias generales de IA (categoría «Actualidad IA») siguen
+ * en la web pero fuera de Google y del mapa del sitio, para que Google vea una consultoría de IA industrial y no un blog
+ * de noticias. También fuera los artículos que giran en torno a una herramienta interna por su marca. */
+function tc_fuera_de_google( $id ) {
+	$id = (int) $id;
+	if ( ! $id || 'post' !== get_post_type( $id ) ) {
+		return false;
+	}
+	if ( in_array( $id, array( 6675 ), true ) ) {
+		return true;
+	}
+	return has_category( 'actualidad-ia', $id );
+}
+add_filter( 'rank_math/frontend/robots', function ( $robots ) {
+	if ( is_singular( 'post' ) && tc_fuera_de_google( get_queried_object_id() ) ) {
+		$robots['index'] = 'noindex';
+		$robots['follow'] = 'follow';
+	}
+	if ( is_category( 'actualidad-ia' ) ) {
+		$robots['index'] = 'noindex';
+	}
+	return $robots;
+} );
+add_filter( 'rank_math/sitemap/entry', function ( $url, $type, $object ) {
+	if ( 'post' === $type && is_object( $object ) && tc_fuera_de_google( $object->ID ) ) {
+		return false;
+	}
+	return $url;
+}, 10, 3 );

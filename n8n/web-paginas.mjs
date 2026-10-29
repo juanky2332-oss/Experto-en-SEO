@@ -364,6 +364,19 @@ const DOC_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 
 const P = {};
 
+// Portada (29-10-2026): las demos en primer plano (ver funcionando convence más que cualquier texto) y las soluciones con foto real
+const DEMOS = [
+  ['IndunexIA Gestión', 'El programa de gestión para talleres y empresas industriales: presupuestos con tu margen, albaranes firmados en el móvil, facturas y cobros.', IMG.erp_inicio, DEMO_URL, 'Abrir el ERP de ejemplo', '/erp-industria/', 'Conocer IndunexIA Gestión'],
+  ['Asistente técnico', 'Una tienda online de ejemplo con un asistente que entiende referencias y medidas, propone equivalencias y lo añade al carrito.', 'https://demo.transformaconia.com/web/portada/demo-asistente.webp', 'https://demo.transformaconia.com/asistente/', 'Probar el asistente', '/agentes-chatbots-ia/', 'Ver los asistentes'],
+  ['Presupuestos desde plano', 'Del plano o la foto al presupuesto con tus tarifas y tu margen, listo para enviar en PDF.', 'https://demo.transformaconia.com/web/portada/demo-presupuesto.webp', 'https://presupuestos.transformaconia.com/demo', 'Ver un presupuesto de ejemplo', '/presupuestos-desde-plano/', 'Conocer IndunexIA Presupuestos'],
+];
+const DEMOS_HOME = `<section class="tc-sec tc-sec--fotos" id="demos"><div class="tc-wrap">${head('Pruébalo tú', 'Míralo funcionando antes de hablar con nadie', 'Programas reales con datos de ejemplo. Ábrelos y prueba: sin registrarte y sin dejar tus datos.')}
+<div class="tc-grid tc-grid--3">${DEMOS.map(([t, p, img, demo, dtxt, pag, ptxt]) => `<article class="tc-demo tc-reveal"><a class="tc-demo__img" href="${demo}" target="_blank" rel="noopener" aria-label="${dtxt} (se abre en otra pestaña)"><span class="tc-shot__bar" aria-hidden="true"><i></i><i></i><i></i></span><img src="${img}" alt="${t}: captura del programa con datos ficticios" width="960" height="600" loading="lazy" decoding="async"><span class="tc-demo__tag">Datos ficticios</span></a>
+<div class="tc-demo__txt"><h3>${t}</h3><p>${p}</p><div class="tc-btns"><a class="tc-btn" href="${demo}" target="_blank" rel="noopener">${dtxt} ${ARROW}</a></div><a class="tc-link" href="${pag}">${ptxt}</a></div></article>`).join('')}</div></div></section>`;
+const FOTOS_SOL = { erp: 'sol-gestion', flujo: 'sol-procesos', doc: 'sol-documentos', chat: 'sol-asistentes', app: 'sol-medida', caja: 'sol-distribucion' };
+const FOTO_SOL = `<section class="tc-sec tc-sec--fotos" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}
+<div class="tc-grid tc-grid--3">${SOL_HOME.map(([i, t, p, u, l]) => `<a class="tc-fsol tc-reveal" href="${u}"><img src="https://demo.transformaconia.com/web/portada/${FOTOS_SOL[i]}.webp" alt="" width="720" height="720" loading="lazy" decoding="async"><span class="tc-fsol__txt"><h3>${t}</h3><span>${p}</span><span class="tc-link">${l}</span></span></a>`).join('')}</div></div></section>`;
+
 P['transforma-con-ia'] = {
   id: 5851, title: 'Transforma con IA',
   seo: ['Consultoría de IA industrial | Transforma con IA', 'Consultoría de IA industrial en Murcia y toda España: ERP para la industria, automatización de pedidos, albaranes y facturas, y asistentes técnicos.', 'consultoría de IA industrial'],
@@ -402,51 +415,14 @@ P['transforma-con-ia'] = {
 </div></div></section>
 </div>
 
-<section class="tc-sec" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}${solHome}</div></section>
+${DEMOS_HOME}
 
-<section class="tc-sec tc-sec--alt" id="sectores"><div class="tc-wrap">${head('Sectores', 'Sectores industriales en los que aplicamos IA', 'Conocemos cómo trabaja cada tipo de empresa industrial. Elige el tuyo y mira qué se puede automatizar.', '<a class="tc-link" href="/industria/">IA para la industria</a>')}${sectHome}</div></section>
-
-<section class="tc-sec" id="erp"><div class="tc-wrap">
- <div class="tc-star tc-reveal">
-  <div class="tc-star__txt">
-   <span class="tc-badge">IndunexIA Gestión</span>
-   <h2>El ERP para la industria que se lleva en el bolsillo</h2>
-   <p class="tc-lead">Sabes lo que te cuesta cada trabajo, le pones tu margen y el presupuesto sale en minutos. Albaranes firmados en el móvil, facturas, cobros y gastos por foto, en un programa que se usa como una app desde el teléfono o el ordenador.</p>
-   <p class="tc-star__para">Nació en talleres de mecanizado y sirve igual para calderería, carpintería metálica, reparación de maquinaria o talleres de hidráulica. Y se combina con empresas de otros sectores activando los módulos que cada una necesita.</p>
-   <div class="tc-mini">
-    <div>${icon('calc')}<b>Calculadora de costes</b><small>Lo que te cuesta a ti + tu margen = precio</small></div>
-    <div>${icon('firma')}<b>Albaranes firmados</b><small>El cliente firma en el móvil, en la obra</small></div>
-    <div>${icon('euro')}<b>Facturas y cobros</b><small>Del presupuesto a la factura en un clic</small></div>
-    <div>${icon('telegram')}<b>Gastos por foto</b><small>Ticket por Telegram y queda registrado</small></div>
-    <div>${icon('carpeta')}<b>Paquete para la asesoría</b><small>El trimestre preparado con un botón</small></div>
-    <div>${icon('chat')}<b>Asistente de IA</b><small>Prepara documentos y pide confirmación</small></div>
-   </div>
-   <div class="tc-oferta"><div><span>Básico</span><b><s>790 €</s> 590 €</b><small>+ 59 €/mes</small></div><div><span>Profesional</span><b><s>990 €</s> 690 €</b><small>+ 69 €/mes</small></div><div><span>Pro</span><b><s>1.490 €</s> 990 €</b><small>+ 89 €/mes</small></div><div><span>Primeros 3 meses</span><b>Gratis</b><small>sin permanencia</small></div></div>
-   <div class="tc-btns">${btn('/erp-industria/', 'Conocer IndunexIA Gestión', true)}${btn(DEMO_URL, DEMO_TXT, true)}</div>
-  </div>
-  <div class="tc-star__vis">${shots([[IMG.erp_calculadora, 'Calculadora de costes del ERP con el margen aplicado'], [IMG.facturas, 'Facturas en el programa de gestión'], [IMG.cobros, 'Cobros y vencimientos'], [IMG.fiscal, 'Paquete trimestral para la asesoría']])}<p class="tc-nota">Pantallas reales del programa con datos de ejemplo. Precios sin IVA, de temporada con descuento hasta el 31/12/2026. Usuario extra: 15 €/mes desde el primer mes.</p></div>
- </div>
-</div></section>
+${FOTO_SOL}
 
 ${calcu('Antes de hablar con nosotros, haz la cuenta')}
 
-<section class="tc-sec"><div class="tc-wrap">${head('El problema', '¿Cuánto tiempo se va en tareas que no fabrican ni venden?')}${antesDespuesDep}</div></section>
-
 <section class="tc-sec tc-sec--alt" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', 'Cómo trabajamos: del diagnóstico por escrito a funcionando, sin pagar a ciegas', 'Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Precios orientativos</a>')}${PASOS}</div></section>
-${LIMITES}
 
-<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Casos', 'Qué hemos montado y qué se puede montar', 'Sin nombres de clientes por confidencialidad. El caso marcado como ejemplo no es un proyecto concreto: muestra lo que se puede implementar.', '<a class="tc-link" href="/casos/">Ver todos los casos</a>')}
-<div class="tc-grid tc-grid--4">${['gestion', 'distribucion', 'documentacion', 'sap'].map(casoCard).join('')}</div>
-<div class="tc-chips tc-reveal" style="margin-top:24px"><a href="/otros-sectores/">Otros sectores</a><a href="/consultor-ia-murcia/">Región de Murcia</a></div></div></section>
-
-<section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Preguntas frecuentes sobre consultoría de IA industrial', 'Lo que suelen preguntarnos las empresas industriales antes del diagnóstico.')}${faq([
-    ['¿Qué es la consultoría de IA industrial?', 'Es analizar cómo trabaja una empresa industrial, decidir qué tareas compensa automatizar con inteligencia artificial y dejarlo funcionando: presupuestos, pedidos, albaranes, facturas, consultas técnicas o informes. Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia y empezamos siempre con un diagnóstico gratuito por escrito.'],
-    ['¿Cuánto cuesta el ERP para la industria?', 'IndunexIA Gestión tiene tres planes: Básico (590 € de puesta en marcha y 59 €/mes), Profesional (690 € y 69 €/mes) y Pro (990 € y 89 €/mes), precios de temporada sin IVA, con los tres primeros meses de cuota gratis. Cada usuario extra cuesta 15 €/mes desde el primer mes, no hay permanencia (30 días de aviso) y los precios no incluyen IVA.'],
-    ['¿Cuánto cuesta automatizar un proceso?', 'Como referencia orientativa, una automatización parte de 450 € + IVA, un asistente técnico de 900 € y una herramienta a medida de 2.500 €. Tras el diagnóstico recibes un presupuesto cerrado por escrito.'],
-    ['¿Tengo que cambiar de ERP?', 'No. Si tu ERP tiene API, lo conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. Con SAP, por ejemplo, cualquier idea para mejorarlo se puede valorar, y lo mismo con el programa que uséis. Si no tienes programa de gestión o se te ha quedado corto, te ofrecemos nuestro ERP para la industria.'],
-    ['¿Puedo probarlo antes de pagarlo todo?', 'Sí. Montamos un piloto con tus datos reales en 1 a 3 semanas y lo usáis en el día a día antes de comprometer el presupuesto completo. Las acciones importantes siempre piden confirmación a una persona.'],
-  ])}</div></section>
-<section class="tc-sec"><div class="tc-wrap">${head('Blog', 'IA en la industria y gestión de empresa', 'Casos de empresas industriales con IA y guías de gestión y automatización para aplicar en tu empresa.', '<a class="tc-link" href="/blog/">Ir al blog</a>')}[tc_categoria slug="ia-en-la-industria" n=3 relleno_ids="6768,6258"]</div></section>
 ${contactoPortada()}
 `),
 };
@@ -879,17 +855,16 @@ ${band('¿Tienes una tarea que te gustaría quitarte de encima?', 'Cuéntanos tu
 P['contacto'] = {
   id: 12, title: 'Contacto',
   seo: ['Contacto y diagnóstico gratis | Transforma con IA', 'Cuéntanos qué proceso queréis automatizar y te enviamos por escrito un diagnóstico gratuito en 48 horas laborables. info@transformaconia.com', 'consultoría automatización industrial contacto'],
-  // Tanda 5: la reserva va primero; el formulario queda como alternativa. El último encabezado antes del pie es un h3 para que el h4 del pie siga el orden.
-  html: page(`${pagehead('<span>Contacto</span>', 'Diagnóstico gratis', 'Pide tu diagnóstico gratis', 'Así trabajamos: nos cuentas cómo lo hacéis hoy y te enviamos el diagnóstico por escrito, con qué automatizar primero, cómo y cuánto costaría. Lo lees con calma, lo compartes con quien quieras y decides sin prisas.', '', facts('Cómo funciona', [['Diagnóstico', 'Gratis, por escrito'], ['Lo recibes', 'en 48 h laborables'], ['Compromiso', 'Ninguno'], ['Puesta en marcha', 'En persona en Murcia o en remoto']]))}
-<section class="tc-sec tc-sec--tight" id="como-funciona"><div class="tc-wrap">
- <div class="tc-grid tc-grid--3">${[['carpeta', 'Qué nos cuentas', 'Las 2 o 3 tareas que más horas os quitan y qué programas usáis. Si quieres, adjunta en la respuesta un documento de ejemplo con los datos tapados.'], ['reloj', 'Qué recibes', 'Por escrito y en 48 horas laborables: qué automatizar primero, cómo lo haríamos y un precio orientativo. Lo prepara quien después lo construiría.'], ['escudo', 'Por qué así', 'Lo lees cuando te viene bien, lo compartes con tu socio o tu gestoría y decides sin prisas. Sin compromiso.']].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div>
-</div></section>
-<section class="tc-sec tc-sec--alt" id="contacto"><div class="tc-wrap">${head('Formulario', 'Pide tu diagnóstico', 'Cuéntanos qué tarea o consulta os repite más vuestro equipo y te enviamos el diagnóstico por escrito en 48 horas laborables.')}<div class="tc-split">
+  // 29-10-2026: el formulario va lo primero (antes quedaba a un tercio de página en el móvil); la explicación, condensada al lado.
+  html: page(`<header class="tc-hero tc-pagehead tc-pagehead--corta">${DECO('b')}<div class="tc-wrap"><div class="tc-hero__copy">
+<nav class="tc-crumbs" aria-label="Migas"><a href="/">Inicio</a><span aria-hidden="true">/</span><span>Contacto</span></nav>
+${eyebrow('Diagnóstico gratis')}<h1>Pide tu diagnóstico gratis</h1><p class="tc-lead">Cuéntanos qué tarea os quita más horas y te enviamos por escrito, en 48 horas laborables, qué automatizaríamos, cómo y cuánto costaría. Sin compromiso.</p></div></div></header>
+<section class="tc-sec tc-sec--tight" id="contacto"><div class="tc-wrap"><div class="tc-split tc-split--form">
  <div class="tc-box tc-reveal" style="padding:clamp(22px,3vw,36px)">${FORM_CONTACTO}</div>
- <div class="tc-prose tc-reveal" style="gap:26px">
+ <div class="tc-prose tc-reveal" style="gap:24px">
+  <div style="display:grid;gap:12px"><h2 style="font-size:22px">Así trabajamos</h2>${list(['<b>Nos cuentas</b> las 2 o 3 tareas que más horas os quitan y qué programas usáis', '<b>Recibes por escrito</b>, en 48 horas laborables, qué automatizar primero, cómo y un precio orientativo', '<b>Lo lees con calma</b>, lo compartes con tu socio o tu gestoría y decides sin prisas', 'Si quieres seguir, <b>montamos un piloto con tus datos</b> antes de pagar el proyecto completo'])}</div>
   <div style="display:grid;gap:10px">${eyebrow('Correo directo')}<a class="tc-mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a><p>Si lo prefieres, escríbenos directamente. Llega al mismo sitio.</p></div>
-  <div style="display:grid;gap:10px">${eyebrow('Instagram')}<a class="tc-mail" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener">@transformaconia.oficial</a><p>Vídeos cortos con el programa funcionando y ejemplos de automatización. También puedes escribirnos por mensaje directo.</p></div>
-  <div style="display:grid;gap:12px"><h3>Qué pasa después</h3>${list(['Leemos con calma lo que nos cuentas', 'Si nos falta algún dato, te lo preguntamos por correo', 'En 48 horas laborables te enviamos por escrito qué automatizaríamos, cómo y un precio orientativo', 'Si quieres seguir, montamos un piloto con tus datos reales'])}</div>
+  <div style="display:grid;gap:10px">${eyebrow('Instagram')}<a class="tc-mail" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener">@transformaconia.oficial</a><p>Vídeos cortos con los programas funcionando. También puedes escribirnos por mensaje directo.</p></div>
   <div style="display:grid;gap:10px"><h3>Dónde</h3><p>Estamos en Murcia y trabajamos en remoto con empresas de toda España. En la Región de Murcia vamos a tu empresa, taller o nave.</p></div>
  </div></div></div></section>`),
 };
