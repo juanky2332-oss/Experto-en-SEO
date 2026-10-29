@@ -50,3 +50,9 @@ Cuando haya historias publicadas: «IndunexIA Gestión», «Consejos», «Diagn�
 - Voz de los vídeos: SIEMPRE «cedar» con las instrucciones de locutor de Madrid (como `videos/n1-tareas-taller.json`). La voz por defecto suena robótica: no usarla.
 - Bio: presenta la cuenta entera (apps + trucos), no un solo producto. Enlace de la bio: transformaconia.com/enlaces/ (lo cambia el dueño desde el móvil).
 - Historias de producto: como mucho una de cada cuatro.
+
+## Estilo realista (desde el 29-10-2026)
+La web pasó a un lenguaje realista (fotos de cine de taller, piezas y máquinas con luz cálida y acento violeta). El feed debe ir igual:
+- Portadas de carrusel y de reel sobre **foto realista** (las de `demo.transformaconia.com/web/portada/` o generadas con el mismo estilo), con degradado oscuro abajo y el texto encima. Las tarjetas lisas moradas solo de forma ocasional (como mucho 1 de cada 3), para que la cuadrícula no sea un muro de tarjetas iguales.
+- Modelo: carrusel `c-plano-factura` (6 diapositivas 1080×1350, generadas con `scratchpad/carrusel.cjs` de la sesión: foto + logo + kicker violeta + titular blanco + pie «Ejemplo ilustrativo»).
+- Llamada a la acción: «diagnóstico gratis en el enlace del perfil». El enlace principal del perfil es la PORTADA con `?utm_source=instagram&utm_medium=bio`, no /enlaces/.
