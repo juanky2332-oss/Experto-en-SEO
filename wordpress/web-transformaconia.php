@@ -1194,7 +1194,12 @@ add_action( 'wp_footer', function () {
   // fondos de los pasos: después de la carga, la versión del tamaño de la pantalla
   addEventListener('load',function(){setTimeout(function(){esc.forEach(function(i){var s=(mob&&i.getAttribute('data-srcm'))||i.getAttribute('data-src');if(s&&!i.src)i.src=s;});},200);});
   var pos=function(k){return m.st+(k/N)*(m.sh-m.vh);};
-  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.fin=pos(N);upd();}
+  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.fin=pos(N);
+    // hueco libre para la pieza en el móvil: encima del texto de la cabecera y, en la historia, entre la tarjeta de datos y la de texto
+    var zt=z.getBoundingClientRect().top,cp=he.querySelector('.tc-hero__copy'),sp=st.querySelector('.tc-story__pin'),tx=st.querySelector('.tc-story__txt'),hb=0;
+    st.querySelectorAll('.tc-hud__box').forEach(function(b){hb=Math.max(hb,b.getBoundingClientRect().bottom-sp.getBoundingClientRect().top);});
+    window.tcStory.hueco={h0:Math.max(0,he.getBoundingClientRect().top-zt)+8,h1:cp.getBoundingClientRect().top-zt-8,s0:hb+6,s1:tx.getBoundingClientRect().top-sp.getBoundingClientRect().top-6};
+    upd();}
   function upd(){q=0;var y=scrollY,s=window.tcStory;s.h=cl((y-m.ht)/Math.max(1,m.hh*.85));s.p=cl((y-m.st)/Math.max(1,m.sh-m.vh));
     var n=Math.round(s.p*N);if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n);}
     bar.style.transform='scaleX('+s.p.toFixed(4)+')';
@@ -1350,7 +1355,10 @@ function init(T){
     const tr=Math.sin(Math.PI*(s-Math.floor(s)))*w;
     // sitio de la pieza: cabecera → historia
     const hy=cam.position.z*Math.tan(T.MathUtils.degToRad(cam.fov/2)),hx=hy*cam.aspect,peq=Math.min(hx,hy);
-    const nx=mob?L(.04,-.04,w):L(.5,.42,w),ny=mob?L(.56,.3,w):L(-.02,0,w),k=(mob?L(.74,.8,w):L(.68,.64,w))*L(1,por(P.zoom,s),w)*(1-.08*tr);
+    let nx=L(.5,.42,w),ny=L(-.02,0,w),k=L(.68,.64,w);
+    if(mob){const hu=S.hueco||{h0:H*.08,h1:H*.4,s0:H*.2,s1:H*.62};const cy=L((hu.h0+hu.h1)/2,(hu.s0+hu.s1)/2,w),bh=Math.max(60,L(hu.h1-hu.h0,hu.s1-hu.s0,w));
+      nx=0;ny=1-2*cy/H;k=Math.min(.82,bh*.8/(.46*W));}
+    k*=L(1,por(P.zoom,s),w)*(1-.08*tr);
     rig.position.set(nx*hx,ny*hy,0);rig.scale.setScalar(peq*k/2.35);
     // engranajes siempre girando (relación real Z1:Z2); la cámara cambia en cada paso
     rueda+=dt*.55;s1.rotation.y=rueda;s2.rotation.y=-rueda*Z1/Z2+Math.PI/Z2;giro+=dt*.05;
