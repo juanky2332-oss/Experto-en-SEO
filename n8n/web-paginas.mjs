@@ -380,7 +380,7 @@ P['transforma-con-ia'] = {
   <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${DOC_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
   <ul class="tc-proof"><li><span><b>Diagnóstico por escrito</b> en 48&nbsp;h · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
-<section class="tc-story" id="como-trabajamos" aria-labelledby="tc-story-h" data-paso="0"><div class="tc-story__pin"><div class="tc-wrap tc-story__grid">
+<section class="tc-story" id="como-trabajamos" aria-labelledby="tc-story-h" data-paso="0"><span class="tc-story__ancla" style="--k:0" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:1" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:2" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:3" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:4" aria-hidden="true"></span><div class="tc-story__pin"><div class="tc-wrap tc-story__grid">
   <div class="tc-story__txt">
     <p class="tc-story__kicker">Así trabaja la IA en una empresa industrial</p>
     <h2 id="tc-story-h">Del plano a la factura, <span class="tc-grad">sin teclear</span></h2>

@@ -1174,6 +1174,7 @@ add_action( 'wp_head', function () {
 		return;
 	}
 	?>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js" crossorigin>
 <script>(function(){try{var d=document.documentElement;if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;if(navigator.connection&&navigator.connection.saveData)return;if(!window.WebGLRenderingContext)return;var on=function(){if(!d.classList.contains('tc-3d'))d.classList.add('tc-3d');};on();var mo=new MutationObserver(on);mo.observe(d,{attributes:true,attributeFilter:['class']});addEventListener('load',function(){setTimeout(function(){mo.disconnect();on();},1500);});}catch(e){}})()</script>
 	<?php
 }, 1 );
@@ -1188,7 +1189,10 @@ add_action( 'wp_footer', function () {
   if(!z||!d.classList.contains('tc-3d'))return;
   var st=z.querySelector('.tc-story'),he=z.querySelector('.tc-hero'),bar=st.querySelector('.tc-story__bar i'),pin=z.querySelector('.tc-3dz__pin');
   var esc=[].slice.call(pin.querySelectorAll('.tc-esc'));
-  var m={},q=0,N=4,mob=matchMedia('(max-width:820px)').matches;
+  var m={},q=0,N=4,mob=matchMedia('(max-width:820px)').matches,tactil=mob||matchMedia('(hover:none) and (pointer:coarse)').matches;
+  // en móviles y tabletas el paso a paso lo hace el propio navegador (scroll-snap): mover el scroll por código
+  // mientras el dedo y la inercia también lo mueven dejaba la pantalla en blanco en Safari
+  if(tactil)d.classList.add('tc-snap');
   var cl=function(v){return v<0?0:v>1?1:v;},L=function(a,b,t){return a+(b-a)*t;},suave=function(v){v=cl(v);return v*v*(3-2*v);};
   window.tcStory={p:0,h:0,paso:0};
   // fondos de los pasos: después de la carga, la versión del tamaño de la pantalla
@@ -1198,11 +1202,15 @@ add_action( 'wp_footer', function () {
     // hueco libre para la pieza en el móvil: encima del texto de la cabecera y, en la historia, entre la tarjeta de datos y la de texto
     var zt=z.getBoundingClientRect().top,cp=he.querySelector('.tc-hero__copy'),sp=st.querySelector('.tc-story__pin'),tx=st.querySelector('.tc-story__txt'),hb=0;
     st.querySelectorAll('.tc-hud__box').forEach(function(b){hb=Math.max(hb,b.getBoundingClientRect().bottom-sp.getBoundingClientRect().top);});
-    window.tcStory.hueco={h0:Math.max(0,he.getBoundingClientRect().top-zt)+8,h1:cp.getBoundingClientRect().top-zt-8,s0:hb+6,s1:tx.getBoundingClientRect().top-sp.getBoundingClientRect().top-6};
+    var hu={h0:Math.max(0,he.getBoundingClientRect().top-zt)+8,h1:cp.getBoundingClientRect().top-zt-8,s0:hb+6,s1:tx.getBoundingClientRect().top-sp.getBoundingClientRect().top-6};
+    if(!(hu.h1-hu.h0>120)){hu.h0=m.vh*.05;hu.h1=m.vh*.34;}if(!(hu.s1-hu.s0>150)){hu.s0=m.vh*.2;hu.s1=m.vh*.6;}
+    window.tcStory.hueco=hu;
     upd();}
   function upd(){q=0;var y=scrollY,s=window.tcStory;s.h=cl((y-m.ht)/Math.max(1,m.hh*.85));s.p=cl((y-m.st)/Math.max(1,m.sh-m.vh));
     var n=Math.round(s.p*N);if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n);}
     bar.style.transform='scaleX('+s.p.toFixed(4)+')';
+    // el ajuste por pasos solo dentro de la historia: al bajar desde el último paso se apaga y la página sigue normal
+    if(tactil){var on=y>m.st-2&&y<=m.fin+2;if(on!==m.on){m.on=on;d.classList.toggle('tc-snap-on',on);}}
     var den=y>m.st-m.vh*.5&&y<m.fin+m.vh*.5;if(den!==m.den){m.den=den;document.body.classList.toggle('tc-en-historia',den);}
     pedir();}
   // fondos: t va de -1 (cabecera) a N (último paso); cada foto entra con fundido y un zoom que se asienta
@@ -1210,7 +1218,7 @@ add_action( 'wp_footer', function () {
   function pedir(){if(!raf)raf=requestAnimationFrame(pintar);}
   function pintar(){raf=0;var S=window.tcStory,t=-1+suave(S.h)+S.p*N;ts=L(ts,t,.16);
     for(var k=0;k<esc.length;k++){var e=esc[k],dd=ts-(+e.getAttribute('data-t')),a=cl(1-Math.abs(dd));
-      if(a<=.001){if(e._a!==0){e.style.opacity=0;e._a=0;}continue;}e._a=a;
+      if(a<=.001){if(e._a!==0){e.style.opacity=0;e.style.visibility='hidden';e._a=0;}continue;}if(!e._a)e.style.visibility='visible';e._a=a;
       e.style.opacity=a.toFixed(3);e.style.transform='scale('+(1.04+.1*(1-a)).toFixed(4)+')';}
     if(Math.abs(ts-t)>.002)pedir();}
   // paso a paso: un golpe de rueda o un deslizamiento = un paso, con transición animada
@@ -1222,27 +1230,27 @@ add_action( 'wp_footer', function () {
     if(Math.abs(y1-y0)<2)return;anim=true;espera=true;
     (function f(t){var x=Math.min(1,(t-t0)/D),e=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;scrollTo(0,y0+(y1-y0)*e);
       if(x<1)requestAnimationFrame(f);else{anim=false;finA=performance.now();}})(t0);}
-  addEventListener('wheel',function(e){if(e.ctrlKey)return;var y=scrollY,now=performance.now(),gap=now-ultW;ultW=now;
+  if(!tactil)addEventListener('wheel',function(e){if(e.ctrlKey)return;var y=scrollY,now=performance.now(),gap=now-ultW;ultW=now;
     if(!dentro(y))return;var dir=e.deltaY>0?1:e.deltaY<0?-1:0;if(!dir||sale(dir,y))return;
     e.preventDefault();if(anim)return;
     // la inercia del trackpad sigue mandando eventos: no cuentan como otro golpe hasta que haya una pausa
     if(espera){if(gap>160||now-finA>900)espera=false;else return;}
     ir(actual()+dir);},{passive:false});
-  addEventListener('touchstart',function(e){toca=true;ty=e.touches[0].clientY;yIni=scrollY;},{passive:true});
+  if(!tactil){addEventListener('touchstart',function(e){toca=true;ty=e.touches[0].clientY;yIni=scrollY;},{passive:true});
   addEventListener('touchmove',function(e){if(ty===null)return;var y=scrollY;if(!dentro(y))return;var dy=ty-e.touches[0].clientY;if(Math.abs(dy)<2)return;
     if(sale(dy>0?1:-1,y))return;if(e.cancelable)e.preventDefault();},{passive:false});
   addEventListener('touchend',function(e){toca=false;if(ty===null)return;var dy=ty-e.changedTouches[0].clientY;ty=null;var y=scrollY;
     if(!dentro(y)||anim)return;var dir=dy>0?1:-1;
     // si el gesto empezó fuera de la historia, se entra por el primer (o el último) paso
     if(dir>0&&yIni<m.st-6){ir(0);return;}if(dir<0&&yIni>m.fin+6){ir(N);return;}
-    if(Math.abs(dy)<24||sale(dir,y))return;ir(actual()+dir);},{passive:true});
+    if(Math.abs(dy)<24||sale(dir,y))return;ir(actual()+dir);},{passive:true});}
   addEventListener('scroll',function(){if(!q)q=requestAnimationFrame(upd);var y=scrollY;
     // si llega lanzado desde arriba o desde abajo, se para en el primer o último paso
-    if(!anim&&!toca&&m.st){if(yAnt<m.st-2&&y>m.st+2&&y<m.fin)ir(0);else if(yAnt>m.fin+2&&y<m.fin-2&&y>m.st)ir(N);}
+    if(!tactil&&!anim&&!toca&&m.st){if(yAnt<m.st-2&&y>m.st+2&&y<m.fin)ir(0);else if(yAnt>m.fin+2&&y<m.fin-2&&y>m.st)ir(N);}
     yAnt=y;clearTimeout(tFin);
     // al parar a medias (teclado, barra de scroll) se coloca en el paso más cercano
-    tFin=setTimeout(function(){var y=scrollY;if(anim||toca||!(y>m.st+6&&y<m.fin-6))return;var k=Math.round((y-m.st)/(m.fin-m.st)*N);if(Math.abs(y-pos(k))>6)ir(k);},180);},{passive:true});
-  addEventListener('resize',medir);addEventListener('load',medir);medir();
+    if(!tactil)tFin=setTimeout(function(){var y=scrollY;if(anim||toca||!(y>m.st+6&&y<m.fin-6))return;var k=Math.round((y-m.st)/(m.fin-m.st)*N);if(Math.abs(y-pos(k))>6)ir(k);},180);},{passive:true});
+  var anchoAnt=innerWidth;addEventListener('resize',function(){if(!tactil||innerWidth!==anchoAnt){anchoAnt=innerWidth;medir();}});addEventListener('load',medir);medir();setTimeout(medir,1200);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(medir);
 })();
 </script>
@@ -1250,16 +1258,19 @@ add_action( 'wp_footer', function () {
 const d=document.documentElement,stage=document.getElementById('tc-3d');
 if(stage&&d.classList.contains('tc-3d')){
   const go=()=>import('https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js').then(init).catch(()=>{});
-  const tarde=()=>('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:1200}):setTimeout(go,300);
-  if(document.readyState==='complete')tarde();else addEventListener('load',tarde,{once:true});
+  const tarde=()=>('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:600}):setTimeout(go,200);
+  if(document.readyState!=='loading')tarde();else addEventListener('DOMContentLoaded',tarde,{once:true});
 }
 function init(T){
   const mob=matchMedia('(max-width:820px)').matches,raton=matchMedia('(hover:hover) and (pointer:fine)').matches;
   let r;try{r=new T.WebGLRenderer({antialias:!mob,alpha:true,powerPreference:'high-performance'});}catch(e){return;}
-  r.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.75:2));r.outputColorSpace=T.SRGBColorSpace;
+  r.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));r.outputColorSpace=T.SRGBColorSpace;
   r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.02;r.localClippingEnabled=true;
-  r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;
+  r.shadowMap.enabled=!mob;r.shadowMap.type=T.PCFSoftShadowMap;
   stage.appendChild(r.domElement);
+  // si el teléfono se queda sin memoria gráfica, se oculta y se recupera solo
+  let perdido=false;r.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();perdido=true;stage.classList.remove('is-ready');},false);
+  r.domElement.addEventListener('webglcontextrestored',()=>{perdido=false;listo=false;pedir();},false);
   const sc=new T.Scene(),cam=new T.PerspectiveCamera(30,1,.1,100);cam.position.set(0,0,10);
   // estudio de luz: cajas de luz cálidas y frías y un contraluz violeta, para reflejos de acero creíbles
   const pm=new T.PMREMGenerator(r),es=new T.Scene();
@@ -1276,7 +1287,8 @@ function init(T){
     const t=new T.CanvasTexture(c);t.repeat.set(1/(2*R),1/(2*R));t.offset.set(.5,.5);return t;};
   // materiales: por debajo del corte, metal; por encima, líneas de plano
   const cortaSol=new T.Plane(new T.Vector3(0,-1,0),0),cortaLin=new T.Plane(new T.Vector3(0,1,0),0);
-  const metal=(o)=>new T.MeshPhysicalMaterial(Object.assign({color:0xe2dfe8,metalness:1,roughness:.42,clearcoat:.35,clearcoatRoughness:.3,side:T.DoubleSide,clippingPlanes:[cortaSol],clipShadows:true},o));
+  const metal=(o)=>{o=Object.assign({color:0xe2dfe8,metalness:1,roughness:.42,clearcoat:.35,clearcoatRoughness:.3,side:T.DoubleSide,clippingPlanes:[cortaSol],clipShadows:true},o);
+    if(mob){delete o.clearcoat;delete o.clearcoatRoughness;return new T.MeshStandardMaterial(o);}return new T.MeshPhysicalMaterial(o);};
   const Z1=28,Z2=14,M=.1,R1=M*Z1/2,R2=M*Z2/2,X1=-.72,X2=X1+R1+R2;
   const acero1=metal({roughnessMap:anillos(R1+M)}),acero2=metal({color:0xc9ccd8,roughnessMap:anillos(R2+M)}),pulido=metal({roughness:.18,clearcoat:.6});
   const linea=new T.LineBasicMaterial({color:0xeadcff,transparent:true,opacity:.85,clippingPlanes:[cortaLin]});
@@ -1327,6 +1339,8 @@ function init(T){
   [[xa+.12,fondo/2-.06],[xb-.12,fondo/2-.06],[xa+.12,-fondo/2+.06],[xb-.12,-fondo/2+.06]].forEach(([x,zz],i)=>{const t=new T.Mesh(new T.CylinderGeometry(.08,.08,.08,6),mec);t.castShadow=true;pc(t,new T.Vector3(x,-.64,zz),new T.Vector3(0,2.2,0),5+i*.25);});
   // suelo que recoge la sombra, rejilla de plano y anillo de escáner
   const suelo=new T.Mesh(new T.PlaneGeometry(14,14),new T.ShadowMaterial({opacity:.45}));suelo.rotation.x=-Math.PI/2;suelo.position.y=-.93;suelo.receiveShadow=true;rig.add(suelo);
+  let mancha=null;if(mob){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,4,64,64,64);g.addColorStop(0,'rgba(0,0,0,.75)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
+    mancha=new T.Mesh(new T.PlaneGeometry(5.2,3.2),new T.MeshBasicMaterial({map:new T.CanvasTexture(c),transparent:true,depthWrite:false}));mancha.rotation.x=-Math.PI/2;mancha.position.set(.1,-.92,0);rig.add(mancha);}
   const rej=new T.GridHelper(8,32,0xb020ff,0x6d0fb0);rej.material.transparent=true;rej.material.opacity=0;rej.material.depthWrite=false;rej.position.y=-.92;rig.add(rej);
   const aditivo=o=>new T.MeshBasicMaterial(Object.assign({color:0xd27bff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide},o));
   const disco=new T.Mesh(new T.CircleGeometry(2.55,72),aditivo({})),aro=new T.Mesh(new T.RingGeometry(2.5,2.58,128),aditivo({color:0xf0d4ff}));
@@ -1347,7 +1361,7 @@ function init(T){
   const v3=new T.Vector3(),nrm=new T.Vector3(),pt=new T.Vector3();
   let hs=0,ps=0,giro=0,rueda=0,ult=performance.now(),raf=0,listo=false,cotAnt=-1;
   function pedir(){if(!raf)raf=requestAnimationFrame(frame);}
-  function frame(t){raf=0;if(!vis||document.hidden)return;
+  function frame(t){raf=0;if(!vis||document.hidden||perdido)return;
     if(mob&&t-ult<31){pedir();return;}const dt=Math.min(.05,Math.max(0,(t-ult)/1000));ult=t;
     const S=window.tcStory||{p:0,h:0};hs=L(hs,S.h,.14);ps=L(ps,S.p,.12);sx=L(sx,mx,.06);sy=L(sy,my,.06);
     const w=suave(hs),s=ps*4;
@@ -1370,7 +1384,7 @@ function init(T){
     if(casa.visible)piezasCasa.forEach(g=>{const o=g.userData.orden,e=tramo(ca,o*.09,.55+o*.07);g.position.copy(g.userData.desde).multiplyScalar(1-e);g.visible=e>.001;});
     // metal en la cabecera, plano al entrar en la historia, el escáner lo reconstruye hacia el paso 2
     const sol=w<.999?1-w:(s<1?tramo(s,.08,.92):1);
-    rej.material.opacity=(1-sol)*.3*w;suelo.material.opacity=.45*sol;
+    rej.material.opacity=(1-sol)*.3*w;suelo.material.opacity=.45*sol;if(mancha)mancha.material.opacity=.9*sol;
     rig.updateMatrixWorld();
     const lvl=sol>=.999?20:sol<=.001?-20:L(-.7,.7,sol);
     nrm.set(0,1,0).applyQuaternion(rig.quaternion);pt.set(0,lvl,0);rig.localToWorld(pt);
