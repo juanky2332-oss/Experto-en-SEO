@@ -85,7 +85,29 @@ if (cmd === 'cargar') {
 } else if (cmd === 'hoy') {
   // lo que el agente local tiene que hacer hoy: seguir y comentar pendientes de la lista (seo.ig_movil)
   const l = await sql`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho order by orden`;
-  console.log(JSON.stringify(l.length ? { fecha: hoy(), tareas: l } : { nada_que_hacer: true }, null, 1));
+  // día del plan sin lista preparada (desde el 2-11-2026): el agente la busca él mismo (INSTRUCCIONES.md → «Buscar la lista»)
+  // (también si quedó a medias: pide solo lo que falta hasta 5 seguir + 3 comentar)
+  const [n] = await sql`select count(*) filter (where tipo = 'seguir')::int s, count(*) filter (where tipo = 'comentar')::int c from seo.ig_movil where fecha = ${hoy()}`;
+  const [plan] = await sql`select 1 from seo.ig_plan where fecha = ${hoy()} and estado <> 'rechazado'`;
+  const hora = Number(new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Madrid' }));
+  const faltan = { seguir: Math.max(0, 5 - n.s), comentar: Math.max(0, 3 - n.c) };
+  const buscar = plan && hora < 17 && (faltan.seguir || faltan.comentar);
+  const r = { fecha: hoy(), ...(l.length ? { tareas: l } : {}), ...(buscar ? { buscar_lista: faltan } : {}) };
+  console.log(JSON.stringify(l.length || buscar ? r : { nada_que_hacer: true }, null, 1));
+} else if (cmd === 'anadir') {
+  // node n8n/ig-plan.mjs anadir seguir <cuenta>   ·   node n8n/ig-plan.mjs anadir comentar <cuenta> <url> "<texto>"
+  // mete una tarea en la lista de hoy (la usa el agente en «Buscar la lista»); no repite cuentas ya seguidas ni publicaciones ya comentadas
+  const [tipo, cuenta0, url = null, texto = null] = args;
+  const cuenta = (cuenta0 || '').replace(/^@/, '').toLowerCase();
+  if (!['seguir', 'comentar'].includes(tipo) || !cuenta || (tipo === 'comentar' && (!url || !texto))) throw new Error('Uso: anadir seguir <cuenta> | anadir comentar <cuenta> <url> "<texto>"');
+  const repetida = tipo === 'seguir'
+    ? await sql`select 1 from seo.ig_acciones where tipo = 'seguir' and lower(cuenta) = ${cuenta} union select 1 from seo.ig_movil where tipo = 'seguir' and lower(cuenta) = ${cuenta}`
+    : await sql`select 1 from seo.ig_acciones where tipo = 'comentar' and (url = ${url} or (lower(cuenta) = ${cuenta} and fecha > current_date - 14)) union select 1 from seo.ig_movil where tipo = 'comentar' and (url = ${url} or (lower(cuenta) = ${cuenta} and fecha > current_date - 14))`;
+  if (repetida.length) { console.log('repetida'); } else {
+    const [{ o }] = await sql`select coalesce(max(orden), -1) + 1 o from seo.ig_movil where fecha = ${hoy()}`;
+    const [x] = await sql`insert into seo.ig_movil (fecha, orden, tipo, cuenta, url, texto) values (${hoy()}, ${o}, ${tipo}, ${cuenta}, ${url ?? `https://www.instagram.com/${cuenta}/`}, ${texto}) returning id`;
+    console.log(JSON.stringify({ id: x.id }));
+  }
 } else if (cmd === 'reclamar') {
   // node n8n/ig-plan.mjs reclamar <id>  → ANTES de hacer la tarea; si dice «no», otro (el móvil u otra ejecución) la tiene: sáltala
   const [x] = await sql`update seo.ig_movil set reclamada_at = now() where id = ${Number(args[0])} and not hecho

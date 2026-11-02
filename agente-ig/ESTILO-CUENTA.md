@@ -56,3 +56,10 @@ La web pasó a un lenguaje realista (fotos de cine de taller, piezas y máquinas
 - Portadas de carrusel y de reel sobre **foto realista** (las de `demo.transformaconia.com/web/portada/` o generadas con el mismo estilo), con degradado oscuro abajo y el texto encima. Las tarjetas lisas moradas solo de forma ocasional (como mucho 1 de cada 3), para que la cuadrícula no sea un muro de tarjetas iguales.
 - Modelo: carrusel `c-plano-factura` (6 diapositivas 1080×1350, generadas con `scratchpad/carrusel.cjs` de la sesión: foto + logo + kicker violeta + titular blanco + pie «Ejemplo ilustrativo»).
 - Llamada a la acción: «diagnóstico gratis en el enlace del perfil». El enlace principal del perfil es la PORTADA con `?utm_source=instagram&utm_medium=bio`, no /enlaces/.
+
+## Llegar a más gente (desde el 2-11-2026, con los datos de la primera semana)
+- **Reels primero.** Con una cuenta pequeña los reels llegan a 12-36 cuentas y los carruseles a 1-5 (casi solo a quien ya nos sigue). Mezcla: unos 3 reels por cada carrusel; el carrusel queda para quien entra al perfil y lo quiere guardar.
+- **Hashtags: 5 y de nicho.** Uno o dos del oficio del cliente (#tallerindustrial, #metalmecanica, #caldereria, #mecanizado, #suministrosindustriales), uno del tema de la pieza (#presupuestos, #facturacion, #protecciondedatos…) y **#regiondemurcia** (no #murcia: lo llenan turismo y fiestas). Nada de #pymes, #empresas ni #fyp. Terminar en espacio.
+- **Ubicación «Murcia, España»** en todo lo del feed: la pone sola el servidor (`IG_UBICACION` en `src/lib/redes.ts`).
+- **Seguir y comentar todos los días del plan**: 5 cuentas nuevas de la Región + 3 comentarios. Si no hay lista preparada, el agente del ordenador la busca y la hace (INSTRUCCIONES.md → «Buscar la lista»). Comentar en otras cuentas el mismo día que sale nuestro reel hace que más gente pase por el perfil y lo vea.
+- Las primeras palabras del texto cuentan para el buscador de Instagram: que digan de qué va (taller, presupuestos, pedidos…), no solo un emoji o un «¿Sabías que…?».

@@ -3,6 +3,9 @@ import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { revisarTexto } from "@/lib/ig-calidad";
 
+/** Ubicación de Instagram «Murcia, España» (id sacado de /explore/locations/633160150044387/murcia-espana/, 2-11-2026). */
+const IG_UBICACION = "633160150044387";
+
 // Instagram: reels y carruseles de la fábrica de vídeos, historias (/api/ig/historia) y noticias del blog (publicación 4:5 + historia 9:16).
 // Antes de subir cualquier cosa pasa el control de calidad (src/lib/ig-calidad.ts): reglas de marca y que no repita las últimas.
 // Nada se sube sin que él diga que sí: todo entra en seo.ig_cola, se le propone por Telegram
@@ -217,20 +220,31 @@ export async function subir(id: string): Promise<string> {
       if (rev.cambios.length) extra += ` · texto retocado para no repetir (${esc(rev.cambios[0])})`;
     }
   }
-  try {
+  // ubicación «Murcia, España» en todo lo del feed: Instagram la usa para enseñarlo a gente de la zona (la API no la admite en historias)
+  const publicar = async (lugar: Record<string, string>) => {
     if (e.tipo === "reel") {
-      r = await publicarEnInstagram(c, { media_type: "REELS", video_url: e.video_url!, ...(e.portada_url ? { cover_url: e.portada_url } : {}), caption: e.texto, share_to_feed: "true" }, 240_000);
+      return await publicarEnInstagram(c, { media_type: "REELS", video_url: e.video_url!, ...(e.portada_url ? { cover_url: e.portada_url } : {}), caption: e.texto, share_to_feed: "true", ...lugar }, 240_000);
     } else if (e.tipo === "carrusel") {
       const imgs = e.datos?.imagenes ?? [];
       if (imgs.length < 2 || imgs.length > 10) throw new Error(`un carrusel lleva de 2 a 10 imágenes (tiene ${imgs.length})`);
       const hijos: string[] = [];
       for (const url of imgs) hijos.push(await igPost(c, `${c.user_id}/media`, { image_url: url, is_carousel_item: "true" }));
       await esperarListos(c, hijos);
-      r = await publicarEnInstagram(c, { media_type: "CAROUSEL", children: hijos.join(","), caption: e.texto }, 60_000);
+      return await publicarEnInstagram(c, { media_type: "CAROUSEL", children: hijos.join(","), caption: e.texto, ...lugar }, 60_000);
     } else if (e.tipo === "historia") {
-      r = await publicarEnInstagram(c, { media_type: "STORIES", image_url: e.historia_url! });
+      return await publicarEnInstagram(c, { media_type: "STORIES", image_url: e.historia_url! });
     } else {
-      r = await publicarEnInstagram(c, { image_url: e.portada_url!, caption: e.texto });
+      return await publicarEnInstagram(c, { image_url: e.portada_url!, caption: e.texto, ...lugar });
+    }
+  };
+  try {
+    try {
+      r = await publicar({ location_id: IG_UBICACION });
+    } catch (err) {
+      // si Instagram no acepta la ubicación, se publica sin ella (mejor eso que dejar el feed parado) y se avisa
+      if (!/location/i.test((err as Error).message)) throw err;
+      r = await publicar({});
+      extra += " · sin ubicación (Instagram la rechazó)";
     }
   } catch (err) {
     await sql`update seo.ig_cola set estado = 'propuesto', error = ${(err as Error).message} where id = ${id}`;
