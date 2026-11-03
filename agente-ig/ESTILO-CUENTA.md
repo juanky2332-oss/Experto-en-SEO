@@ -57,6 +57,17 @@ La web pasó a un lenguaje realista (fotos de cine de taller, piezas y máquinas
 - Modelo: carrusel `c-plano-factura` (6 diapositivas 1080×1350, generadas con `scratchpad/carrusel.cjs` de la sesión: foto + logo + kicker violeta + titular blanco + pie «Ejemplo ilustrativo»).
 - Llamada a la acción: «diagnóstico gratis en el enlace del perfil». El enlace principal del perfil es la PORTADA con `?utm_source=instagram&utm_medium=bio`, no /enlaces/.
 
+## Por qué bajó el alcance y qué repetimos (análisis del 3-11-2026, datos de la API)
+- Alcance diario de la cuenta: 24-10 → 40 y 25-10 → 69 (los días con 3-4 reels publicados y la cuenta recién estrenada); después, 28 el día del reel del 27-10, 14 el del 30-10 y **1-4 los días sin reel**. El alcance sale casi entero de los reels del día: si no hay reel, no hay alcance.
+- Retención: reels de 35-41 s vistos de media 4,3-7,4 s (12-19 %). Instagram los enseña a unas pocas cuentas de prueba y, si se van pronto, no sigue. El de 7,4 s (gancho directo «3 tareas que la IA le quita a tu taller») llegó al doble que el de 4,3 s.
+- Carruseles, noticias e imágenes: 1-5 cuentas. Sirven para quien entra al perfil, no para llegar a gente nueva.
+- Borrar y volver a subir publicaciones (se hizo varias veces el 25-27-10) no ayuda: mejor dejar lo publicado y mejorar lo siguiente.
+
+**Reglas desde el 3-11-2026:**
+- **Reels lunes, miércoles y viernes a las 13:00** (`seo.settings.ritmo.ig_dias`, `/ritmo reels l x v` en Telegram), sin depender del «cada 3 días». Los avisos a Telegram siguen al ritmo y solo si pasa algo.
+- **15-22 s**, una idea por escena, gancho en la primera frase y **en pantalla desde el fotograma 0** (la plantilla Reel ya pone la primera escena sin animación de entrada). Sin escena final de logo: el corte seco hace que el vídeo vuelva a empezar. Guiones cortos en `FABRICA DE VIDEOS/scripts/cortos-noviembre.mjs`.
+- Mirar cada semana `n8n/_ig-stats.mjs` (alcance, vistas y segundos medios por pieza) y repetir el formato del que mejor retenga.
+
 ## Llegar a más gente (desde el 2-11-2026, con los datos de la primera semana)
 - **Reels primero.** Con una cuenta pequeña los reels llegan a 12-36 cuentas y los carruseles a 1-5 (casi solo a quien ya nos sigue). Mezcla: unos 3 reels por cada carrusel; el carrusel queda para quien entra al perfil y lo quiere guardar.
 - **Hashtags: 5 y de nicho.** Uno o dos del oficio del cliente (#tallerindustrial, #metalmecanica, #caldereria, #mecanizado, #suministrosindustriales), uno del tema de la pieza (#presupuestos, #facturacion, #protecciondedatos…) y **#regiondemurcia** (no #murcia: lo llenan turismo y fiestas). Nada de #pymes, #empresas ni #fyp. Terminar en espacio.

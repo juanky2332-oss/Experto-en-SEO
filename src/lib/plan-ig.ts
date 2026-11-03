@@ -2,7 +2,7 @@ import "server-only";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { subir } from "@/lib/redes";
-import { getRitmo, proximos, hoyMadrid } from "@/lib/ritmo";
+import { getRitmo, proximos, proximosReel, hoyMadrid } from "@/lib/ritmo";
 
 // Plan de Instagram (seo.ig_plan). Desde el 27-10-2026 va al ritmo de las rutinas (cada 3 días, src/lib/ritmo.ts):
 // cada día que toca sale el siguiente reel de la cola y la lista de seguir/comentar (seo.ig_movil) de ese día.
@@ -80,25 +80,32 @@ export async function replanificar() {
   const inicio = hecho ? sumar(hoy, 1) : hoy;
   const reels = await sql<{ id: string; titulo: string; tipo: string }[]>`select id, titulo, tipo from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto') order by fecha nulls last, id`;
   const listas = (await sql<{ fecha: string }[]>`select distinct fecha::text from seo.ig_movil where not hecho and fecha >= ${hoy}::date order by 1`).map((x) => x.fecha);
-  const dias = proximos(r, Math.max(reels.length, listas.length, 1), inicio);
+  // reels y carruseles en sus días de la semana (ritmo.ig_dias); listas de seguir/comentar al ritmo de «cada N días»
+  const diasReel = proximosReel(r, Math.max(reels.length, 1), inicio);
+  const diasLista = proximos(r, Math.max(listas.length, 1), inicio);
   // una sola sentencia: los cambios de fecha no se pisan entre sí
-  const pares = listas.map((vieja, i) => ({ vieja, nueva: dias[i] }));
+  const pares = listas.map((vieja, i) => ({ vieja, nueva: diasLista[i] }));
   if (pares.length) await sql`update seo.ig_movil m set fecha = v.nueva from jsonb_to_recordset(${sql.json(pares as never)}) as v(vieja date, nueva date) where m.fecha = v.vieja and not m.hecho`;
-  for (const [i, e] of reels.entries()) await sql`update seo.ig_cola set fecha = ${dias[i]} where id = ${e.id}`;
+  for (const [i, e] of reels.entries()) await sql`update seo.ig_cola set fecha = ${diasReel[i]} where id = ${e.id}`;
   await sql`delete from seo.ig_plan where fecha >= ${inicio}::date and estado in ('pendiente', 'propuesto', 'aprobado')`;
-  for (const [i, f] of dias.entries()) {
+  const dias = [...new Set([...diasReel.slice(0, reels.length), ...diasLista.slice(0, listas.length)])].sort();
+  for (const f of dias) {
     const tareas: Tarea[] = [];
-    if (reels[i]) {
-      tareas.push({ tipo: "reel", ref: reels[i].id, detalle: `${reels[i].tipo === "carrusel" ? "Carrusel" : "Reel"}: ${reels[i].titulo}` });
-      tareas.push({ tipo: "historia", detalle: "Historias: aviso de la publicación nueva + 2 del banco" });
+    const ri = diasReel.indexOf(f);
+    const li = diasLista.indexOf(f);
+    const pieza = ri >= 0 && ri < reels.length ? reels[ri] : null;
+    const lista = li >= 0 && li < listas.length;
+    if (pieza) {
+      tareas.push({ tipo: "reel", ref: pieza.id, detalle: `${pieza.tipo === "carrusel" ? "Carrusel" : "Reel"}: ${pieza.titulo}` });
+      tareas.push({ tipo: "historia", detalle: `Historias: aviso de la publicación nueva + ${lista ? 2 : 1} del banco` });
     }
-    if (listas[i]) {
+    if (lista) {
       tareas.push({ tipo: "seguir", detalle: "Seguir las cuentas de la lista (desde el ordenador o, si está apagado, te llega al móvil a las 19:00)" });
       tareas.push({ tipo: "comentar", detalle: "Un comentario corto y natural en una publicación de cada una" });
     }
     if (!tareas.length) continue;
-    const pieza = reels[i]?.tipo === "carrusel" ? "Carrusel" : "Reel";
-    const titulo = reels[i] && listas[i] ? `${pieza}, historias, seguir y comentar` : reels[i] ? `${pieza} e historias` : "Seguir y comentar";
+    const nombre = pieza?.tipo === "carrusel" ? "Carrusel" : "Reel";
+    const titulo = pieza && lista ? `${nombre}, historias, seguir y comentar` : pieza ? `${nombre} e historias` : "Seguir y comentar";
     await sql`insert into seo.ig_plan (fecha, titulo, tareas) values (${f}, ${titulo}, ${sql.json(tareas as never)})
       on conflict (fecha) do update set titulo = excluded.titulo, tareas = excluded.tareas, estado = 'pendiente' where seo.ig_plan.estado in ('pendiente', 'propuesto', 'aprobado')`;
   }

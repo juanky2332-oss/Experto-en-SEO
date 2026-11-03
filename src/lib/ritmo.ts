@@ -20,6 +20,9 @@ export type Ritmo = {
   desde: string; // YYYY-MM-DD
   pausas: Partial<Record<Rutina, boolean>>;
   busquedas: string[]; // rotan, una por día que toca
+  // Días de la semana con publicación en el feed de Instagram (1 = lunes … 7 = domingo). Desde el 03-11-2026 los reels
+  // NO van al ritmo de «cada N días»: con una cuenta pequeña el alcance sale de la frecuencia de reels (ver ESTILO-CUENTA.md).
+  ig_dias: number[];
   ultimo_seo?: { salud: number; clics: number | null; criticos: number; scores?: Record<number, number> };
 };
 
@@ -27,6 +30,7 @@ const POR_DEFECTO: Ritmo = {
   cada: 3,
   desde: "2026-10-30",
   pausas: {},
+  ig_dias: [1, 3, 5],
   busquedas: [
     "talleres de mecanizado Murcia",
     "calderería Molina de Segura",
@@ -67,6 +71,21 @@ export function proximos(r: Ritmo, n: number, desdeFecha = hoyMadrid()) {
   return l;
 }
 
+const DIA_SEMANA = (f: string) => ((new Date(f + "T12:00:00Z").getUTCDay() + 6) % 7) + 1; // 1 = lunes
+export const NOMBRE_DIA = ["", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+
+/** ¿Ese día sale publicación en el feed de Instagram? */
+export function tocaReel(r: Ritmo, fecha = hoyMadrid()) {
+  return (r.ig_dias?.length ? r.ig_dias : [1, 3, 5]).includes(DIA_SEMANA(fecha));
+}
+
+/** Próximos días con publicación en Instagram desde `desdeFecha` (incluida). */
+export function proximosReel(r: Ritmo, n: number, desdeFecha = hoyMadrid()) {
+  const l: string[] = [];
+  for (let f = desdeFecha; l.length < n; f = sumar(f, 1)) if (tocaReel(r, f)) l.push(f);
+  return l;
+}
+
 /** ¿Hoy toca esta rutina? (día del ritmo y sin pausa) */
 export async function tocaHoy(rutina: Rutina) {
   const r = await getRitmo();
@@ -86,7 +105,8 @@ export function describir(r: Ritmo) {
   const rutinas = (Object.keys(RUTINAS) as Rutina[]).map((k) => `${r.pausas[k] ? "⏸" : "▶️"} ${RUTINAS[k]}${r.pausas[k] ? " — <b>en pausa</b>" : ""}`).join("\n");
   return (
     `⏱ <b>Rutinas automáticas: cada ${r.cada} día${r.cada > 1 ? "s" : ""}</b>${hoy}\n` +
-    `Próximos: ${[a, b, c].map(bonita).join(" · ")}\n\n${rutinas}\n\n` +
+    `Próximos: ${[a, b, c].map(bonita).join(" · ")}\n` +
+    `🎬 Reels de Instagram: ${(r.ig_dias?.length ? r.ig_dias : [1, 3, 5]).map((d) => NOMBRE_DIA[d]).join(", ")} a las 13:00\n\n${rutinas}\n\n` +
     `A Telegram solo te llega algo si ha pasado algo: empresas nuevas, comentarios respondidos, un reel publicado, una idea para publicar o un cambio en Google.\n\n` +
     `🔎 Búsquedas de captación (una cada vez, por turnos):\n${r.busquedas.map((x, i) => `${i + 1}. ${esc(x)}`).join("\n")}`
   );

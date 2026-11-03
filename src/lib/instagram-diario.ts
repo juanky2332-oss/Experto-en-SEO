@@ -3,7 +3,7 @@ import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { subir } from "@/lib/redes";
 import { json, MODELO_RAPIDO } from "@/lib/ai";
-import { getRitmo, toca, proximos, bonita } from "@/lib/ritmo";
+import { getRitmo, toca, tocaReel, proximos, bonita } from "@/lib/ritmo";
 
 // Instagram en automático (decidido el 26-10-2026: «hazlo tú y dame el informe después»; el 27-10: cada 3 días y
 // a Telegram SOLO si ha pasado algo, ver src/lib/ritmo.ts).
@@ -111,13 +111,14 @@ export async function mediodia() {
   const lineas: string[] = [];
   const [plan] = await sql<{ tareas: { tipo: string; ref?: string | null }[]; estado: string }[]>`select tareas, estado from seo.ig_plan where fecha = ${hoy()}`;
   let reelOk = true;
-  // el reel solo el día que toca (por si quedara una fila vieja del plan diario)
-  if (tocaHoy && plan && plan.estado !== "hecho" && plan.estado !== "rechazado") {
+  // el reel sale en sus días de la semana (ritmo.ig_dias); a Telegram solo el día del ritmo o si falla
+  const reelHoy = tocaReel(ritmo);
+  if ((reelHoy || tocaHoy) && plan && plan.estado !== "hecho" && plan.estado !== "rechazado") {
     const reel = plan.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
     if (reel) {
       const r = await subir(reel);
       reelOk = r.startsWith("✅") || r.startsWith("Ya estaba subido");
-      lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar a las 19:00; si quieres, escribe /reel."}`);
+      if (tocaHoy || !reelOk) lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar a las 19:00; si quieres, escribe /reel."}`);
     }
     // las historias van en su propia pasada (13:10, historias()), para no quedarse sin tiempo detrás de un reel
   }
@@ -139,7 +140,9 @@ export async function mediodia() {
     const quien = await sql<{ cuenta: string; n: number }[]>`select cuenta, count(*)::int n from seo.ig_acciones where tipo = 'responder' and fecha > current_date - ${ritmo.cada}::int
       and texto not like '(sin responder)%' and texto <> '(en curso)' group by cuenta order by n desc limit 10`;
     if (quien.length) lineas.push(`🎯 <b>Han hablado con nosotros:</b> ${quien.map((q) => "@" + esc(q.cuenta)).join(", ")}\nSi alguno es una empresa que encaja, dímelo y te preparo un mensaje.`);
-    // avisos de lo que va a faltar (solo cuando falta de verdad)
+  }
+  if (tocaHoy || reelHoy) {
+    // avisos de lo que va a faltar (solo cuando falta de verdad; también los días de reel, que gastan cola más rápido)
     const [quedan] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto')`;
     if (quedan.n <= 1) lineas.push(`🛠 ${quedan.n ? "Solo queda 1 publicación" : "No quedan publicaciones"} en la cola. Cuando abras Claude Code, dime «prepara publicaciones nuevas para Instagram».`);
     const [hist] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo = 'historia' and estado = 'pendiente' and orden is not null`;
@@ -147,9 +150,9 @@ export async function mediodia() {
     const manana = new Date(Date.now() + 86400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
     const [siguiente] = proximos(ritmo, 1, manana);
     const [lista] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha = ${siguiente}`;
-    if (!lista.n) lineas.push(`📝 No tengo lista de cuentas para seguir y comentar el ${esc(bonita(siguiente))}. Cuando abras Claude Code, dime «prepara la lista de Instagram» y la dejo lista.`);
+    if (!lista.n && tocaHoy) lineas.push(`📝 No tengo lista de cuentas para seguir y comentar el ${esc(bonita(siguiente))}. Cuando abras Claude Code, dime «prepara la lista de Instagram» y la dejo lista.`);
   }
-  if (tocaHoy && plan && reelOk) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now(), informe = ${lineas.join("\n\n")} where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
+  if ((tocaHoy || reelHoy) && plan && reelOk) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now(), informe = ${lineas.join("\n\n")} where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
   if (lineas.length) await enTrozos(`📲 <b>Instagram</b>`, lineas);
   return { ok: true, toca: tocaHoy, enviado: lineas.length > 0 };
 }
@@ -214,7 +217,7 @@ async function avisoHistoria(nuevo: string) {
  *  Una vez al día como mucho; a Telegram solo si algo falla. */
 export async function historias() {
   const ritmo = await getRitmo();
-  if (ritmo.pausas.instagram || !toca(ritmo)) return { ok: true, nada: true };
+  if (ritmo.pausas.instagram || !(toca(ritmo) || tocaReel(ritmo))) return { ok: true, nada: true };
   const [yo] = await sql`insert into seo.settings (key, value) values ('ig_historias_dia', ${sql.json(hoy())})
     on conflict (key) do update set value = excluded.value, updated_at = now() where seo.settings.value <> excluded.value returning key`;
   if (!yo) return { ok: true, yaHechas: true };
@@ -230,8 +233,10 @@ export async function historias() {
   // las que fallaron otro día ('propuesto') vuelven a intentarse
   const banco = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia'
     and estado in ('pendiente', 'propuesto') and orden is not null order by orden limit 3`;
-  const elegidas = banco.slice(0, 2);
-  if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[2]) elegidas.push(banco[2]);
+  // día del ritmo: 2 del banco; día solo de reel: 1 (el banco dura el doble). Una pregunta arrastra su respuesta.
+  const cuantas = toca(ritmo) ? 2 : 1;
+  const elegidas = banco.slice(0, cuantas);
+  if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[cuantas]) elegidas.push(banco[cuantas]);
   for (const h of elegidas) {
     const r = await subir(h.id);
     if (r.startsWith("✅")) hechas.push(h.id);

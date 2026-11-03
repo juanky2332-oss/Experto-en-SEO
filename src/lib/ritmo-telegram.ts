@@ -1,7 +1,7 @@
 import "server-only";
 import { after } from "next/server";
 import { telegram, esc } from "@/lib/gateway";
-import { getRitmo, guardarRitmo, cambiarCada, describir, busquedaDe, RUTINAS, type Rutina } from "@/lib/ritmo";
+import { getRitmo, guardarRitmo, cambiarCada, describir, busquedaDe, NOMBRE_DIA, RUTINAS, type Rutina } from "@/lib/ritmo";
 import { replanificar } from "@/lib/plan-ig";
 import { mediodia } from "@/lib/instagram-diario";
 
@@ -16,7 +16,7 @@ const ALIAS: Record<string, Rutina | "todo"> = {
 };
 
 export const AYUDA_RITMO =
-  "⏱ <b>Rutinas automáticas</b>\n/ritmo — cómo van y qué día toca\n/ritmo 3 — cada cuántos días (1-14)\n/ritmo pausa instagram · captacion · publicaciones · seo · todo\n/ritmo sigue … — quitar la pausa\n/ritmo busquedas calderería Molina; mecanizado Cartagena — las búsquedas de captación (por turnos)\n/ritmo ahora captacion · instagram — lanzarlo ya\n/captar oficio zona — buscar empresas ahora";
+  "⏱ <b>Rutinas automáticas</b>\n/ritmo — cómo van y qué día toca\n/ritmo 3 — cada cuántos días (1-14)\n/ritmo reels l x v — qué días sale reel en Instagram\n/ritmo pausa instagram · captacion · publicaciones · seo · todo\n/ritmo sigue … — quitar la pausa\n/ritmo busquedas calderería Molina; mecanizado Cartagena — las búsquedas de captación (por turnos)\n/ritmo ahora captacion · instagram — lanzarlo ya\n/captar oficio zona — buscar empresas ahora";
 
 /** Lanza una búsqueda de captación en n8n (CAPTACIÓN JUANKY): el resultado llega por el bot de Juanky. */
 async function captar(consulta: string) {
@@ -61,6 +61,16 @@ export async function comandoRitmo(arg: string): Promise<{ text: string }> {
     const lista = arg.trim().replace(/^b[uú]squedas\s*/i, "").split(/[;\n]/).map((x) => x.trim()).filter((x) => x.length >= 3).slice(0, 20);
     if (!lista.length) return { text: "Escríbelas separadas por punto y coma:\n/ritmo busquedas calderería Molina; mecanizado Cartagena; talleres Lorca" };
     return { text: `✅ ${lista.length} búsquedas guardadas.\n\n${describir(await guardarRitmo({ busquedas: lista }))}` };
+  }
+
+  if (o === "reels") {
+    // /ritmo reels lunes miercoles viernes  (o «l x v», o números 1-7)
+    const MAPA: Record<string, number> = { l: 1, lunes: 1, m: 2, martes: 2, x: 3, miercoles: 3, miércoles: 3, j: 4, jueves: 4, v: 5, viernes: 5, s: 6, sabado: 6, sábado: 6, d: 7, domingo: 7 };
+    const dias = [...new Set(resto.join(" ").split(/[\s,;]+/).filter(Boolean).map((x) => x.toLowerCase().replace(/[,.;]/g, "")).map((x) => (/^[1-7]$/.test(x) ? Number(x) : MAPA[x])).filter(Boolean))].sort();
+    if (!dias.length) return { text: "Dime los días de la semana: /ritmo reels lunes miércoles viernes (o /ritmo reels l x v)" };
+    await guardarRitmo({ ig_dias: dias });
+    const p = await replanificar();
+    return { text: `✅ Reels de Instagram los ${dias.map((d) => NOMBRE_DIA[d]).join(", ")}. Recolocados ${p.reels} reels: ${p.dias.slice(0, 6).join(", ")}. /plan para verlo.` };
   }
 
   if (o === "replanificar") {
