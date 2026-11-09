@@ -58,6 +58,10 @@ export function reglasFijas(texto: string, tipo: string): string[] {
   }
   if (hashtags(texto).length > 5) p.push("Más de 5 hashtags");
   if (texto.length > 2200) p.push("Más de 2.200 caracteres");
+  // 09-11-2026: «sale al final muchas veces Transforma con IA». La cuenta ya se llama así y el vídeo lleva la firma:
+  // como mucho UNA mención de la marca o el dominio en el texto (hashtags aparte).
+  const marca = (texto.replace(/#[\p{L}\p{N}_]+/gu, "").match(/transforma\s*con\s*ia|transformaconia/gi) ?? []).length;
+  if (marca > 1) p.push(`Nombra la marca ${marca} veces (máximo 1: la cuenta ya se llama así)`);
   return p;
 }
 
@@ -150,8 +154,8 @@ export async function revisarTexto(
           "Te paso el texto que se va a publicar y los de las últimas publicaciones. Tu trabajo: que la cuenta NO se vea repetitiva. " +
           "Marca repetitivo=true solo si el texto nuevo repite claramente lo de las anteriores: el mismo tipo de gancho de arranque (p. ej. otra pregunta «¿Sabes…?» tras varias), la misma estructura (gancho + lista con emojis + «👇»), la misma llamada a la acción final que las 2 últimas, o los mismos emojis. " +
           "Si es repetitivo, reescríbelo cambiando SOLO la forma: otro tipo de gancho (una afirmación rotunda, una situación concreta del taller, un «Ejemplo:», un antes/después), otra estructura y otra llamada a la acción de esta lista, la que no se haya usado en las 2 últimas: " +
-          "«Pide tu diagnóstico gratis en transformaconia.com (enlace en el perfil)» · «Guárdalo para cuando lo necesites» · «Cuéntanos en comentarios cómo lo hacéis vosotros» · «Mándaselo a quien lleva los papeles en tu empresa» · «Te lo enviamos por escrito: enlace en el perfil». " +
-          "Reglas: castellano de España natural, como se habla en Murcia; cercano y profesional; mismos datos, precios, cifras y nombres que el original (no inventes nada ni quites un precio); 3-5 hashtags específicos al final; 0-4 emojis; nada de «demo gratis»; nunca nombres de herramientas internas; el diagnóstico siempre gratis y por escrito, dicho en positivo. " +
+          "«Pide tu diagnóstico gratis (enlace en el perfil)» ·«Guárdalo para cuando lo necesites» · «Cuéntanos en comentarios cómo lo hacéis vosotros» · «Mándaselo a quien lleva los papeles en tu empresa» · «Te lo enviamos por escrito: enlace en el perfil». " +
+          "Reglas: castellano de España natural, como se habla en Murcia; cercano y profesional; mismos datos, precios, cifras y nombres que el original (no inventes nada ni quites un precio); 3-5 hashtags específicos al final; 0-4 emojis; nada de «demo gratis»; nunca nombres de herramientas internas; no firmes con el nombre de la marca ni repitas el dominio (la cuenta ya se llama así y el vídeo lleva la firma); el diagnóstico siempre gratis y por escrito, dicho en positivo. " +
           "Si no es repetitivo, devuelve el texto original tal cual.",
         usuario: `${fallo ? `TU VERSIÓN ANTERIOR NO VALÍA: ${fallo}. Corrígelo.\n\n` : ""}${obligatorio.length ? `REPETICIONES DETECTADAS (tienes que corregirlas: repetitivo=true y reescríbelo):\n- ${obligatorio.join("\n- ")}\n\n` : ""}TEXTO NUEVO (${tipo}):\n${original}\n\nÚLTIMAS PUBLICACIONES (de la más reciente a la más antigua):\n${recientes.map((t, i) => `--- ${i + 1}\n${t.slice(0, 700)}`).join("\n")}`,
         esquema: {
