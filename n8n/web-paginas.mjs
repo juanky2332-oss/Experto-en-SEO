@@ -370,6 +370,12 @@ const DEMOS = [
   ['Asistente técnico', 'Una tienda online de ejemplo con un asistente que entiende referencias y medidas, propone equivalencias y lo añade al carrito.', 'https://demo.transformaconia.com/web/portada/demo-asistente.webp', 'https://demo.transformaconia.com/asistente/', 'Probar el asistente', '/agentes-chatbots-ia/', 'Ver los asistentes'],
   ['Presupuestos desde plano', 'Del plano o la foto al presupuesto con tus tarifas y tu margen, listo para enviar en PDF.', 'https://demo.transformaconia.com/web/portada/demo-presupuesto.webp', 'https://presupuestos.transformaconia.com/demo', 'Ver un presupuesto de ejemplo', '/presupuestos-desde-plano/', 'Conocer IndunexIA Presupuestos'],
 ];
+// v8 (10-11-2026): cinta en movimiento tras la historia: lo que la IA lee y lo que hace con ello (sin marcas ni cifras)
+const cintaFila = (items, rev) => { const li = items.map((t, i) => `<li${i % 3 === 1 ? ' class="is-ia"' : ''}>${t}</li>`).join(''); return `<div class="tc-cinta__fila${rev ? ' tc-cinta__fila--rev' : ''}"><ul>${li}</ul><ul aria-hidden="true">${li}</ul></div>`; };
+const CINTA_HOME = `<section class="tc-cinta" aria-label="Qué automatizamos"><p class="tc-cinta__tit">Lo que hoy se teclea a mano, <span>lo hace la IA</span></p>
+${cintaFila(['Facturas de proveedor', 'Albaranes', 'Pedidos por correo', 'Planos en PDF', 'Presupuestos', 'Partes de trabajo', 'Hojas de cálculo', 'Peticiones de oferta'])}
+${cintaFila(['Leer y apuntar', 'Comparar precios', 'Avisar de vencimientos', 'Calcular costes', 'Ordenar en tu ERP', 'Responder clientes', 'Preparar informes', 'Controlar stock'], true)}
+</section>`;
 const DEMOS_HOME = `<section class="tc-sec tc-sec--fotos" id="demos"><div class="tc-wrap">${head('Pruébalo tú', 'Míralo funcionando antes de hablar con nadie', 'Programas reales con datos de ejemplo. Ábrelos y prueba: sin registrarte y sin dejar tus datos.')}
 <div class="tc-grid tc-grid--3">${DEMOS.map(([t, p, img, demo, dtxt, pag, ptxt]) => `<article class="tc-demo tc-reveal"><a class="tc-demo__img" href="${demo}" target="_blank" rel="noopener" aria-label="${dtxt} (se abre en otra pestaña)"><span class="tc-shot__bar" aria-hidden="true"><i></i><i></i><i></i></span><img src="${img}" alt="${t}: captura del programa con datos ficticios" width="960" height="600" loading="lazy" decoding="async"><span class="tc-demo__tag">Datos ficticios</span></a>
 <div class="tc-demo__txt"><h3>${t}</h3><p>${p}</p><div class="tc-btns"><a class="tc-btn" href="${demo}" target="_blank" rel="noopener">${dtxt} ${ARROW}</a></div><a class="tc-link" href="${pag}">${ptxt}</a></div></article>`).join('')}</div></div></section>`;
@@ -384,36 +390,35 @@ P['transforma-con-ia'] = {
 <div class="tc-3dz"><div class="tc-3dz__layer" aria-hidden="true"><div class="tc-3dz__pin">
 <img class="tc-foto" loading="lazy" src="https://demo.transformaconia.com/web/portada/hero-1920.webp" srcset="https://demo.transformaconia.com/web/portada/hero-960.webp 960w, https://demo.transformaconia.com/web/portada/hero-1920.webp 1920w" sizes="100vw" alt="" style="object-position:72% 50%" decoding="async">
 <img class="tc-esc" data-t="-1" src="https://demo.transformaconia.com/web/portada/fondo-hero.webp" srcset="https://demo.transformaconia.com/web/portada/fondo-hero-m.webp 720w, https://demo.transformaconia.com/web/portada/fondo-hero.webp 1280w" sizes="100vw" alt="" decoding="async"><img class="tc-esc" data-t="2" data-src="https://demo.transformaconia.com/web/portada/fondo-piezas.webp" data-srcm="https://demo.transformaconia.com/web/portada/fondo-piezas-m.webp" alt="" decoding="async"><img class="tc-esc" data-t="3" data-src="https://demo.transformaconia.com/web/portada/fondo-almacen.webp" data-srcm="https://demo.transformaconia.com/web/portada/fondo-almacen-m.webp" alt="" decoding="async"><img class="tc-esc" data-t="4" data-src="https://demo.transformaconia.com/web/portada/fondo-maquina.webp" data-srcm="https://demo.transformaconia.com/web/portada/fondo-maquina-m.webp" alt="" decoding="async">
-<div class="tc-3dz__velo"></div><div class="tc-3dz__stage" id="tc-3d"></div><div class="tc-3dz__labels"><span>Z 28 · m 2</span><span>Z 14 · m 2</span><span>Eje Ø 20 h7</span></div>
+<div class="tc-3dz__velo"></div><div class="tc-3dz__stage" id="tc-3d"></div><div class="tc-3dz__labels"><span>Proveedor</span><span>Fecha</span><span>Importe e IVA</span><span class="tc-pz">Tu empresa</span><span class="tc-pz tc-pz--ia"><i>IA</i></span><span class="tc-pz">Optimización</span></div>
 </div></div>
 <header class="tc-hero tc-hero--home tc-hero--c">${DECO('a')}<div class="tc-wrap"><div class="tc-hero__copy">
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
-  <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP. Presencial en la Región de Murcia y en remoto en toda España.</p>
+  <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP.<span class="tc-lead__mas"> Presencial en la Región de Murcia y en remoto en toda España.</span></p>
   <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${DOC_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
   <ul class="tc-proof"><li><span><b>Diagnóstico por escrito</b> en 48&nbsp;h · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
-<section class="tc-story" id="como-trabajamos" aria-labelledby="tc-story-h" data-paso="0"><span class="tc-story__ancla" style="--k:0" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:1" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:2" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:3" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:4" aria-hidden="true"></span><div class="tc-story__pin"><div class="tc-wrap tc-story__grid">
+<section class="tc-story" id="como-trabajamos" aria-labelledby="tc-story-h" data-paso="0"><span class="tc-story__ancla" style="--k:0" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:1" aria-hidden="true"></span><span class="tc-story__ancla" style="--k:2" aria-hidden="true"></span><div class="tc-story__pin"><div class="tc-wrap tc-story__grid">
   <div class="tc-story__txt">
-    <p class="tc-story__kicker">Así trabaja la IA en una empresa industrial</p>
-    <h2 id="tc-story-h">Del plano a la factura, <span class="tc-grad">sin teclear</span></h2>
+    <p class="tc-story__kicker"><i aria-hidden="true"></i>IA y automatización · Así trabajamos</p>
+    <h2 id="tc-story-h">Tus datos, <span class="tc-conecta">conectados</span></h2>
     <ol class="tc-story__steps">
-      <li data-paso="0"><span class="tc-story__n">01</span><h3>Llega el trabajo</h3><p>Un plano, un pedido por correo o una petición de oferta. Llega como siempre, no cambias nada.</p></li>
-      <li data-paso="1"><span class="tc-story__n">02</span><h3>La IA lo lee</h3><p>Saca medidas, material, cantidades y plazo del plano o del PDF, y lo deja apuntado sin que nadie teclee.</p></li>
-      <li data-paso="2"><span class="tc-story__n">03</span><h3>Presupuesto con tu margen</h3><p>Calcula material, horas de máquina y tratamientos con tus tarifas, aplica tu margen y el presupuesto sale en minutos.</p></li>
-      <li data-paso="3"><span class="tc-story__n">04</span><h3>Fabricas y entregas</h3><p>Órdenes de trabajo en el taller y el albarán se firma en el móvil al entregar. Sin papeles que se pierden.</p></li>
-      <li data-paso="4"><span class="tc-story__n">05</span><h3>Y todo encaja</h3><p>Pedido, albarán, factura y cobro unidos en tu ERP, sin escribir dos veces el mismo dato. Te contamos qué encajaría en tu empresa.</p><a class="tc-btn tc-btn--pill tc-story__cta" href="/contacto/">Pide tu diagnóstico gratis ${ARROW}</a></li>
+      <li data-paso="0"><span class="tc-story__n">01</span><h3>Conectamos <span class="tc-hl">lo que ya usas</span></h3><p>Correo, carpetas, hojas de cálculo y tu ERP pasan a trabajar juntos. Sin cambiar de programa ni tu forma de trabajar.</p></li>
+      <li data-paso="2"><span class="tc-story__n">02</span><h3>La IA <span class="tc-hl">lee cada documento</span></h3><p>Facturas, albaranes y pedidos: proveedor, fecha, importe e IVA en segundos. Nadie los vuelve a teclear.</p></li>
+      <li data-paso="4"><span class="tc-story__n">03</span><h3>Todo, <span class="tc-hl">ordenado en tu ERP</span></h3><p>Los datos llegan a tu programa de gestión, vinculados entre sí y listos para revisar. Tu equipo solo valida.</p><a class="tc-btn tc-btn--pill tc-story__cta" href="/contacto/">Pide tu diagnóstico gratis ${ARROW}</a></li>
     </ol>
     <div class="tc-story__bar" aria-hidden="true"><i></i></div>
   </div>
   <div class="tc-hud" aria-hidden="true">
-    <div class="tc-hud__box tc-hud__chips" data-hud="1"><b>Datos leídos del plano</b><span>Pieza <em>Engranajes</em></span><span>Material <em>42CrMo4</em></span><span>Cantidad <em>12 juegos</em></span><span>Plazo <em>10 días</em></span><small>Ejemplo ficticio</small></div>
-    <div class="tc-hud__box tc-hud__budget" data-hud="2"><b>Presupuesto P-0127</b><span>Material <em>186 €</em></span><span>Tallado 4,5 h <em>270 €</em></span><span>Temple <em>64 €</em></span><span>Margen 25 % <em>130 €</em></span><span class="tc-hud__tot">Total <em>650 €</em></span><small>Ejemplo ficticio</small></div>
-    <div class="tc-hud__box tc-hud__docs" data-hud="3"><b>Taller y entrega</b><span>✓ Orden de trabajo OT-0412</span><span>✓ 12 juegos fabricados</span><span>✓ Albarán firmado en el móvil</span><small>Ejemplo ficticio</small></div>
-    <div class="tc-hud__box tc-hud__docs" data-hud="4"><b>En tu ERP</b><span>✓ Pedido registrado</span><span>✓ Albarán unido a la factura</span><span>✓ Factura emitida</span><span>◷ Cobro a 30 días</span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__docs" data-hud="1"><b>Conectado</b><span class="tc-hud__m">Correo · Carpetas · Hojas de cálculo · ERP</span><span>✓ Correo de pedidos</span><span>✓ Carpeta de facturas</span><span>✓ Hojas de cálculo</span><span>✓ Tu ERP</span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__budget" data-hud="2"><b>Factura F-2291 · datos leídos</b><span class="tc-hud__m">Aceros Demo SL · 14/11/2026 · <em>1.500,40 €</em></span><span>Proveedor <em>Aceros Demo SL</em></span><span>Fecha <em>14/11/2026</em></span><span>Base <em>1.240,00 €</em></span><span>IVA 21 % <em>260,40 €</em></span><span class="tc-hud__tot">Total <em>1.500,40 €</em></span><small>Ejemplo ficticio</small></div>
+    <div class="tc-hud__box tc-hud__docs" data-hud="4"><b>En tu ERP</b><span class="tc-hud__m">✓ Registrada · ✓ Vinculado · ✓ Actualizado</span><span>✓ Factura registrada</span><span>✓ Albarán vinculado</span><span>✓ Pedido actualizado</span><span>◷ Vencimiento a 30 días</span><small>Ejemplo ficticio</small></div>
   </div>
 </div></div></section>
 </div>
+
+${CINTA_HOME}
 
 ${DEMOS_HOME}
 

@@ -1162,7 +1162,8 @@ add_filter( 'the_content', function ( $c ) {
 	return ( is_string( $m ) ? $m : '' ) . $c;
 }, 5 );
 
-/* Portada «Del plano a la factura» (29-10-2026, v4): engranajes en 3D realista (acero torneado, sombras) sobre fondos
+/* Portada «Tus datos, conectados» (v7, 30-10-2026): acoplamiento de garras que encaja al bajar (y enciende el titular), documentos
+ * que salen de la unión y la IA lee, y pantalla del ERP donde acaba todo. Antes («Del plano a la factura», 29-10-2026, v4): engranajes en 3D realista (acero torneado, sombras) sobre fondos
  * fotográficos desenfocados que cambian en cada paso. La historia va POR PASOS (un golpe de rueda o un deslizamiento
  * = un paso): plano en líneas → el escáner lo reconstruye en acero → presupuesto → despiece → la máquina se monta
  * alrededor y los engranajes quedan dentro, girando.
@@ -1174,7 +1175,7 @@ add_action( 'wp_head', function () {
 		return;
 	}
 	?>
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js" crossorigin fetchpriority="low">
 <script>(function(){try{var d=document.documentElement;if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;if(navigator.connection&&navigator.connection.saveData)return;if(!window.WebGLRenderingContext)return;var on=function(){if(!d.classList.contains('tc-3d'))d.classList.add('tc-3d');};on();var mo=new MutationObserver(on);mo.observe(d,{attributes:true,attributeFilter:['class']});addEventListener('load',function(){setTimeout(function(){mo.disconnect();on();},1500);});}catch(e){}})()</script>
 	<?php
 }, 1 );
@@ -1188,29 +1189,53 @@ add_action( 'wp_footer', function () {
   var d=document.documentElement,z=document.querySelector('.tc-3dz');
   if(!z||!d.classList.contains('tc-3d'))return;
   var st=z.querySelector('.tc-story'),he=z.querySelector('.tc-hero'),bar=st.querySelector('.tc-story__bar i'),pin=z.querySelector('.tc-3dz__pin');
-  var esc=[].slice.call(pin.querySelectorAll('.tc-esc'));
-  var m={},q=0,N=4,mob=matchMedia('(max-width:820px)').matches,tactil=mob||matchMedia('(hover:none) and (pointer:coarse)').matches;
+  // en la historia ya no hay fotos detrás (se veían a través de los planos): solo la de la cabecera, que se apaga al entrar
+  var esc=[].slice.call(pin.querySelectorAll('.tc-esc[data-t="-1"]'));
+  // 3 paradas (K) sobre las 5 escenas del 3D (N): plano → presupuesto → máquina montada; las intermedias se ven al pasar
+  var m={},q=0,N=4,K=2,mob=matchMedia('(max-width:820px)').matches,tactil=mob||matchMedia('(hover:none) and (pointer:coarse)').matches;
   // en móviles y tabletas el paso a paso lo hace el propio navegador (scroll-snap): mover el scroll por código
   // mientras el dedo y la inercia también lo mueven dejaba la pantalla en blanco en Safari
   if(tactil)d.classList.add('tc-snap');
   var cl=function(v){return v<0?0:v>1?1:v;},L=function(a,b,t){return a+(b-a)*t;},suave=function(v){v=cl(v);return v*v*(3-2*v);};
   window.tcStory={p:0,h:0,paso:0};
+  // pasos bien visibles: riel 1-5 encima del texto, «Paso 02 de 05» grande y aviso de que abajo sigue
+  var txt=st.querySelector('.tc-story__txt'),ol=st.querySelector('.tc-story__steps'),rail=document.createElement('ol'),tCam=0;
+  rail.className='tc-rail';rail.setAttribute('aria-label','Pasos');
+  var lab=['Conecta','Lee','Ordena'];z.setAttribute('data-paso',0);
+  for(var i=0;i<=K;i++)rail.insertAdjacentHTML('beforeend','<li><button type="button" data-k="'+i+'" aria-label="Paso '+(i+1)+'"'+(tactil?' tabindex="-1" style="pointer-events:none"':'')+'><span class="tc-rail__n">0'+(i+1)+'</span><span class="tc-rail__t">'+(lab[i]||'')+'</span></button></li>');
+  ol.parentNode.insertBefore(rail,ol);
+  st.querySelectorAll('.tc-story__n').forEach(function(n,i){n.innerHTML='Paso <span class="tc-num">0'+(i+1)+'</span> de 0'+(K+1);});
+  var sig=document.createElement('div');sig.className='tc-sigue';sig.setAttribute('aria-hidden','true');
+  sig.innerHTML='<span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg><i style="font-style:normal">Baja: '+lab[1]+'</i></span>'+(tactil?'':'<a href="#" tabindex="-1">Saltar</a>');
+  txt.appendChild(sig);
+  function marcar(n){[].forEach.call(rail.children,function(li,i){li.classList.toggle('is-on',i===n);li.classList.toggle('is-hecho',i<n);});
+    if(n<K)sig.querySelector('i').textContent=(n?'Siguiente':'Baja')+': '+lab[n+1];
+    txt.classList.add('is-cambio');clearTimeout(tCam);tCam=setTimeout(function(){txt.classList.remove('is-cambio');},420);}
+  marcar(0);
   // fondos de los pasos: después de la carga, la versión del tamaño de la pantalla
   addEventListener('load',function(){setTimeout(function(){esc.forEach(function(i){var s=(mob&&i.getAttribute('data-srcm'))||i.getAttribute('data-src');if(s&&!i.src)i.src=s;});},200);});
-  var pos=function(k){return m.st+(k/N)*(m.sh-m.vh);};
-  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.fin=pos(N);
-    // hueco libre para la pieza en el móvil: encima del texto de la cabecera y, en la historia, entre la tarjeta de datos y la de texto
-    var zt=z.getBoundingClientRect().top,cp=he.querySelector('.tc-hero__copy'),sp=st.querySelector('.tc-story__pin'),tx=st.querySelector('.tc-story__txt'),hb=0;
-    st.querySelectorAll('.tc-hud__box').forEach(function(b){hb=Math.max(hb,b.getBoundingClientRect().bottom-sp.getBoundingClientRect().top);});
-    var hu={h0:Math.max(0,he.getBoundingClientRect().top-zt)+8,h1:cp.getBoundingClientRect().top-zt-8,s0:hb+6,s1:tx.getBoundingClientRect().top-sp.getBoundingClientRect().top-6};
-    if(!(hu.h1-hu.h0>120)){hu.h0=m.vh*.05;hu.h1=m.vh*.34;}if(!(hu.s1-hu.s0>150)){hu.s0=m.vh*.2;hu.s1=m.vh*.6;}
+  var pos=function(k){return m.st+(k/K)*(m.sh-m.vh);};
+  function medir(){var y=scrollY;m.ht=he.getBoundingClientRect().top+y;m.hh=he.offsetHeight;m.st=st.getBoundingClientRect().top+y;m.sh=st.offsetHeight;m.vh=innerHeight;m.fin=pos(K);
+    // hueco libre para la pieza en el móvil: DEBAJO del texto de la cabecera (primero se lee el titular) y, en la historia,
+    // entre la tarjeta de texto (arriba) y la de datos (abajo); los dos huecos quedan a media altura y la pieza apenas se mueve
+    var zt=z.getBoundingClientRect().top,cp=he.querySelector('.tc-hero__copy'),sp=st.querySelector('.tc-story__pin'),tx=st.querySelector('.tc-story__txt'),ht=1e9,spt=sp.getBoundingClientRect().top;
+    st.querySelectorAll('.tc-hud__box').forEach(function(b){ht=Math.min(ht,b.getBoundingClientRect().top-spt);});
+    var hu={h0:cp.getBoundingClientRect().bottom-zt+10,h1:Math.min(he.getBoundingClientRect().bottom-zt,m.vh)-14,s0:tx.getBoundingClientRect().bottom-spt+6,s1:ht-6};
+    if(mob&&hu.h1-hu.h0<120)hu.h0=hu.h1-120;
+    // en escritorio: rectángulo libre a la derecha del texto y encima de la tarjeta de datos, para que nada tape la pieza
+    if(!mob){var tr=tx.getBoundingClientRect();hu.d={x0:tr.right+32,x1:innerWidth-40,y0:84,y1:ht-20};}
+    if(!(hu.h1-hu.h0>100)){hu.h0=m.vh*.6;hu.h1=m.vh*.94;}if(!(hu.s1-hu.s0>90)){hu.s0=m.vh*.42;hu.s1=m.vh*.78;}
     window.tcStory.hueco=hu;
     upd();}
   function upd(){q=0;var y=scrollY,s=window.tcStory;s.h=cl((y-m.ht)/Math.max(1,m.hh*.85));s.p=cl((y-m.st)/Math.max(1,m.sh-m.vh));
-    var n=Math.round(s.p*N);if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n);}
+    var n=Math.round(s.p*K);if(n!==s.paso){s.paso=n;st.setAttribute('data-paso',n*N/K);z.setAttribute('data-paso',n);marcar(n);}
     bar.style.transform='scaleX('+s.p.toFixed(4)+')';
     // el ajuste por pasos solo dentro de la historia: al bajar desde el último paso se apaga y la página sigue normal
-    if(tactil){var on=y>m.st-2&&y<=m.fin+2;if(on!==m.on){m.on=on;d.classList.toggle('tc-snap-on',on);}}
+    // encendido desde lo alto de la página: si solo se encendía al llegar a la historia, un deslizamiento con fuerza desde la
+    // cabecera se pasaba el paso 1 antes de que el navegador empezara a ajustar y caía en el 2
+    if(tactil){var on=y<=m.fin+2;if(on!==m.on){m.on=on;d.classList.toggle('tc-snap-on',on);}}
+    // «Tus datos, conectados»: la palabra se enciende cuando las dos mitades del acoplamiento encajan (el 3D usa el mismo avance)
+    var con=s.h>.8;if(con!==m.con){m.con=con;z.classList.toggle('is-conectado',con);}
     var den=y>m.st-m.vh*.5&&y<m.fin+m.vh*.5;if(den!==m.den){m.den=den;document.body.classList.toggle('tc-en-historia',den);}
     pedir();}
   // fondos: t va de -1 (cabecera) a N (último paso); cada foto entra con fundido y un zoom que se asienta
@@ -1224,9 +1249,9 @@ add_action( 'wp_footer', function () {
   // paso a paso: un golpe de rueda o un deslizamiento = un paso, con transición animada
   var anim=false,finA=0,espera=false,ultW=0,toca=false,ty=null,yIni=0,yAnt=scrollY,tFin=0;
   var dentro=function(y){return y>=m.st-6&&y<=m.fin+6;};
-  var actual=function(){return Math.round(window.tcStory.p*N);};
-  var sale=function(dir,y){return (dir>0&&actual()>=N&&y>=m.fin-6)||(dir<0&&actual()<=0&&y<=m.st+6);};
-  function ir(k){k=Math.max(0,Math.min(N,k));var y0=scrollY,y1=Math.round(pos(k)),t0=performance.now(),D=Math.min(1100,600+Math.abs(y1-y0)*.3);
+  var actual=function(){return Math.round(window.tcStory.p*K);};
+  var sale=function(dir,y){return (dir>0&&actual()>=K&&y>=m.fin-6)||(dir<0&&actual()<=0&&y<=m.st+6);};
+  function ir(k){k=Math.max(0,Math.min(K,k));var y0=scrollY,y1=Math.round(pos(k)),t0=performance.now(),D=Math.min(850,480+Math.abs(y1-y0)*.22);
     if(Math.abs(y1-y0)<2)return;anim=true;espera=true;
     (function f(t){var x=Math.min(1,(t-t0)/D),e=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;scrollTo(0,y0+(y1-y0)*e);
       if(x<1)requestAnimationFrame(f);else{anim=false;finA=performance.now();}})(t0);}
@@ -1242,17 +1267,26 @@ add_action( 'wp_footer', function () {
   addEventListener('touchend',function(e){toca=false;if(ty===null)return;var dy=ty-e.changedTouches[0].clientY;ty=null;var y=scrollY;
     if(!dentro(y)||anim)return;var dir=dy>0?1:-1;
     // si el gesto empezó fuera de la historia, se entra por el primer (o el último) paso
-    if(dir>0&&yIni<m.st-6){ir(0);return;}if(dir<0&&yIni>m.fin+6){ir(N);return;}
+    if(dir>0&&yIni<m.st-6){ir(0);return;}if(dir<0&&yIni>m.fin+6){ir(K);return;}
     if(Math.abs(dy)<24||sale(dir,y))return;ir(actual()+dir);},{passive:true});}
   addEventListener('scroll',function(){if(!q)q=requestAnimationFrame(upd);var y=scrollY;
     // si llega lanzado desde arriba o desde abajo, se para en el primer o último paso
-    if(!tactil&&!anim&&!toca&&m.st){if(yAnt<m.st-2&&y>m.st+2&&y<m.fin)ir(0);else if(yAnt>m.fin+2&&y<m.fin-2&&y>m.st)ir(N);}
+    if(!tactil&&!anim&&!toca&&m.st){if(yAnt<m.st-2&&y>m.st+2&&y<m.fin)ir(0);else if(yAnt>m.fin+2&&y<m.fin-2&&y>m.st)ir(K);}
     yAnt=y;clearTimeout(tFin);
     // al parar a medias (teclado, barra de scroll) se coloca en el paso más cercano
-    if(!tactil)tFin=setTimeout(function(){var y=scrollY;if(anim||toca||!(y>m.st+6&&y<m.fin-6))return;var k=Math.round((y-m.st)/(m.fin-m.st)*N);if(Math.abs(y-pos(k))>6)ir(k);},180);},{passive:true});
+    if(!tactil)tFin=setTimeout(function(){var y=scrollY;if(anim||toca||!(y>m.st+6&&y<m.fin-6))return;var k=Math.round((y-m.st)/(m.fin-m.st)*K);if(Math.abs(y-pos(k))>6)ir(k);},180);},{passive:true});
+  if(!tactil){rail.addEventListener('click',function(e){var b=e.target.closest('button');if(b)ir(+b.getAttribute('data-k'));});
+  // «Saltar»: a la sección siguiente, sin pasar por los pasos
+  sig.querySelector('a').addEventListener('click',function(e){e.preventDefault();anim=true;scrollTo({top:m.fin+m.vh,behavior:'smooth'});setTimeout(function(){anim=false;},1400);});}
   var anchoAnt=innerWidth;addEventListener('resize',function(){if(!tactil||innerWidth!==anchoAnt){anchoAnt=innerWidth;medir();}});addEventListener('load',medir);medir();setTimeout(medir,1200);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(medir);
 })();
+</script>
+<script id="tc-foco-js">
+/* v8 (10-11-2026): foco de luz que sigue al ratón en las tarjetas (solo con ratón y sin reducir movimiento) */
+(function(){if(!matchMedia('(hover:hover) and (pointer:fine)').matches||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  document.querySelectorAll('.tc-home .tc-demo,.tc-home .tc-fsol,.tc-home .tc-card').forEach(function(c){c.classList.add('tc-foco');
+    c.addEventListener('pointermove',function(e){var r=c.getBoundingClientRect();c.style.setProperty('--fx',(e.clientX-r.left)+'px');c.style.setProperty('--fy',(e.clientY-r.top)+'px');},{passive:true});});})();
 </script>
 <script type="module" id="tc-3d-js">
 const d=document.documentElement,stage=document.getElementById('tc-3d');
@@ -1264,9 +1298,11 @@ if(stage&&d.classList.contains('tc-3d')){
 function init(T){
   const mob=matchMedia('(max-width:820px)').matches,raton=matchMedia('(hover:hover) and (pointer:fine)').matches;
   let r;try{r=new T.WebGLRenderer({antialias:!mob,alpha:true,powerPreference:'high-performance'});}catch(e){return;}
-  r.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));r.outputColorSpace=T.SRGBColorSpace;
-  r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.02;r.localClippingEnabled=true;
-  r.shadowMap.enabled=!mob;r.shadowMap.type=T.PCFSoftShadowMap;
+  // resolución: empieza alta y baja sola si el equipo no llega a 60 fps (ver «adaptar» en frame)
+  // (no en el móvil ni en Safari: WebKit deja el lienzo en blanco si se cambia de tamaño en marcha)
+  const safari=/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent),adapta=!mob&&!safari;
+  let dpr=Math.min(devicePixelRatio||1,mob?1.5:2);r.setPixelRatio(dpr);r.outputColorSpace=T.SRGBColorSpace;
+  r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.02;
   stage.appendChild(r.domElement);
   // si el teléfono se queda sin memoria gráfica, se oculta y se recupera solo
   let perdido=false;r.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();perdido=true;stage.classList.remove('is-ready');},false);
@@ -1275,79 +1311,121 @@ function init(T){
   // estudio de luz: cajas de luz cálidas y frías y un contraluz violeta, para reflejos de acero creíbles
   const pm=new T.PMREMGenerator(r),es=new T.Scene();
   es.add(new T.Mesh(new T.SphereGeometry(30,32,16),new T.MeshBasicMaterial({color:0x1d1a24,side:T.BackSide})));
-  const panel=(c,k,x,y,z,w,h)=>{const p=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:new T.Color(c).multiplyScalar(k),side:T.DoubleSide}));p.position.set(x,y,z);p.lookAt(0,0,0);es.add(p);};
-  panel(0xfff1e0,1.05,0,9,1,10,2.5);panel(0xf4ecff,1.5,0,6,-7,14,5);panel(0xffa860,3.2,-8,2,4,2.5,8);panel(0xb98cff,1.5,8,0,-2,2.5,8);panel(0xffffff,2.4,7,4,3,3,6);panel(0xffffff,1.8,2,-1,9,8,1.5);panel(0x6a4cff,.7,-3,-6,-4,8,2);
-  sc.environment=pm.fromScene(es,.03).texture;sc.environmentIntensity=1.3;pm.dispose();
-  const key=new T.DirectionalLight(0xffe2c4,2.4);key.position.set(-3,6,4);key.castShadow=true;key.shadow.mapSize.set(mob?1024:2048,mob?1024:2048);
-  Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.5,far:20});key.shadow.bias=-.0006;key.shadow.normalBias=.02;sc.add(key);sc.add(key.target);
+  const panelLuz=(c,k,x,y,z,w,h)=>{const p=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:new T.Color(c).multiplyScalar(k),side:T.DoubleSide}));p.position.set(x,y,z);p.lookAt(0,0,0);es.add(p);};
+  panelLuz(0xfff1e0,1.05,0,9,1,10,2.5);panelLuz(0xf4ecff,1.5,0,6,-7,14,5);panelLuz(0xffa860,3.2,-8,2,4,2.5,8);panelLuz(0xb98cff,1.5,8,0,-2,2.5,8);panelLuz(0xffffff,2.4,7,4,3,3,6);panelLuz(0xffffff,1.8,2,-1,9,8,1.5);panelLuz(0x6a4cff,.7,-3,-6,-4,8,2);
+  sc.environment=pm.fromScene(es,.03).texture;sc.environmentIntensity=1.45;pm.dispose();
+  const key=new T.DirectionalLight(0xffe2c4,2.4);key.position.set(-3,6,4);sc.add(key);sc.add(key.target);
   const rim=new T.PointLight(0xb020ff,16,30);rim.position.set(4,2,-3);sc.add(rim);
+  const D=Math.PI/180,aniso=Math.min(8,r.capabilities.getMaxAnisotropy());
   // marcas de torneado (anillos) como mapa de rugosidad: el acero deja de parecer de plástico
-  const anillos=R=>{const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle='#8c8c8c';x.fillRect(0,0,512,512);
+  const anillos=()=>{const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle='#8c8c8c';x.fillRect(0,0,512,512);
     for(let rr=1;rr<256;rr+=1.1){const g=120+Math.random()*100|0;x.strokeStyle='rgba('+g+','+g+','+g+',.6)';x.lineWidth=.5+Math.random()*.9;x.beginPath();x.arc(256,256,rr,0,7);x.stroke();}
-    const t=new T.CanvasTexture(c);t.repeat.set(1/(2*R),1/(2*R));t.offset.set(.5,.5);return t;};
-  // materiales: por debajo del corte, metal; por encima, líneas de plano
-  const cortaSol=new T.Plane(new T.Vector3(0,-1,0),0),cortaLin=new T.Plane(new T.Vector3(0,1,0),0);
-  const metal=(o)=>{o=Object.assign({color:0xe2dfe8,metalness:1,roughness:.42,clearcoat:.35,clearcoatRoughness:.3,side:T.DoubleSide,clippingPlanes:[cortaSol],clipShadows:true},o);
-    if(mob){delete o.clearcoat;delete o.clearcoatRoughness;return new T.MeshStandardMaterial(o);}return new T.MeshPhysicalMaterial(o);};
-  const Z1=28,Z2=14,M=.1,R1=M*Z1/2,R2=M*Z2/2,X1=-.72,X2=X1+R1+R2;
-  const acero1=metal({roughnessMap:anillos(R1+M)}),acero2=metal({color:0xc9ccd8,roughnessMap:anillos(R2+M)}),pulido=metal({roughness:.18,clearcoat:.6});
-  const linea=new T.LineBasicMaterial({color:0xeadcff,transparent:true,opacity:.85,clippingPlanes:[cortaLin]});
-  const rig=new T.Group(),pieza=new T.Group(),partes=[];rig.add(pieza);sc.add(rig);
-  const malla=(g,mat,dest,lin=true)=>{const me=new T.Mesh(g,mat);me.castShadow=me.receiveShadow=true;dest.add(me);if(lin)dest.add(new T.LineSegments(new T.EdgesGeometry(g,30),linea));};
-  const parte=(pos,ex)=>{const g=new T.Group();g.position.copy(pos);g.userData={b:pos.clone(),ex};pieza.add(g);partes.push(g);return g;};
-  // engranaje recto: dientes con flanco curvado, aligeramientos y agujero del eje
-  const engranaje=(Z,m,bore,alig)=>{const rp=m*Z/2,ra=rp+m,rf=rp-1.25*m,p=2*Math.PI/Z,s=new T.Shape(),pts=[];
-    for(let i=0;i<Z;i++){const c=i*p;[[rf,-.5],[rf,-.29],[rp,-.2],[ra,-.12],[ra,.12],[rp,.2],[rf,.29]].forEach(([rr,a])=>pts.push([rr*Math.cos(c+a*p),rr*Math.sin(c+a*p)]));}
-    s.moveTo(pts[0][0],pts[0][1]);pts.slice(1).forEach(q=>s.lineTo(q[0],q[1]));s.closePath();
-    const hueco=(x,y,rr)=>{const h=new T.Path();h.absarc(x,y,rr,0,Math.PI*2,true);s.holes.push(h);};
-    hueco(0,0,bore);if(alig){const rh=(rf+bore*2.1)/2,n=6;for(let i=0;i<n;i++){const a=i*2*Math.PI/n+Math.PI/n;hueco(Math.cos(a)*rh,Math.sin(a)*rh,(rf-bore*2.1)*.32);}}
-    const g=new T.ExtrudeGeometry(s,{depth:.3,bevelEnabled:true,bevelThickness:.025,bevelSize:.02,bevelSegments:2,curveSegments:24});
-    g.rotateX(-Math.PI/2);g.translate(0,-.15,0);return g;};
-  const cubo=(ro,ri,h)=>new T.LatheGeometry([[ri,.15],[ro,.15],[ro,.15+h],[ro-.04,.19+h],[ri,.19+h],[ri,.15]].map(([x,y])=>new T.Vector2(x,y)),48);
-  const g1=parte(new T.Vector3(X1,0,0),new T.Vector3(-.25,1.05,0)),s1=new T.Group();g1.add(s1);
-  malla(engranaje(Z1,M,.2,true),acero1,s1);malla(cubo(.42,.2,.18),acero1,s1);
-  const g2=parte(new T.Vector3(X2,0,0),new T.Vector3(.35,1.55,0)),s2=new T.Group();g2.add(s2);
-  malla(engranaje(Z2,M,.2,false),acero2,s2);malla(cubo(.36,.2,.12),acero2,s2);
-  const e1=parte(new T.Vector3(X1,-.05,0),new T.Vector3(0,-.55,0));malla(new T.CylinderGeometry(.19,.19,1.25,32),pulido,e1);
-  const e2=parte(new T.Vector3(X2,-.05,0),new T.Vector3(0,-.75,0));malla(new T.CylinderGeometry(.19,.19,1.25,32),pulido,e2);
-  pieza.position.x=.02;
-  // la máquina: bancada, paredes, puente con rodamientos y tornillos; se monta alrededor en el último paso
-  const fund=new T.MeshPhysicalMaterial({color:0x4b4757,metalness:.55,roughness:.45,clearcoat:.5,clearcoatRoughness:.4});
-  const mec=new T.MeshPhysicalMaterial({color:0xc9c6d2,metalness:1,roughness:.25});
-  const casa=new T.Group();pieza.add(casa);const piezasCasa=[];
-  const xa=X1-R1-M-.28,xb=X2+R2+M+.28,cx=(xa+xb)/2,ancho=xb-xa,fondo=3.55;
-  const caja=(w,h,dd,mat)=>{const g=new T.BoxGeometry(w,h,dd);const me=new T.Mesh(g,mat);me.castShadow=me.receiveShadow=true;return me;};
-  const pc=(obj,pos,desde,orden)=>{obj.position.copy(pos);const g=new T.Group();g.add(obj);g.userData={b:new T.Vector3(),desde,orden};casa.add(g);piezasCasa.push(g);return g;};
-  pc(caja(ancho+.3,.24,fondo+.3,fund),new T.Vector3(cx,-.8,0),new T.Vector3(0,-3.2,0),0);
-  pc(caja(ancho,1.05,.16,fund),new T.Vector3(cx,-.15,-fondo/2),new T.Vector3(0,0,-3.5),1);
-  pc(caja(.16,1.05,fondo,fund),new T.Vector3(xa,-.15,0),new T.Vector3(-3.5,0,0),2);
-  pc(caja(.16,1.05,fondo,fund),new T.Vector3(xb,-.15,0),new T.Vector3(3.5,0,0),2);
-  pc(caja(ancho,.42,.16,fund),new T.Vector3(cx,-.47,fondo/2),new T.Vector3(0,0,3.5),3);
-  const puente=new T.Group();puente.add(caja(X2-X1+.9,.13,.5,fund));
-  const tapa=new T.LatheGeometry([[.2,0],[.34,0],[.34,.12],[.3,.16],[.2,.16],[.2,0]].map(([x,y])=>new T.Vector2(x,y)),48);
-  [X1-cx,X2-cx].forEach(x=>{const ro=new T.Mesh(tapa,mec);ro.position.set(x,.06,0);ro.castShadow=true;puente.add(ro);});
-  pc(puente,new T.Vector3(cx,.66,0),new T.Vector3(0,3.4,0),4);
-  // filos mecanizados en lo alto de las paredes
-  pc(caja(ancho,.05,.18,mec),new T.Vector3(cx,.4,-fondo/2),new T.Vector3(0,0,-3.5),1);pc(caja(.18,.05,fondo,mec),new T.Vector3(xa,.4,0),new T.Vector3(-3.5,0,0),2);pc(caja(.18,.05,fondo,mec),new T.Vector3(xb,.4,0),new T.Vector3(3.5,0,0),2);
-  // motor eléctrico encima del piñón, con aletas de refrigeración: es el que mueve los engranajes
-  const motor=new T.Group(),pintura=new T.MeshPhysicalMaterial({color:0x5a2f8f,metalness:.55,roughness:.32,clearcoat:1,clearcoatRoughness:.15});
-  const cuerpo=new T.Mesh(new T.CylinderGeometry(.36,.36,.85,48),pintura);cuerpo.position.y=.5;cuerpo.castShadow=true;motor.add(cuerpo);
-  for(let i=0;i<7;i++){const al=new T.Mesh(new T.TorusGeometry(.37,.022,8,48),pintura);al.rotation.x=Math.PI/2;al.position.y=.18+i*.1;motor.add(al);}
-  const brida=new T.Mesh(new T.CylinderGeometry(.42,.42,.08,48),mec);brida.position.y=.06;brida.castShadow=true;motor.add(brida);
-  const tapaM=new T.Mesh(new T.CylinderGeometry(.3,.36,.1,48),mec);tapaM.position.y=.97;tapaM.castShadow=true;motor.add(tapaM);
-  pc(motor,new T.Vector3(X2,.78,0),new T.Vector3(0,3.6,0),6);
-  [[xa+.12,fondo/2-.06],[xb-.12,fondo/2-.06],[xa+.12,-fondo/2+.06],[xb-.12,-fondo/2+.06]].forEach(([x,zz],i)=>{const t=new T.Mesh(new T.CylinderGeometry(.08,.08,.08,6),mec);t.castShadow=true;pc(t,new T.Vector3(x,-.64,zz),new T.Vector3(0,2.2,0),5+i*.25);});
-  // suelo que recoge la sombra, rejilla de plano y anillo de escáner
-  const suelo=new T.Mesh(new T.PlaneGeometry(14,14),new T.ShadowMaterial({opacity:.45}));suelo.rotation.x=-Math.PI/2;suelo.position.y=-.93;suelo.receiveShadow=true;rig.add(suelo);
-  let mancha=null;if(mob){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,4,64,64,64);g.addColorStop(0,'rgba(0,0,0,.75)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
-    mancha=new T.Mesh(new T.PlaneGeometry(5.2,3.2),new T.MeshBasicMaterial({map:new T.CanvasTexture(c),transparent:true,depthWrite:false}));mancha.rotation.x=-Math.PI/2;mancha.position.set(.1,-.92,0);rig.add(mancha);}
-  const rej=new T.GridHelper(8,32,0xb020ff,0x6d0fb0);rej.material.transparent=true;rej.material.opacity=0;rej.material.depthWrite=false;rej.position.y=-.92;rig.add(rej);
-  const aditivo=o=>new T.MeshBasicMaterial(Object.assign({color:0xd27bff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide},o));
-  const disco=new T.Mesh(new T.CircleGeometry(2.55,72),aditivo({})),aro=new T.Mesh(new T.RingGeometry(2.5,2.58,128),aditivo({color:0xf0d4ff}));
-  const scan=new T.Group(),scanIn=new T.Group();scanIn.add(disco,aro);scanIn.rotation.x=-Math.PI/2;scan.add(scanIn);rig.add(scan);
-  // cotas en HTML que siguen a la pieza
-  const caja2=stage.parentNode.querySelector('.tc-3dz__labels'),etq=caja2?[...caja2.querySelectorAll('span')]:[];
-  const anc=[new T.Vector3(X1-R1-M,.15,0),new T.Vector3(X2+R2+M,.15,0),new T.Vector3(X1,.62,0)];
+    return new T.CanvasTexture(c);};
+  const rug=anillos();
+  const acero=new T.MeshStandardMaterial({color:0xe2dfe8,metalness:1,roughness:.4,roughnessMap:rug});
+  const acero2=new T.MeshStandardMaterial({color:0xc4c7d4,metalness:1,roughness:.36,roughnessMap:rug});
+  const pulido=new T.MeshStandardMaterial({color:0xeeeef4,metalness:1,roughness:.16});
+  const oscuro=new T.MeshStandardMaterial({color:0x2a2630,metalness:.8,roughness:.5});
+  // la estrella elástica del acoplamiento, en el violeta de la marca
+  const goma=new T.MeshStandardMaterial({color:0x7a2bd6,metalness:0,roughness:.5,emissive:0x2a0650,emissiveIntensity:.6});
+  const aditivo=o=>new T.MeshBasicMaterial(Object.assign({color:0xd27bff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide,toneMapped:false},o));
+  const rig=new T.Group();sc.add(rig);
+
+  /* ---- 1. el acoplamiento de garras: dos mitades (cubo + 3 garras + eje) y la estrella en medio ----
+     cada mitad se construye a lo largo de su eje Y y se tumba sobre el eje X; las garras de una caen en los huecos de la otra */
+  const sector=(r0,r1,a0,a1)=>{const s=new T.Shape();s.absarc(0,0,r1,a0,a1,false);s.absarc(0,0,r0,a1,a0,true);s.closePath();return s;};
+  const garrasG=new T.ExtrudeGeometry([0,120,240].map(c=>sector(.27,.55,(c-25)*D,(c+25)*D)),{depth:.38,bevelEnabled:true,bevelThickness:.014,bevelSize:.012,bevelSegments:2,curveSegments:18});
+  garrasG.rotateX(-Math.PI/2);garrasG.translate(0,.8,0);
+  const cuboG=new T.LatheGeometry([[.2,0],[.5,0],[.55,.05],[.55,.75],[.52,.8],[.2,.8]].map(([x,y])=>new T.Vector2(x,y)),64);
+  const ejeG=new T.CylinderGeometry(.2,.2,.62,40);ejeG.translate(0,-.31,0);
+  const prisioneroG=new T.CylinderGeometry(.055,.055,.04,16);prisioneroG.rotateX(Math.PI/2);prisioneroG.translate(0,.4,.548);
+  const estrellaG=(()=>{const s=new T.Shape(),p=[],h=4*D;
+    for(let k=0;k<6;k++){const c=(30+60*k)*D,n=(90+60*k)*D;p.push([.27,c-h],[.545,c-h],[.545,c+h],[.27,c+h]);for(let j=1;j<6;j++)p.push([.27,c+h+(n-h-c-h)*j/6]);}
+    p.forEach(([rr,a],i)=>i?s.lineTo(rr*Math.cos(a),rr*Math.sin(a)):s.moveTo(rr*Math.cos(a),rr*Math.sin(a)));s.closePath();
+    const hu=new T.Path();hu.absarc(0,0,.12,0,Math.PI*2,true);s.holes.push(hu);
+    const g=new T.ExtrudeGeometry(s,{depth:.36,bevelEnabled:true,bevelThickness:.02,bevelSize:.012,bevelSegments:2});g.rotateX(-Math.PI/2);g.translate(0,.81,0);return g;})();
+  const acople=new T.Group();rig.add(acople);
+  const mitad=(mat,giro)=>{const g=new T.Group(),inn=new T.Group();g.rotation.z=giro;g.add(inn);acople.add(g);
+    inn.add(new T.Mesh(cuboG,mat),new T.Mesh(garrasG,mat),new T.Mesh(ejeG,pulido),new T.Mesh(prisioneroG,oscuro));return {g,inn};};
+  const A=mitad(acero,-Math.PI/2),B=mitad(acero2,Math.PI/2);
+  const estrella=new T.Mesh(estrellaG,goma);A.inn.add(estrella);
+  // pulso de luz en la unión al encajar, y sombra de contacto pintada
+  // tres ondas seguidas al encajar (con una sola, si no estabas mirando, se te pasaba)
+  const anilloG=new T.RingGeometry(.6,.65,96),pulsos=[0,1,2].map(()=>{const m=new T.Mesh(anilloG,aditivo({color:0xf0d4ff}));m.rotation.y=Math.PI/2;acople.add(m);return m;});
+  const brillo=new T.Mesh(new T.CircleGeometry(.62,64),aditivo({color:0xb020ff}));brillo.rotation.y=Math.PI/2;acople.add(brillo);
+  const c0=document.createElement('canvas');c0.width=c0.height=128;{const x=c0.getContext('2d'),g=x.createRadialGradient(64,64,4,64,64,64);g.addColorStop(0,'rgba(0,0,0,.8)');g.addColorStop(.5,'rgba(0,0,0,.35)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);}
+  /* v8 (10-11-2026): flujo de datos que atraviesa el acoplamiento: entra por «Tu empresa», se enciende al pasar por la IA
+     (la estrella) y sale hacia «Optimización». Puntos de luz en la CPU (pocos), un solo dibujado */
+  const NF=mob?70:150,fx=new Float32Array(NF*3),fc=new Float32Array(NF*3),fd=[];
+  for(let i=0;i<NF;i++)fd.push({x:Math.random()*6.4-3.2,a:Math.random()*6.283,r:.62+Math.random()*.4,v:.6+Math.random()*.9,f:Math.random()*6.283});
+  const flujoG=new T.BufferGeometry();flujoG.setAttribute('position',new T.BufferAttribute(fx,3));flujoG.setAttribute('color',new T.BufferAttribute(fc,3));
+  const cP=document.createElement('canvas');cP.width=cP.height=64;{const x=cP.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.75)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);}
+  const flujoM=new T.PointsMaterial({size:mob?.13:.11,map:new T.CanvasTexture(cP),vertexColors:true,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false});
+  const flujo=new T.Points(flujoG,flujoM);flujo.frustumCulled=false;acople.add(flujo);
+  const cFr=new T.Color(0x8a6cff),cIA=new T.Color(0xfff0ff),cSal=new T.Color(0xd27bff),cTmp=new T.Color();
+  const manchaTx=new T.CanvasTexture(c0),mancha=new T.Mesh(new T.PlaneGeometry(3.6,1.3),new T.MeshBasicMaterial({map:manchaTx,transparent:true,depthWrite:false}));mancha.rotation.x=-Math.PI/2;mancha.position.y=-.78;acople.add(mancha);
+
+  /* ---- 2. los documentos (factura, albarán, pedido) pintados en un lienzo; datos ficticios ---- */
+  const FS='"Open Sans",Arial,sans-serif',FD='Poppins,Arial,sans-serif';
+  const lienzo=(w,h,pinta)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d'),tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.anisotropy=aniso;
+    const dib=()=>{x.clearRect(0,0,w,h);x.textAlign='left';pinta(x,w,h);tx.needsUpdate=true;};dib();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(dib);return tx;};
+  const der=(x,t,X,Y)=>{x.textAlign='right';x.fillText(t,X,Y);x.textAlign='left';};
+  const papel=(tit,num,ca,cb,lineas,tot,firma)=>lienzo(512,724,(x,w)=>{
+    x.fillStyle='#fbfaff';x.fillRect(0,0,w,724);x.fillStyle='#7c1fd1';x.fillRect(0,0,w,8);
+    x.fillStyle='#1b1622';x.font='700 32px '+FD;x.fillText(tit,34,66);
+    x.font='600 16px '+FS;x.fillStyle='#7a7287';x.fillText(num,34,94);der(x,'Ejemplo ficticio',w-34,94);
+    x.fillStyle='#ece3fb';x.fillRect(w-120,36,86,30);x.fillStyle='#9b6fd6';x.font='700 13px '+FS;x.fillText('EMPRESA',w-112,56);
+    const campo=([l,v],X)=>{x.font='600 15px '+FS;x.fillStyle='#8a8296';x.fillText(l,X,158);x.font='700 21px '+FS;x.fillStyle='#1b1622';x.fillText(v,X,186);};
+    campo(ca,34);campo(cb,336);
+    x.fillStyle='#efeaf6';x.fillRect(34,224,w-68,30);x.font='700 13px '+FS;x.fillStyle='#6b6478';x.fillText('CONCEPTO',46,244);der(x,tot.length?'IMPORTE':'CANTIDAD',w-46,244);
+    lineas.forEach(([a,b],i)=>{const Y=290+i*40;x.font='500 16px '+FS;x.fillStyle='#3a3344';x.fillText(a,46,Y);der(x,b,w-46,Y);x.fillStyle='#eee9f4';x.fillRect(34,Y+14,w-68,1.5);});
+    x.font='500 15px '+FS;x.fillStyle='#8a8296';x.fillText(firma?'Mercancía revisada en la entrega':'Vencimiento a 30 días · transferencia',34,446);
+    tot.forEach(([a,b],i)=>{const last=i===tot.length-1,Y=548+i*34+(last?8:0);if(last){x.fillStyle='#e3dcec';x.fillRect(250,Y-30,w-284,1.5);}
+      x.font=(last?'700 21px ':'500 16px ')+FS;x.fillStyle=last?'#1b1622':'#4a4356';x.fillText(a,256,Y);der(x,b,w-46,Y);});
+    if(firma){x.font='600 15px '+FS;x.fillStyle='#8a8296';x.fillText('Recibido',300,560);x.strokeStyle='#4b2a8a';x.lineWidth=2.5;x.beginPath();x.moveTo(300,620);
+      x.bezierCurveTo(330,580,350,640,380,600);x.bezierCurveTo(400,575,420,640,450,598);x.stroke();}});
+  const DW=1.06,DH=1.5,docUV=(px,py)=>new T.Vector3((px/512-.5)*DW,(.5-py/724)*DH,.009);
+  const borde=new T.MeshBasicMaterial({color:0xbfb9ca,toneMapped:false}),docG=new T.BoxGeometry(DW,DH,.014);
+  const texs=[papel('FACTURA','F-2291',['Proveedor','Aceros Demo SL'],['Fecha','14/11/2026'],[['Barra 42CrMo4 Ø50','620,00 €'],['Chapa S275 10 mm','410,00 €'],['Corte y transporte','210,00 €']],[['Base imponible','1.240,00 €'],['IVA 21 %','260,40 €'],['Total','1.500,40 €']]),
+    papel('ALBARÁN','ALB-0874',['Cliente','Talleres Demo SL'],['Entrega','13/11/2026'],[['Barra 42CrMo4 Ø50','4 ud'],['Chapa S275 10 mm','2 ud'],['Palé','1 ud']],[],true),
+    papel('PEDIDO','PED-1203',['Proveedor','Aceros Demo SL'],['Plazo','10 días'],[['Barra 42CrMo4 Ø50','620,00 €'],['Chapa S275 10 mm','410,00 €'],['Corte y transporte','210,00 €']],[['Total pedido','1.240,00 €']])];
+  const docs=texs.map(tx=>{const g=new T.Group();g.add(new T.Mesh(docG,[borde,borde,borde,borde,new T.MeshBasicMaterial({map:tx,toneMapped:false,color:0xe8e4ee}),borde]));rig.add(g);return g;});
+  // dónde queda cada documento en el paso 2: la factura delante y los otros dos abiertos en abanico
+  const TG=[{p:new T.Vector3(0,.5,.35),ry:0,rz:0},{p:new T.Vector3(-1.12,.42,0),ry:.34,rz:.05},{p:new T.Vector3(1.12,.42,0),ry:-.34,rz:-.05}];
+  // en el móvil el abanico se cierra un poco: así los tres documentos salen más grandes en el mismo ancho
+  // y se centran en el hueco (en el escritorio van un poco más arriba para dejar el acoplamiento debajo)
+  if(mob){TG[1].p.x=-.8;TG[2].p.x=.8;TG[1].ry=.26;TG[2].ry=-.26;TG.forEach(g=>g.p.y-=.45);}
+  // escáner que recorre la factura y recuadros de los campos que la IA lee (con su etiqueta en HTML)
+  const haz=new T.Group(),hazL=new T.Mesh(new T.PlaneGeometry(DW*1.06,.016),aditivo({color:0xf6e6ff})),hazH=new T.Mesh(new T.PlaneGeometry(DW*1.06,.2),aditivo({color:0xb020ff}));
+  haz.add(hazH,hazL);haz.position.z=.012;docs[0].add(haz);
+  const campos=[[24,136,324,198],[328,136,488,198],[244,512,488,640]].map(([x0,y0,x1,y1])=>{const a=docUV(x0,y0),b=docUV(x1,y1),g=new T.Group();
+    const caja=new T.Mesh(new T.PlaneGeometry(b.x-a.x,a.y-b.y),aditivo({color:0xb020ff}));const lin=new T.LineSegments(new T.EdgesGeometry(caja.geometry),new T.LineBasicMaterial({color:0xd27bff,transparent:true,opacity:0,toneMapped:false}));
+    g.add(caja,lin);g.position.set((a.x+b.x)/2,(a.y+b.y)/2,.011);docs[0].add(g);return {g,caja,lin,y:(a.y+b.y)/2,ancla:new T.Vector3(a.x,a.y,.011)};});
+
+  /* ---- 3. la pantalla del ERP donde acaba todo ---- */
+  const filas=[['F-2291','Aceros Demo SL','14/11/2026','1.500,40 €','Registrada'],['ALB-0874','Aceros Demo SL','13/11/2026','—','Vinculado'],['PED-1203','Aceros Demo SL','10/11/2026','1.240,00 €','Servido'],['F-2288','Transportes Demo','12/11/2026','320,00 €','Pagada'],['F-2281','Suministros Demo','08/11/2026','86,90 €','Pagada']];
+  const erpTx=lienzo(1024,640,(x,w,h)=>{x.fillStyle='#0e0b14';x.fillRect(0,0,w,h);x.fillStyle='#16121e';x.fillRect(0,0,w,58);
+    const gr=x.createLinearGradient(20,14,48,42);gr.addColorStop(0,'#d27bff');gr.addColorStop(1,'#6d0fb0');x.fillStyle=gr;x.fillRect(22,15,28,28);
+    x.fillStyle='#fff';x.font='600 20px '+FD;x.fillText('IndunexIA Gestión',62,37);x.font='500 14px '+FS;x.fillStyle='#8f86a0';der(x,'Ejemplo ficticio',w-24,36);
+    x.fillStyle='#120f19';x.fillRect(0,58,200,h-58);
+    ['Inicio','Documentos','Compras','Facturas','Informes'].forEach((t,i)=>{const Y=104+i*46;if(i===1){x.fillStyle='rgba(176,32,255,.28)';x.fillRect(12,Y-26,176,38);}x.font=(i===1?'600 ':'500 ')+'16px '+FS;x.fillStyle=i===1?'#fff':'#9a91aa';x.fillText(t,28,Y);});
+    x.fillStyle='#fff';x.font='700 26px '+FD;x.fillText('Documentos de proveedor',230,104);x.font='500 15px '+FS;x.fillStyle='#a99fb8';x.fillText('Leídos con IA · listos para revisar',230,132);
+    x.fillStyle='#191422';x.fillRect(220,160,w-244,36);x.font='700 13px '+FS;x.fillStyle='#8f86a0';
+    [['DOCUMENTO',236],['PROVEEDOR',380],['FECHA',588],['ESTADO',872]].forEach(([t,X])=>x.fillText(t,X,184));der(x,'IMPORTE',842,184);
+    filas.forEach((f,i)=>{const Y=196+56*i+34;x.font='600 16px '+FS;x.fillStyle='#fff';x.fillText(f[0],236,Y);x.font='500 16px '+FS;x.fillStyle='#d6cfe0';x.fillText(f[1],380,Y);x.fillText(f[2],588,Y);der(x,f[3],842,Y);
+      x.fillStyle=i<3?'rgba(74,222,128,.16)':'rgba(255,255,255,.07)';x.fillRect(866,Y-21,120,30);x.font='600 14px '+FS;x.fillStyle=i<3?'#4ade80':'#a99fb8';x.fillText('✓ '+f[4],876,Y);
+      x.fillStyle='#1d1826';x.fillRect(220,196+56*(i+1),w-244,1.5);});});
+  const SW=3.24,SH=2.025,erpUV=(px,py)=>new T.Vector3((px/1024-.5)*SW,(.5-py/640)*SH,.05);
+  const pantalla=new T.Group();rig.add(pantalla);pantalla.position.set(0,mob?0:.36,0);
+  const marcoM=new T.MeshStandardMaterial({color:0x1d1925,metalness:.7,roughness:.32,transparent:true}),pantM=new T.MeshBasicMaterial({map:erpTx,toneMapped:false,transparent:true});
+  pantalla.add(new T.Mesh(new T.BoxGeometry(SW+.12,SH+.12,.08),marcoM));const pl=new T.Mesh(new T.PlaneGeometry(SW,SH),pantM);pl.position.z=.042;pantalla.add(pl);
+  const luzFila=filas.slice(0,3).map((f,i)=>{const m=new T.Mesh(new T.PlaneGeometry((1000-220)/1024*SW,56/640*SH*.92),aditivo({color:0xb020ff}));m.position.copy(erpUV(610,196+56*i+28));pantalla.add(m);return m;});
+
+  // etiquetas en HTML que siguen a los campos de la factura
+  // rótulos en HTML: los campos que la IA lee en la factura y, en la cabecera, el nombre de cada pieza del acoplamiento
+  const caja2=stage.parentNode.querySelector('.tc-3dz__labels'),etq=caja2?[...caja2.querySelectorAll('span:not(.tc-pz)')]:[],pzs=caja2?[...caja2.querySelectorAll('.tc-pz')]:[];
+  // anclas (en el acoplamiento): Tu empresa bajo la mitad izquierda, IA encima de la estrella, Optimización bajo la derecha
+  const anclaPz=[()=>v3.set(A.g.position.x-.25,-.72,0),()=>v3.set(0,.8+.3*(B.g.position.x-.99)/1.15,0),()=>v3.set(B.g.position.x+.25,-.72,0)];
   let W=1,H=1;
   const medir=()=>{W=stage.clientWidth||1;H=stage.clientHeight||1;r.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix();};
   new ResizeObserver(medir).observe(stage);medir();
@@ -1355,51 +1433,93 @@ function init(T){
   let vis=true;new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis)pedir();}).observe(stage.closest('.tc-3dz'));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)pedir();});
   const L=(a,b,t)=>a+(b-a)*t,cl=v=>v<0?0:v>1?1:v,suave=v=>{v=cl(v);return v*v*(3-2*v);},tramo=(p,a,b)=>suave((p-a)/(b-a));
-  // plano de cada paso: inclinación, giro, zoom, despiece y máquina
-  const P={tilt:[.62,.5,.8,.45,.7],yaw:[0,.7,1.6,2.5,3.5],zoom:[1,1.04,1.12,.92,.82],ex:[0,0,0,1,0],casa:[0,0,0,0,1]};
+  // plano de cada paso (1 conecta · 2 lee · 3 ordena): inclinación, giro, zoom, altura y tamaño del acoplamiento
+  const P={tilt:[.26,.1,.14],yaw:[-.4,-.04,.16],zoom:mob?[1.05,1.95,1.36]:[1.1,1.5,1.5],ay:[0,-1.05,-1.36],as:[1,.68,.52]};
+  // en el móvil el hueco es bajo: en los pasos 2 y 3 el acoplamiento se recoge y los documentos y la pantalla lo ocupan
+  if(mob){P.ay=[0,-.86,-1.24];P.as=[1,.2,.18];}
   const por=(arr,s)=>{const i=Math.min(arr.length-2,Math.floor(s)),f=suave(s-i);return L(arr[i],arr[i+1],f);};
-  const v3=new T.Vector3(),nrm=new T.Vector3(),pt=new T.Vector3();
-  let hs=0,ps=0,giro=0,rueda=0,ult=performance.now(),raf=0,listo=false,cotAnt=-1;
-  function pedir(){if(!raf)raf=requestAnimationFrame(frame);}
+  const v3=new T.Vector3(),dst=new T.Vector3();
+  let hs=0,ps=0,giro=0,ult=performance.now(),raf=0,listo=false,compilado=false,t0=0,lentos=0,cuenta=0,tPulso=-1e9,armado=true;
+  // suavizado igual a 30 que a 120 fps (antes dependía de los fps: en un equipo lento la pieza se arrastraba)
+  const a=(k,dt)=>1-Math.pow(1-k,dt*60);
+  function pedir(){if(!raf&&compilado)raf=requestAnimationFrame(frame);}
   function frame(t){raf=0;if(!vis||document.hidden||perdido)return;
-    if(mob&&t-ult<31){pedir();return;}const dt=Math.min(.05,Math.max(0,(t-ult)/1000));ult=t;
-    const S=window.tcStory||{p:0,h:0};hs=L(hs,S.h,.14);ps=L(ps,S.p,.12);sx=L(sx,mx,.06);sy=L(sy,my,.06);
-    const w=suave(hs),s=ps*4;
-    // a mitad de cada cambio de paso: la cámara se abre un poco, la luz barre el metal y el contraluz violeta se enciende
-    const tr=Math.sin(Math.PI*(s-Math.floor(s)))*w;
-    // sitio de la pieza: cabecera → historia
+    const S=window.tcStory||{p:0,h:0},quieto=Math.abs(ps-S.p)<.0015&&Math.abs(hs-S.h)<.0015;
+    // en el móvil, en reposo a 30 fps (batería); durante los cambios de paso, a todos los que dé
+    if(mob&&quieto&&t-ult<31){pedir();return;}const dt=Math.min(.05,Math.max(0,(t-ult)/1000));ult=t;
+    // adaptar: si los fotogramas pasan de 22 ms de forma seguida, baja la resolución (nunca la vuelve a subir para no oscilar)
+    if(adapta&&listo&&dt>0){cuenta++;if(dt>(mob&&quieto?.045:.022))lentos++;if(cuenta>=45){if(lentos>22&&dpr>1){dpr=Math.max(1,dpr-.25);r.setPixelRatio(dpr);medir();}cuenta=lentos=0;}}
+    hs=L(hs,S.h,a(.14,dt));ps=L(ps,S.p,a(.12,dt));sx=L(sx,mx,a(.06,dt));sy=L(sy,my,a(.06,dt));
+    // entrada al cargar: la pieza llega girando un poco y se asienta (1,6 s), en vez de aparecer de golpe
+    if(!t0)t0=t;const en=1-Math.pow(1-cl((t-t0)/1600),3);
+    const w=suave(hs),s=ps*2,tr=Math.sin(Math.PI*(s-Math.floor(s)))*w;
+    // sitio de la pieza: en la cabecera a la derecha del titular (en el móvil, debajo); en la historia, en el hueco libre
     const hy=cam.position.z*Math.tan(T.MathUtils.degToRad(cam.fov/2)),hx=hy*cam.aspect,peq=Math.min(hx,hy);
     let nx=L(.5,.42,w),ny=L(-.02,0,w),k=L(.68,.64,w);
-    if(mob){const hu=S.hueco||{h0:H*.08,h1:H*.4,s0:H*.2,s1:H*.62};const cy=L((hu.h0+hu.h1)/2,(hu.s0+hu.s1)/2,w),bh=Math.max(60,L(hu.h1-hu.h0,hu.s1-hu.s0,w));
+    if(mob){const hu=S.hueco||{h0:H*.6,h1:H*.94,s0:H*.4,s1:H*.78};const cy=L((hu.h0+hu.h1)/2,(hu.s0+hu.s1)/2,w),bh=Math.max(60,L(hu.h1-hu.h0,hu.s1-hu.s0,w));
       nx=0;ny=1-2*cy/H;k=Math.min(.82,bh*.8/(.46*W));}
-    k*=L(1,por(P.zoom,s),w)*(1-.08*tr);
-    rig.position.set(nx*hx,ny*hy,0);rig.scale.setScalar(peq*k/2.35);
-    // engranajes siempre girando (relación real Z1:Z2); la cámara cambia en cada paso
-    rueda+=dt*.55;s1.rotation.y=rueda;s2.rotation.y=-rueda*Z1/Z2+Math.PI/Z2;giro+=dt*.05;
-    const tilt=L(.55,por(P.tilt,s),w),yaw=L(-.35,por(P.yaw,s),w),ex=w*por(P.ex,s),ca=w*por(P.casa,s);
-    rig.rotation.set(tilt+sy*.1,giro+yaw+sx*.25,.04);
-    partes.forEach(g=>{g.position.copy(g.userData.b).addScaledVector(g.userData.ex,ex);});
-    // la máquina entra pieza a pieza (bancada, paredes, puente, tornillos)
-    casa.visible=ca>.002;
-    if(casa.visible)piezasCasa.forEach(g=>{const o=g.userData.orden,e=tramo(ca,o*.09,.55+o*.07);g.position.copy(g.userData.desde).multiplyScalar(1-e);g.visible=e>.001;});
-    // metal en la cabecera, plano al entrar en la historia, el escáner lo reconstruye hacia el paso 2
-    const sol=w<.999?1-w:(s<1?tramo(s,.08,.92):1);
-    rej.material.opacity=(1-sol)*.3*w;suelo.material.opacity=.45*sol;if(mancha)mancha.material.opacity=.9*sol;
-    rig.updateMatrixWorld();
-    const lvl=sol>=.999?20:sol<=.001?-20:L(-.7,.7,sol);
-    nrm.set(0,1,0).applyQuaternion(rig.quaternion);pt.set(0,lvl,0);rig.localToWorld(pt);
-    cortaSol.setFromNormalAndCoplanarPoint(v3.copy(nrm).negate(),pt);cortaLin.setFromNormalAndCoplanarPoint(nrm,pt);
-    const scanOp=(sol>.001&&sol<.999)?1:0;scan.position.y=L(-.7,.7,sol);
-    disco.material.opacity=L(disco.material.opacity,scanOp*.08,.3);aro.material.opacity=L(aro.material.opacity,scanOp*.9,.3);scan.visible=aro.material.opacity>.02;
-    // la luz principal sigue a la pieza para que la sombra caiga siempre bien
-    key.target.position.copy(rig.position);key.position.set(rig.position.x-3+tr*7,rig.position.y+6,4-tr*2);rim.intensity=16+tr*46;
+    else if(S.hueco&&S.hueco.d&&S.hueco.d.x1-S.hueco.d.x0>200&&S.hueco.d.y1-S.hueco.d.y0>200){const Dd=S.hueco.d,bw=Dd.x1-Dd.x0,bh=Dd.y1-Dd.y0;
+      nx=L(nx,(Dd.x0+Dd.x1)/W-1,w);ny=L(ny,1-(Dd.y0+Dd.y1)/H,w);k=L(k,Math.min(.66,bw*.78/(.46*H),bh*.78/(.4*H)),w);}
+    // en la cabecera las mitades están separadas y la pieza es más ancha: algo más pequeña
+    k*=L(mob?.74:.84,por(P.zoom,s),w)*(1-.05*tr)*L(.86,1,en);
+    rig.position.set(nx*hx,ny*hy-(1-en)*hy*.08,0);rig.scale.setScalar(peq*k/2.35);
+    rig.rotation.set(L(.32,por(P.tilt,s),w)+sy*.05+(1-en)*.25,L(-.62,por(P.yaw,s),w)+sx*.12-(1-en)*.9,0);
+    // ENCAJE: al pasar de la cabecera a la historia las mitades se acercan, giran hasta alinear las garras y encajan
+    const junta=tramo(w,.28,.88),sep=1.15*(1-junta);
+    giro+=dt*(.22+.5*junta);
+    A.g.position.x=-.99-sep;B.g.position.x=.99+sep;A.inn.rotation.y=giro;B.inn.rotation.y=-giro+(1-junta)*.9;
+    // la IA, protagonista mientras está suelta: algo mayor y con brillo que late; al encajar vuelve a su medida exacta
+    estrella.position.y=sep;{const ex=1+.22*(1-junta);estrella.scale.set(ex,1,ex);}goma.emissiveIntensity=.6+(1-junta)*(.5+.4*Math.sin(t/520));
+    acople.position.set(0,L(0,por(P.ay,s),w),0);acople.scale.setScalar(L(1,por(P.as,s),w));
+    mancha.scale.x=1+.55*(1-junta);mancha.material.opacity=.85*en;
+    // flujo de datos: más rápido y más brillante cuando las dos mitades están unidas; se apaga al salir los documentos
+    {const of=en*(1-tramo(s,.12,.45))*(listo?1:0);flujoM.opacity=.95*of;flujo.visible=of>.01;
+      if(flujo.visible){const vel=dt*(1.1+1.6*junta);
+        for(let i=0;i<NF;i++){const p=fd[i];p.x+=p.v*vel;if(p.x>3.2){p.x=-3.2;p.a=Math.random()*6.283;}p.a+=dt*.8;
+          const cerca=Math.max(0,1-Math.abs(p.x)/.7),rr=p.r*(1-.6*cerca);
+          fx[i*3]=p.x;fx[i*3+1]=Math.sin(p.a)*rr;fx[i*3+2]=Math.cos(p.a)*rr;
+          const borde=Math.min(1,(3.2-Math.abs(p.x))/.8);cTmp.copy(p.x<0?cFr:cSal).lerp(cIA,cerca);
+          const lu=borde*(.45+.55*cerca)*(.7+.3*Math.sin(t/300+p.f));fc[i*3]=cTmp.r*lu;fc[i*3+1]=cTmp.g*lu;fc[i*3+2]=cTmp.b*lu;}
+        flujoG.attributes.position.needsUpdate=true;flujoG.attributes.color.needsUpdate=true;}}
+    // pulso de luz al encajar (una vez por encaje; se rearma al volver a separarlas)
+    if(junta>.985&&armado){armado=false;tPulso=t;}if(junta<.7)armado=true;
+    let pf=0;pulsos.forEach((m,i)=>{const q=cl((t-tPulso-i*700)/1100),f=t<tPulso+i*700?0:(1-q)*(1-q);m.visible=f>.002;m.scale.setScalar(1+2.4*q);m.material.opacity=.95*f;pf=Math.max(pf,f*(i?.7:1));});
+    brillo.material.opacity=Math.max(.55*pf,(1-junta)*(.16+.08*Math.sin(t/520)));brillo.visible=brillo.material.opacity>.005;brillo.scale.setScalar(1+.35*(1-junta));
+    // DOCUMENTOS: salen de la unión en el paso 2 y vuelan a la pantalla del ERP en el 3
+    docs.forEach((g,i)=>{const e=tramo(s,.06+i*.1,.62+i*.1),f=tramo(s,1.04+i*.09,1.5+i*.09);g.visible=w>.6&&e>.002&&f<.985;if(!g.visible)return;
+      const tg=TG[i];v3.copy(acople.position);
+      g.position.set(L(v3.x,tg.p.x,e),L(v3.y+.1,tg.p.y,e)+Math.sin(e*Math.PI)*.3,L(0,tg.p.z,e));
+      g.rotation.set(L(-1.25,0,e),L(0,tg.ry,e),L(0,tg.rz,e));let esc=L(.12,1,e);
+      if(f>0){dst.copy(erpUV(300,196+56*i+28)).add(pantalla.position);g.position.lerp(dst,f);g.rotation.y*=1-f;g.rotation.z*=1-f;esc*=L(1,.1,f);}
+      g.scale.setScalar(esc);});
+    // escáner sobre la factura y campos que se encienden a su paso
+    const b=tramo(s,.5,.98),lee=Math.abs(s-1)<.03&&w>.9,fuera=1-tramo(s,1.08,1.3);
+    const hyz=lee?Math.sin(t/1100)*.64:L(.72,-.72,b);haz.position.y=hyz;
+    const hop=((b>0&&b<1)||lee)?fuera:0;hazL.material.opacity=.95*hop;hazH.material.opacity=.16*hop;haz.visible=hop>.01;
+    campos.forEach((c,i)=>{const lit=tramo(s,.5+.48*(.72-c.y)/1.44-.01,.5+.48*(.72-c.y)/1.44+.07)*fuera;c.lit=lit;c.caja.material.opacity=.2*lit;c.lin.material.opacity=lit;c.g.visible=lit>.01;});
+    // PANTALLA del ERP: aparece desde abajo, inclinada, y las filas nuevas se iluminan cuando llega su documento
+    const p3=tramo(s,1.05,1.75);pantalla.visible=p3>.002&&w>.6;pantalla.scale.setScalar(L(.86,1,p3));pantalla.rotation.x=L(-.35,0,p3);
+    marcoM.opacity=pantM.opacity=p3;
+    luzFila.forEach((m,i)=>{m.material.opacity=.3*tramo(s,1.45+i*.09,1.6+i*.09)*(.75+.25*Math.sin(t/700+i))*p3;});
+    // la luz principal sigue a la pieza; a mitad de cada cambio barre el metal y el contraluz se enciende (más al encajar)
+    key.target.position.copy(rig.position);key.position.set(rig.position.x-3+tr*7,rig.position.y+6,4-tr*2);rim.intensity=16+tr*22+pf*40;
     r.render(sc,cam);
-    const co=w>.5?(1-tramo(s,.35,.75))*tramo(w,.5,1):0;
-    if(caja2&&Math.abs(co-cotAnt)>.01){caja2.style.opacity=co.toFixed(2);cotAnt=co;}
-    if(co>.01)etq.forEach((e,i)=>{v3.copy(anc[i]);pieza.localToWorld(v3);v3.project(cam);e.style.transform='translate('+Math.min(W-112,Math.max(8,(v3.x*.5+.5)*W)).toFixed(1)+'px,'+((-v3.y*.5+.5)*H).toFixed(1)+'px)';});
+    // etiquetas de los campos leídos (Proveedor, Fecha, Importe e IVA) pegadas a su recuadro
+    if(caja2&&!caja2._v){caja2._v=1;caja2.style.opacity=1;}
+    // nombres de las piezas: en la cabecera y en el paso 1; se apagan cuando salen los documentos
+    const opz=(1-tramo(s,.2,.55))*en*(listo?1:0);
+    pzs.forEach((e,i)=>{if(Math.abs(opz-(e._o||0))>.01||opz>.01){e._o=opz;e.style.opacity=opz.toFixed(2);}if(opz<.01)return;anclaPz[i]();acople.localToWorld(v3);v3.project(cam);
+      if(!e._w)e._w=e.offsetWidth||80;e.style.transform='translate('+Math.min(W-e._w-8,Math.max(8,(v3.x*.5+.5)*W-e._w/2)).toFixed(1)+'px,'+((-v3.y*.5+.5)*H-(i===1?28:0)).toFixed(1)+'px)';});
+    const ve=w>.6&&s<1.35;etq.forEach(e=>{if(!ve&&e._o!==0){e._o=0;e.style.opacity=0;}});
+    if(ve)etq.forEach((e,i)=>{const c=campos[i];if(!c)return;e._o=c.lit;e.style.opacity=c.lit.toFixed(2);if(c.lit<.01)return;v3.copy(c.ancla);docs[0].localToWorld(v3);v3.project(cam);
+      e.style.transform='translate('+Math.min(W-130,Math.max(8,(v3.x*.5+.5)*W-6)).toFixed(1)+'px,'+((-v3.y*.5+.5)*H-16).toFixed(1)+'px)';});
     if(!listo){listo=true;stage.classList.add('is-ready');}
     pedir();}
-  pedir();
+  // todo se prepara ANTES de enseñarlo (documentos, pantalla, escáner): la gráfica compila mientras la página sigue
+  // respondiendo, y un dibujado de ensayo con el lienzo aún invisible sube ya las geometrías, así no hay tirones a mitad
+  const todos=[...docs,pantalla,haz,flujo,...pulsos,brillo,...campos.map(c=>c.g)];todos.forEach(o=>o.visible=true);[rug,manchaTx,erpTx,...texs].forEach(x=>r.initTexture(x));
+  const arrancar=()=>{try{r.render(sc,cam);}catch(e){}compilado=true;pedir();};
+  (r.compileAsync?r.compileAsync(sc,cam):Promise.resolve(r.compile(sc,cam))).then(arrancar,arrancar);
 }
 </script>
 	<?php
