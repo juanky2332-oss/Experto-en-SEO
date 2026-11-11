@@ -13,6 +13,17 @@ Esta guía manda sobre todo lo que se prepare para Instagram (reels, carruseles,
 - Feed: alternar **reel** y **carrusel**. Nunca dos piezas seguidas con el mismo tema (cobros, presupuestos, gastos, asistente, diagnóstico…). Antes de meter algo en la cola, mirar lo publicado: si ya hay un reel de un tema, el siguiente de ese tema va en otro formato y con otro ángulo.
 - Historias (13:10 del día que toca, `historias()`): el aviso de la publicación nueva + 2 del banco (`n8n/ig-historias.mjs`). Una «pregunta» va siempre seguida de su «respuesta»; las que fallan se reintentan el siguiente día que toque.
 
+## Formato de vídeo: Flash v2 (desde el 08-11-2026, Instagram y TikTok)
+Dicho por el dueño el 07-11: la voz se nota de IA y hay que entrar por los ojos. El 08-11: «más directos, que la voz no parezca robótica, profesional para la venta; nada de “datos de ejemplo”: son vídeos para captar clientes».
+- **Locución de una sola toma** (`FABRICA DE VIDEOS/scripts/flash-voz.mjs`): todo el guion en una llamada (gpt-4o-mini-tts-2025-12-15, voz cedar, locutor de Madrid), pausas recortadas, escenas cortadas donde empieza cada frase (marcas por palabra con whisper) y base musical propia que baja sola cuando habla. Nunca frase a frase: eso es lo que sonaba a robot.
+- 16-20 s. El primer fotograma es la portada: gancho ya montado, a pantalla completa y color fuerte.
+- Termina con la escena de cierre y la llamada «Diagnóstico gratis · transformaconia.com» (en voz y en pantalla).
+- Nada de «datos de ejemplo» ni «cifra de ejemplo» en pantalla ni en los textos. Las pantallas siguen siendo ficticias («Empresa X»), sin decirlo.
+- Formatos: test de sí o no, chat, avisos que se amontonan, contador, móvil con la app. Variar: nunca el mismo dos veces seguidas.
+- Zona segura: nada importante por debajo de y=1480 ni a la derecha de x=930.
+- Guion en `videos/flash/<id>.json` (cada escena con "voz"; " | " marca cuándo entra el siguiente elemento) → `node --env-file=.env.local scripts/flash-voz.mjs videos/flash/<id>.json` → render `Flash` con `--props=public/flash/<id>.props.json` y `--public-dir` a una copia local.
+- TikTok: activar «Contenido generado por IA». La API de Instagram no pone la etiqueta.
+
 ## Aspecto
 - Dos temas, que se **alternan** en la cuadrícula para que tenga ritmo: **oscuro** (`#0b0614` con brillos morados) y **claro** (`#f7f3fd`, tinta `#1b1029`, círculos suaves). Mismo degradado de acento (`#e05cff → #a11cf0 → #5b3cff`), letra Poppins y símbolo de la marca.
 - Portadas de reel: `Portada` de la fábrica con `tema: "claro"` u `"oscuro"`. Carruseles: `"tema"` en el JSON (`scripts/carrusel.mjs`). Historias: la plantilla decide el tema (consejo, respuesta y app en claro; dato y mito en oscuro; pregunta con el degradado).
@@ -74,3 +85,10 @@ La web pasó a un lenguaje realista (fotos de cine de taller, piezas y máquinas
 - **Ubicación «Murcia, España»** en todo lo del feed: la pone sola el servidor (`IG_UBICACION` en `src/lib/redes.ts`).
 - **Seguir y comentar todos los días del plan**: 5 cuentas nuevas de la Región + 3 comentarios. Si no hay lista preparada, el agente del ordenador la busca y la hace (INSTRUCCIONES.md → «Buscar la lista»). Comentar en otras cuentas el mismo día que sale nuestro reel hace que más gente pase por el perfil y lo vea.
 - Las primeras palabras del texto cuentan para el buscador de Instagram: que digan de qué va (taller, presupuestos, pedidos…), no solo un emoji o un «¿Sabías que…?».
+
+## Tuerqui, la mascota (desde el 11-11-2026)
+- Tuerca de cromo con gorra azul de mecánico y ojos violeta. Poses fijas en `FABRICA DE VIDEOS/public/tuerqui/` (agobiado, piensa, senala, celebra, malabares, saluda), generadas con `scripts/tuerqui.mjs` a partir de `referencia.png` (gpt-image-1.5, fondo transparente). Servidas en demo.transformaconia.com/ig/tuerqui/.
+- Reels Flash: primera escena SIEMPRE en tema oscuro con `tuerqui` (pose del problema) = portada uniforme en la cuadrícula; cierre centrado con Tuerqui GRANDE y entero (malabares, que se vean tuerca y herramientas) + botón + firma «Transforma con IA · transformaconia.com» una sola vez. Las escenas de dentro pueden ser de colores.
+- Carruseles: `tuerqui` en la portada (abajo a la derecha) y en el cierre (saluda). Historias: pose automática por plantilla (`/api/ig/historia`).
+- Hashtags en piezas con Tuerqui: oficio · problema · #regiondemurcia · tema · #tuerqui (5 como máximo).
+- Profesional y cercano: nunca hace el payaso con temas serios (impagos, seguridad), nunca habla él en primera persona en los textos.
