@@ -55,6 +55,8 @@ const ICONS = {
 const icon = (n) => `<span class="tc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg></span>`;
 const btn = (href, txt, ghost = false) => `<a class="tc-btn${ghost ? ' tc-btn--ghost' : ''}" href="${href}">${txt} ${ARROW}</a>`;
 const eyebrow = (t) => `<span class="tc-eyebrow">${t}</span>`;
+// Guías del blog enlazadas desde las páginas de servicio (2026-11-11): reparten autoridad hacia los artículos que posicionan
+const guias = (items = []) => items.length ? `<section class="tc-sec tc-sec--tight" id="guias"><div class="tc-wrap">${head('Guías', 'Para seguir leyendo')}<div class="tc-sectores tc-reveal" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${items.map(([t, u, d]) => `<a class="tc-sector" href="${u}">${icon('libro')}<span><b>${t}</b><small>${d}</small></span></a>`).join('')}</div></div></section>` : '';
 const head = (eb, h2, p = '', extra = '') => `<div class="tc-head tc-reveal"><div>${eyebrow(eb)}<h2>${h2}</h2>${p ? `<p>${p}</p>` : ''}</div>${extra}</div>`;
 const sec = (inner, cls = '', id = '') => `<section class="tc-sec ${cls}"${id ? ` id="${id}"` : ''}><div class="tc-wrap">${inner}</div></section>`;
 const list = (items) => `<ul class="tc-list">${items.map((i) => `<li>${i}</li>`).join('')}</ul>`;
@@ -520,6 +522,7 @@ ${planes()}
     ['¿Cumple Verifactu?', 'Verifactu todavía no es obligatorio. Cuando lo sea, adaptaremos el programa y te lo comunicaremos.'],
     ['¿Qué pasa si quiero dejarlo?', 'No hay permanencia. Avisas con 30 días y te llevas tus datos exportados.'],
   ])}</div></section>
+${guias([['ERP para talleres: qué necesita uno pequeño', '/erp-taller-pequeno/', 'Lo imprescindible antes de elegir programa'], ['Coste hora máquina: cómo calcularlo', '/coste-hora-maquina-taller/', 'La base para presupuestar sin perder dinero'], ['Albarán digital y parte de trabajo', '/albaran-digital-parte-trabajo/', 'Firma en el móvil y factura el mismo día'], ['Control de stock de repuestos', '/control-stock-repuestos/', 'Deja de comprar dos veces la misma pieza'], ['Verifactu para pymes industriales', '/verifactu-pymes-industriales/', 'Qué cambia en tu facturación y cuándo']])}
 <div id="contacto-erp">${band('¿Lo vemos con tus trabajos y tus precios?', 'Cuéntanos cómo presupuestáis hoy y te enviamos por escrito cómo quedaría en IndunexIA Gestión, con un ejemplo de tu taller y tu margen.', btn(DEMO_URL, DEMO_TXT) + btn('/contacto/', 'Pide tu diagnóstico gratis', true))}</div>`),
 };
 
@@ -618,7 +621,7 @@ ${[['/contacto/', '📝 Diagnóstico gratis por escrito', 'Nos cuentas cómo tra
 </div></div></section>`),
 };
 
-const servicio = ({ crumb, eb, h1, lead, seo, resumen, que, como, precio, faqs, extra = '' }) => ({
+const servicio = ({ crumb, eb, h1, lead, seo, resumen, que, como, precio, faqs, extra = '', guiasL = [] }) => ({
   title: crumb, seo,
   html: page(`${pagehead(`<a href="/soluciones/">Soluciones</a><span aria-hidden="true">/</span><span>${crumb}</span>`, eb, h1, lead, btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('En resumen', resumen))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap">${head('Qué resolvemos', que[0], que[1])}<div class="tc-grid tc-grid--3">${que[2].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
@@ -626,10 +629,12 @@ ${extra}
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Cómo trabajamos', como)}${PASOS}</div></section>
 <section class="tc-sec"><div class="tc-wrap tc-split tc-split--center"><div class="tc-prose tc-reveal">${eyebrow('Precio orientativo')}<h2>${precio[0]}</h2><p>${precio[1]}</p></div><div class="tc-box tc-reveal"><p class="tc-price" style="border:0;padding:0;margin:0">${/medida/.test(precio[2]) ? '' : '<span>Orientativo</span> '}${precio[2]}</p><p>${/medida/.test(precio[2]) ? 'Cada web es distinta: te enviamos un presupuesto cerrado adaptado a tus objetivos y requisitos.' : 'Precio de referencia. Tras el diagnóstico gratuito recibes un presupuesto cerrado.'}</p><div>${btn('/contacto/', 'Quiero un presupuesto')}</div></div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Dudas habituales')}${faq(faqs)}</div></section>
+${guias(guiasL)}
 ${band('¿Lo vemos aplicado a tu empresa?', 'Te decimos por escrito si tiene sentido en tu caso y cuánto costaría. Gratis.')}`),
 });
 
 P['automatizacion-procesos-ia'] = servicio({
+  guiasL: [['Automatizar facturas de proveedores', '/automatizar-facturas-proveedores/', 'Del correo al ERP: qué se lee, qué se revisa y cuánto cuesta'], ['Albarán digital y parte de trabajo', '/albaran-digital-parte-trabajo/', 'Firma en el móvil y factura el mismo día'], ['Pagos y cobros automáticos con IA', '/pagos-automaticos-facturas-ia/', 'Compras y cobros sin perseguir papeles']],
   crumb: 'Automatización de procesos', eb: 'Automatización de procesos con IA',
   h1: 'Automatización de procesos para que tu equipo deje de copiar y pegar',
   lead: 'Conectamos tu correo, tu ERP, tus hojas de cálculo y tus documentos para que pedidos, albaranes, facturas y avisos se muevan solos, con IA donde hace falta leer, clasificar o redactar.',
@@ -682,7 +687,7 @@ ${band('¿Quieres uno así para tu empresa?', 'Cuéntanos qué te preguntan tus 
 let CAPT = {};
 try { CAPT = JSON.parse(fs.readFileSync(new URL('./web-capturas-productos.json', import.meta.url), 'utf8')); } catch {}
 const planesApp = (lista, sufijo) => `<div class="tc-planes">${lista.map((p) => `<article class="tc-plan${p.top ? ' tc-plan--top' : ''} tc-reveal">${p.top ? '<span class="tc-plan__tag">El más elegido</span>' : ''}<h3>${p.nombre}</h3><p class="tc-plan__para">${p.para}</p><p class="tc-plan__precio"><b>${p.mes} €</b><small>al mes · ${sufijo}</small></p>${list(p.incluye)}</article>`).join('')}</div>`;
-const producto = ({ slug, crumb, eb, h1, lead, seo, resumen, capturas = [], pasos, hace, planes, sufijo, puesta, notaPrecio, faqs, ejemplo, schema }) => ({
+const producto = ({ slug, crumb, eb, h1, lead, seo, resumen, capturas = [], pasos, hace, planes, sufijo, puesta, notaPrecio, faqs, ejemplo, schema, guiasL = [] }) => ({
   title: crumb, seo,
   html: page(`${pagehead(`<a href="/soluciones/">Soluciones</a><span aria-hidden="true">/</span><span>${crumb}</span>`, eb, h1, lead, btn('/contacto/', 'Pide tu diagnóstico gratis') + (ejemplo ? btn(ejemplo[0], ejemplo[1], true) : btn('/soluciones/#familia', 'Ver la familia IndunexIA', true)), facts('En resumen', resumen))}
 ${capturas.filter(([k]) => CAPT[k]).length ? sec(shots(capturas.filter(([k]) => CAPT[k]).map(([k, alt, cap]) => [CAPT[k], alt, cap])), 'tc-sec--tight') : ''}
@@ -690,11 +695,13 @@ ${capturas.filter(([k]) => CAPT[k]).length ? sec(shots(capturas.filter(([k]) => 
 <section class="tc-sec"><div class="tc-wrap">${head('Qué incluye', hace[0], hace[1])}<div class="tc-grid tc-grid--3">${hace[2].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt" id="precio"><div class="tc-wrap">${head('Precios', 'Planes sin permanencia', `Precios sin IVA. Puesta en marcha desde ${puesta} € (lo dejamos configurado contigo). ${notaPrecio}`)}${planesApp(planes, sufijo)}</div></section>
 <section class="tc-sec"><div class="tc-wrap">${head('Preguntas frecuentes', 'Dudas habituales')}${faq(faqs)}</div></section>
+${guias(guiasL)}
 ${band('¿Lo vemos con tus documentos?', 'Te decimos por escrito si encaja en tu empresa y cuánto costaría. Gratis.')}
 <script type="application/ld+json">${JSON.stringify(schema)}</script>`),
 });
 
 P['presupuestos-desde-plano'] = producto({
+  guiasL: [['Coste hora máquina: cómo calcularlo', '/coste-hora-maquina-taller/', 'La base para presupuestar sin perder dinero'], ['ERP para talleres: qué necesita uno pequeño', '/erp-taller-pequeno/', 'Lo imprescindible antes de elegir programa']],
   slug: 'presupuestos-desde-plano', crumb: 'IndunexIA Presupuestos', eb: 'IndunexIA Presupuestos · de la familia IndunexIA',
   h1: 'Presupuestos desde un plano o una foto, con tus tarifas, en un minuto',
   lead: 'Subes el plano, el croquis o una foto con medidas. La IA mide piezas, kilos, cortes, soldaduras y horas; el programa aplica tus precios y tu cliente acepta con un enlace.',
@@ -749,6 +756,7 @@ const _servicioDocumentalAntiguo = servicio({
 });
 
 P['gestion-documental-ia'] = producto({
+  guiasL: [['Automatizar facturas de proveedores', '/automatizar-facturas-proveedores/', 'Del correo al ERP: qué se lee, qué se revisa y cuánto cuesta'], ['Verifactu para pymes industriales', '/verifactu-pymes-industriales/', 'Qué cambia en tu facturación y cuándo'], ['Pagos y cobros automáticos con IA', '/pagos-automaticos-facturas-ia/', 'Compras y cobros sin perseguir papeles']],
   slug: 'gestion-documental-ia', crumb: 'IndunexIA Documentos', eb: 'IndunexIA Documentos · gestión documental con IA',
   h1: 'Gestión documental con IA: facturas y albaranes ordenados solos en tu carpeta',
   lead: 'Haz una foto o sube el PDF. La IA lee la factura, el ticket o el albarán, comprueba las cuentas y el CIF, avisa de duplicados y lo guarda en la carpeta de tu ordenador con su nombre. Adiós al archivador.',
@@ -908,6 +916,7 @@ P['consultor-ia-murcia'] = {
     ['¿Trabajáis con empresas de fuera de la región?', 'Sí, con empresas de toda España en remoto: diagnóstico por escrito y puesta en marcha a distancia.'],
     ['¿Cuánto cuesta empezar?', 'El diagnóstico es gratis. Como referencia orientativa, una automatización parte de 450 € + IVA, el ERP para la industria desde 590 € de puesta en marcha y 59 €/mes, y un asistente técnico desde 900 €.'],
   ])}</div></section>
+${guias([['Cómo implantar IA en una pyme industrial de Murcia', '/consultoria-ia-murcia-industria/', 'Por dónde empezar y cómo elegir proveedor'], ['Kit Consulting de inteligencia artificial', '/kit-consulting-ia/', 'Ayudas para la consultoría de IA y su estado']])}
 ${band('¿Eres de la Región de Murcia?', 'Escríbenos y pasamos por tu empresa a ver qué se puede automatizar.')}`),
 };
 
