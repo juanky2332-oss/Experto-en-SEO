@@ -31,7 +31,7 @@ const PAGINAS = {
   '/automatizacion-industria-alcantarilla/': 'Automatización e IA para la industria en Alcantarilla',
   '/automatizacion-industria-elche/': 'Automatización e IA para la industria en Elche',
   '/automatizacion-industria-albacete/': 'Automatización e IA para la industria en Albacete',
-  '/contacto/': 'Contacto y reserva del diagnóstico gratis (usar https://transformaconia.com/contacto/#reserva como CTA)',
+  '/contacto/': 'Contacto y diagnóstico gratis por escrito en 48 horas laborables (usar https://transformaconia.com/contacto/ como CTA; nunca «reservar» ni «llamada»)',
 };
 
 const ID = process.argv[2] || 'rzxO46Wfc2eJcD7x';
