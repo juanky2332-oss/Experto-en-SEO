@@ -79,3 +79,11 @@ test("aprender: vida media de 60 días y tope ±15", () => {
   const muchos = calcularPesos(Array.from({ length: 20 }, () => ({ created_at: new Date(ahora), voto: "mas_como_esto" as const, pilar: "Calidad", destino: null, tipo: null, fuente: null, tokens: [] })), ahora);
   assert.equal(muchos.pilar["Calidad"], 15);
 });
+
+test("mapa de palabras clave: cada búsqueda tiene su página dueña", async () => {
+  const { duenaDe } = await import("./mapa.ts");
+  assert.equal(duenaDe("consultoria ia murcia"), "/");
+  assert.equal(duenaDe("automatizar facturas de proveedores"), "/automatizar-facturas-proveedores/");
+  assert.equal(duenaDe("erp para talleres de mecanizado"), "/erp-industria/");
+  assert.equal(duenaDe("polígonos industriales de murcia"), null);
+});

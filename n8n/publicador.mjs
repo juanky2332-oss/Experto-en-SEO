@@ -445,6 +445,10 @@ let sw = String(a.slug || a.focus_keyword || '').toLowerCase().normalize('NFD').
 const sinStop = sw.filter(w => !STOP.has(w));
 if (sinStop.length >= 2) sw = sinStop;
 a.slug = sw.slice(0, 5).join('-').slice(0, 50).replace(/-$/, '');
+// el slug no puede coincidir con el de una página ni con otro artículo: la página taparía al post (pasó con 7830 y 7813, 11-11-2026)
+{ const ocupados = new Set([...((Array.isArray($('Paginas').first().json.body) ? $('Paginas').first().json.body : []).map(p => String(p.link || '').split('/').filter(Boolean).pop())),
+    ...((Array.isArray($('Inventario enlaces').first().json.body) ? $('Inventario enlaces').first().json.body : []).map(p => String(p.link || '').split('/').filter(Boolean).pop()))]);
+  if (ocupados.has(a.slug)) { const base = a.slug.split('-').slice(0, 4).join('-'); let n = 2; while (ocupados.has(base + '-guia' + (n > 2 ? '-' + n : ''))) n++; a.slug = base + '-guia' + (n > 2 ? '-' + n : ''); } }
 // categoría: la pista manda; los slugs viejos se traducen
 a.categoria = CAT_VIEJAS[a.categoria] || a.categoria;
 if (b.pista && CATS_OK.includes(b.categoria)) a.categoria = b.categoria;

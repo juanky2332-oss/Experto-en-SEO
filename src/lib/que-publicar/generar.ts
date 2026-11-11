@@ -8,6 +8,7 @@ import { recogerSenales, type Senales } from "./senales";
 import { DESTINOS, SENALES, motivoDescarte, puntuar, mismoTema, tokens, PESOS_VACIOS, type Candidato, type Contexto, type PorQue, type Pesos } from "./prioridad";
 import { calcularPesos, type Feedback } from "./aprender";
 import { mismaConsulta, redondea } from "./gsc-senal";
+import { duenaDe } from "./mapa";
 
 // Tarifa aproximada de gpt-5.4-mini (USD por millón de tokens) para mostrar el coste; revisar si cambia.
 const PRECIO = { entrada: 0.75, cacheada: 0.075, salida: 4.5 };
@@ -181,7 +182,7 @@ export async function generarQuePublicar(o: { origin: Origen; forzar?: boolean }
   const [[cacheRow], pesos, previas] = await Promise.all([
     sql<{ value: Cache }[]>`select value from seo.settings where key = 'qp_cache'`,
     recalcularPesos().catch(() => PESOS_VACIOS),
-    sql<{ keyword: string; estado: string }[]>`select keyword, estado from seo.qp_recs where estado <> 'abierta'`,
+    sql<{ keyword: string; estado: string }[]>`select keyword, case when lote like 'ruta-%' and estado = 'abierta' then 'interesa' else estado end estado from seo.qp_recs where estado <> 'abierta' or lote like 'ruta-%'`,
   ]);
   const hash = huella(s);
   let candidatos: Candidato[];
@@ -209,6 +210,12 @@ export async function generarQuePublicar(o: { origin: Origen; forzar?: boolean }
   const validos: (Candidato & { prioridad: number })[] = [];
   for (const bruto of candidatos) {
     const c = validar(bruto, s, rutas);
+    // una búsqueda, una URL: si ya tiene página dueña, solo se puede ampliar esa página (nunca un artículo que compita)
+    const duena = duenaDe(c.keyword);
+    if (duena) {
+      if (c.destino === "articulo") { descartados.push({ titulo: c.titulo, motivo: `ya tiene su página: ${duena}` }); continue; }
+      c.destino_ref = duena;
+    }
     const motivo = motivoDescarte(c)
       ?? (s.radarCfg.excluir.find((e) => normalizar(`${c.titulo} ${c.keyword}`).includes(normalizar(e))) ? "tema en contra" : null)
       ?? (previas.find((p) => ["descartada", "publicada", "interesa", "saltada", "en_brief"].includes(p.estado) && mismoTema(c.keyword, p.keyword)) ? "ya votada antes" : null)
@@ -225,7 +232,7 @@ export async function generarQuePublicar(o: { origin: Origen; forzar?: boolean }
   // En una transacción y con un candado: si coinciden el cron del lunes y un clic, no se duplica ni queda a medias.
   await sql.begin(async (tx) => {
     await tx`select pg_advisory_xact_lock(4242001)`;
-    await tx`delete from seo.qp_recs where estado = 'abierta' and id not in (select rec_id from seo.qp_feedback where rec_id is not null)`;
+    await tx`delete from seo.qp_recs where estado = 'abierta' and lote not like 'ruta-%' and id not in (select rec_id from seo.qp_feedback where rec_id is not null)`; // la ruta editorial no se borra
     // Sin fecha: no se programa nada para más adelante (se publica cuando él lo decide, 24-10-2026).
     for (const v of validos) {
       await tx`insert into seo.qp_recs (lote, titulo, keyword, secundarias, intencion, publico, pilar, tipo, destino, destino_ref, enlaces, cta, por_que, esfuerzo, prioridad, radar_id, fecha_plan)

@@ -50,7 +50,7 @@ export async function ideaActual(): Promise<Idea | null> {
 export async function otrasIdeas(salvo: number | string): Promise<Otra[]> {
   const f = await sql<{ id: number; titulo: string; keyword: string; pilar: string | null; radar_id: number | null }[]>`
     select id, titulo, keyword, pilar, radar_id from seo.qp_recs where estado = 'abierta' and destino = 'articulo' and id <> ${String(salvo)}::bigint
-    order by prioridad desc, id limit 5`;
+    order by (lote like 'ruta-%') desc, fecha_plan nulls last, prioridad desc, id limit 5`;
   return f.map((x) => ({ id: Number(x.id), titulo: x.titulo, keyword: x.keyword, pilar: x.pilar, noticia: !!x.radar_id }));
 }
 
@@ -80,8 +80,9 @@ export async function asegurarNoticias(): Promise<"recientes" | "buscadas" | "si
 }
 
 const candidata = async (saltar: (number | string)[]) =>
+  // primero la RUTA editorial (lote «ruta-…», en su orden de fecha_plan); después lo que proponga el estratega
   (await sql<{ id: string }[]>`select id from seo.qp_recs where estado = 'abierta' and destino = 'articulo'
-    and not (id = any(${saltar.map(String)}::bigint[])) order by prioridad desc, id limit 1`)[0]?.id ?? null;
+    and not (id = any(${saltar.map(String)}::bigint[])) order by (lote like 'ruta-%') desc, fecha_plan nulls last, prioridad desc, id limit 1`)[0]?.id ?? null;
 
 /**
  * Una idea nueva para publicar ya, y su brief en marcha (llega a Telegram y al panel en ~1 minuto).
