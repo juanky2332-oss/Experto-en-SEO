@@ -2,13 +2,13 @@ import "server-only";
 import { SignJWT, importPKCS8 } from "jose";
 import { sql } from "./db";
 
-// Google Search Console (solo lectura) con cuenta de servicio. Sin GSC_CLIENT_EMAIL / GSC_PRIVATE_KEY / GSC_SITE
+// Google Search Console con cuenta de servicio (permiso completo desde 11-11-2026: lectura, envío de sitemaps e inspección). Sin GSC_CLIENT_EMAIL / GSC_PRIVATE_KEY / GSC_SITE
 // todo devuelve null y nada se rompe. La clave nunca se escribe en el repositorio (solo variables de entorno).
 
 export type FilaGsc = { pagina: string; consulta: string; clics: number; impresiones: number; ctr: number; posicion: number };
 export type FotoGsc = { fecha: string; desde: string; consultas: FilaGsc[]; paginas: FilaGsc[] };
 
-const SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
+const SCOPE = "https://www.googleapis.com/auth/webmasters";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 let cache: { token: string; caduca: number } | null = null;
@@ -92,4 +92,51 @@ export async function ultimaGsc(): Promise<ResumenGsc | null> {
   const paginas = rows.filter((r) => r.consulta === "");
   const consultas = rows.filter((r) => r.consulta !== "");
   return { fecha: u.fecha, consultas, paginas, clics: paginas.reduce((a, r) => a + r.clics, 0), impresiones: paginas.reduce((a, r) => a + r.impresiones, 0) };
+}
+
+// ---------------------------------------------------------------- indexación (11-11-2026)
+export type EstadoIndex = { estado: string; indexada: boolean; desde: string; rastreo: string | null };
+const SITEMAP = "https://transformaconia.com/sitemap_index.xml";
+
+/** Reenvía el mapa del sitio (Google lo vuelve a leer y descubre lo nuevo). */
+export async function enviarSitemap(): Promise<boolean> {
+  const t = await token();
+  if (!t) return false;
+  const r = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(process.env.GSC_SITE!)}/sitemaps/${encodeURIComponent(SITEMAP)}`, { method: "PUT", headers: { authorization: `Bearer ${t}` } });
+  return r.ok;
+}
+
+/**
+ * Inspecciona las URL clave y guarda desde cuándo está cada una sin indexar (seo.settings.indexacion).
+ * Devuelve las que llevan 7 días o más fuera de Google (las noindex a propósito no cuentan).
+ */
+export async function vigilarIndexacion(urls: string[]): Promise<{ revisadas: number; fuera: { url: string; estado: string; dias: number }[] }> {
+  const t = await token();
+  if (!t) return { revisadas: 0, fuera: [] };
+  const [fila] = await sql<{ value: Record<string, EstadoIndex> }[]>`select value from seo.settings where key = 'indexacion'`;
+  const antes = fila?.value ?? {};
+  const ahora: Record<string, EstadoIndex> = {};
+  const hoy = dia(new Date());
+  for (const url of [...new Set(urls)].slice(0, 120)) {
+    try {
+      const r = await fetch("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect", {
+        method: "POST", headers: { authorization: `Bearer ${t}`, "content-type": "application/json" },
+        body: JSON.stringify({ inspectionUrl: url, siteUrl: process.env.GSC_SITE, languageCode: "es" }),
+      });
+      if (!r.ok) continue;
+      const s = ((await r.json()) as { inspectionResult?: { indexStatusResult?: { verdict?: string; coverageState?: string; indexingState?: string; lastCrawlTime?: string } } }).inspectionResult?.indexStatusResult ?? {};
+      if (s.indexingState === "BLOCKED_BY_META_TAG" || s.indexingState === "BLOCKED_BY_ROBOTS_TXT") continue; // fuera a propósito
+      const indexada = s.verdict === "PASS";
+      const previo = antes[url];
+      ahora[url] = { estado: s.coverageState ?? "desconocido", indexada, desde: indexada ? hoy : previo && !previo.indexada ? previo.desde : hoy, rastreo: s.lastCrawlTime ?? null };
+    } catch (e) {
+      console.error("inspección", url, e);
+    }
+  }
+  await sql`insert into seo.settings (key, value) values ('indexacion', ${sql.json({ ...antes, ...ahora } as never)})
+    on conflict (key) do update set value = excluded.value, updated_at = now()`;
+  const fuera = Object.entries(ahora).filter(([, e]) => !e.indexada)
+    .map(([url, e]) => ({ url, estado: e.estado, dias: Math.round((Date.parse(hoy) - Date.parse(e.desde)) / 864e5) }))
+    .filter((x) => x.dias >= 7);
+  return { revisadas: Object.keys(ahora).length, fuera };
 }

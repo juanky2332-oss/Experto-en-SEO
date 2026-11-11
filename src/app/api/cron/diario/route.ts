@@ -3,7 +3,8 @@ import { mismaClave } from "@/lib/sesion";
 import { inventario, guardarFoto } from "@/lib/seo/inventario";
 import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
-import { guardarGsc, ultimaGsc } from "@/lib/gsc";
+import { guardarGsc, ultimaGsc, enviarSitemap, vigilarIndexacion } from "@/lib/gsc";
+import { MAPA_KEYWORDS } from "@/lib/que-publicar/mapa";
 import { compartirNuevos, renovarToken } from "@/lib/redes";
 import { getRitmo, guardarRitmo, toca } from "@/lib/ritmo";
 import { darIdea, ideaActual } from "@/lib/que-publicar/idea";
@@ -80,6 +81,28 @@ export async function GET(req: NextRequest) {
       console.error("idea", e);
     }
   }
+  // Indexación (permiso completo en Search Console desde 11-11-2026): el día del ritmo se reenvía el mapa del sitio
+  // y se revisan las páginas que venden y los artículos publicados; aviso solo si alguna lleva 7+ días fuera de Google.
+  let indexacion: { revisadas: number; fuera: number } | null = null;
+  if (tocaHoy && !ritmo.pausas.seo) {
+    try {
+      await enviarSitemap();
+      const SITE = "https://transformaconia.com";
+      const urls = [...MAPA_KEYWORDS.map((e) => SITE + e.url), ...inv.posts.filter((p) => p.status === "publish").map((p) => p.link)];
+      const v = await vigilarIndexacion(urls);
+      indexacion = { revisadas: v.revisadas, fuera: v.fuera.length };
+      const [aviso] = await sql<{ value: { urls: string[] } }[]>`select value from seo.settings where key = 'indexacion_aviso'`;
+      const nuevas = v.fuera.filter((x) => !(aviso?.value?.urls ?? []).includes(x.url));
+      if (nuevas.length) {
+        const lineas = nuevas.slice(0, 8).map((x) => `• ${esc(x.url.replace(SITE, ""))} — ${esc(x.estado)} (${x.dias} días)`).join("\n");
+        await telegram(`🔎 <b>Páginas que Google no está indexando</b> (7 días o más)\n${lineas}\n\nLas reviso y te digo qué hago.`);
+      }
+      await sql`insert into seo.settings (key, value) values ('indexacion_aviso', ${sql.json({ urls: v.fuera.map((x) => x.url) } as never)})
+        on conflict (key) do update set value = excluded.value, updated_at = now()`;
+    } catch (e) {
+      console.error("indexacion", e);
+    }
+  }
   // Ya no hay plan semanal ni lote automático de «Qué publicar» (24-10-2026): las ideas se piden
   // cuando él quiere («Dame una idea») y se publican en ese momento.
   // Noticias nuevas del blog → propuesta por Telegram para subirlas a Instagram (publicación + historia)
@@ -95,5 +118,5 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     console.error("ig_token", e);
   }
-  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidasDia.length, gsc, redes, toca: tocaHoy, informe, idea });
+  return NextResponse.json({ ok: true, salud: inv.salud, caidas: caidasDia.length, gsc, redes, toca: tocaHoy, informe, idea, indexacion });
 }
