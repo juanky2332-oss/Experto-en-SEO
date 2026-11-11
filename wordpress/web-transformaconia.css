@@ -387,6 +387,7 @@ html.tc-js .tc-grid>.tc-reveal:nth-child(n+7){--tc-dl:.28s}
 .tc-footer a:hover{color:var(--tc-m2)!important}
 .tc-footer__top{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:40px;padding-block:64px 48px}
 .tc-footer h3{line-height:1.3;font-family:var(--tc-display);font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--tc-fg)!important;margin:0 0 16px}
+.tc-footer ul+h3{margin-top:30px}
 .tc-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
 .tc-footer__brand{display:grid;gap:16px;align-content:start}
 .tc-footer__brand img{width:220px;height:auto}

@@ -10,7 +10,7 @@ import { sql } from "@/lib/db";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-type Datos = { plantilla: string; etiqueta?: string; titulo: string; texto?: string; cifra?: string; nota?: string; img?: string; reel?: string };
+type Datos = { plantilla: string; etiqueta?: string; titulo: string; texto?: string; cifra?: string; nota?: string; img?: string; reel?: string; tuerqui?: string | false };
 
 const ICONO = "https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png";
 const W = 1080, H = 1920;
@@ -18,6 +18,20 @@ const C = {
   fondo: "#0b0614", rosa: "#e05cff", morado: "#a11cf0", indigo: "#5b3cff", suave: "#cfc3dc",
   claro: "#f7f3fd", tinta: "#1b1029", gris: "#5b4a6e", borde: "#e6dcf5",
 };
+// 11-11-2026: Tuerqui, la mascota (poses en demo.transformaconia.com/ig/tuerqui/). Pose según la plantilla; datos.tuerqui la cambia y false la quita.
+const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa" };
+const POSES = new Set(["agobiado", "celebra", "piensa", "malabares", "senala", "saluda"]);
+// La mascota es decoración: si no llega, la historia sale igual (nunca un 500 por ella)
+async function pngDataUrl(url: string, ancho: number) {
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return null;
+    const buf = await sharp(Buffer.from(await r.arrayBuffer())).resize(ancho).png().toBuffer();
+    return `data:image/png;base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 const DEGRADADO = "linear-gradient(135deg, #e05cff 0%, #a11cf0 50%, #5b3cff 100%)";
 
 const fuentes = new Map<number, ArrayBuffer>();
@@ -66,10 +80,13 @@ export async function GET(req: Request) {
     const [r] = await sql<{ portada_url: string | null }[]>`select portada_url from seo.ig_cola where id = ${d.reel}`;
     if (r?.portada_url) portadaReel = await aDataUrl(r.portada_url, 640, 1138);
   }
-  const [icono, captura, f800, f600, f500] = await Promise.all([
+  const cand = d.tuerqui === false ? null : (d.tuerqui || TUERQUI[d.plantilla] || null);
+  const pose = cand && POSES.has(cand) ? cand : null;
+  const [icono, captura, f800, f600, f500, mascota] = await Promise.all([
     aDataUrl(ICONO, 96, 96),
     d.plantilla === "app" && d.img ? aDataUrl(d.img, 620, 1342) : Promise.resolve(null),
     poppins(800), poppins(600), poppins(500),
+    pose ? pngDataUrl(`https://demo.transformaconia.com/ig/tuerqui/${pose}.png`, 480) : Promise.resolve(null),
   ]);
 
   const tinta = claro ? C.tinta : "#fff";
@@ -160,7 +177,10 @@ export async function GET(req: Request) {
         {claro ? <div style={{ position: "absolute", top: -260, right: -260, width: 640, height: 640, borderRadius: 320, display: "flex", background: "rgba(224,92,255,0.14)" }} /> : null}
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "200px 80px 230px" }}>
           <Marca icono={icono} claro={claro} blanco={degradado} />
-          <div style={{ display: "flex", flexDirection: "column" }}>{cuerpo}</div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {cuerpo}
+            {mascota ? <img src={mascota} width={440} height={440} style={{ width: 440, height: 440, marginTop: 10, alignSelf: d.plantilla === "pregunta" ? "center" : "flex-end" }} /> : null}
+          </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 30, fontWeight: 500, color: suave }}>
             <span>{d.nota && !claro ? d.nota : "transformaconia.com"}</span>
             <span style={{ color: tinta, fontWeight: 600 }}>{d.plantilla === "pregunta" ? "" : "@transformaconia.oficial"}</span>

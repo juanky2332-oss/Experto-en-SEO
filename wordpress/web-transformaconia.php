@@ -254,8 +254,10 @@ if ( ! function_exists( 'tc_css_enlace' ) ) {
 		$fn  = $dir . '/tc-web-' . TC_CSS_VER . '.css';
 		if ( ! file_exists( $fn ) && wp_mkdir_p( $dir ) ) {
 			@file_put_contents( $fn, tc_css_texto() );
+			// 11-11-2026: los CSS viejos se conservan 30 días. Antes se borraban al momento y las páginas que la
+			// caché seguía sirviendo (p. ej. /contacto/) pedían un CSS que ya no existía: salían sin diseño.
 			foreach ( (array) glob( $dir . '/tc-web-*.css' ) as $viejo ) {
-				if ( $viejo !== $fn ) {
+				if ( $viejo !== $fn && @filemtime( $viejo ) < time() - 30 * DAY_IN_SECONDS ) {
 					@unlink( $viejo );
 				}
 			}
@@ -282,7 +284,7 @@ add_action( 'wp_footer', function () {
 (function(){
   // aparición al hacer scroll
   var rv=document.querySelectorAll('.tc-reveal');
-  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:.08});rv.forEach(function(el){io.observe(el);});}
+  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -5% 0px',threshold:0});rv.forEach(function(el){io.observe(el);});}
   else rv.forEach(function(el){el.classList.add('is-in');});
   document.addEventListener('pointermove',function(e){var b=e.target.closest&&e.target.closest('.tc-box');if(!b)return;var r=b.getBoundingClientRect();b.style.setProperty('--mx',(e.clientX-r.left)+'px');b.style.setProperty('--my',(e.clientY-r.top)+'px');},{passive:true});
   // medición propia sin cookies ni IP: visita, clics en botones de contacto y contactos enviados
