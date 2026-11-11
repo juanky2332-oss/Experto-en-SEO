@@ -553,7 +553,12 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 		'sameAs'      => array( 'https://www.instagram.com/transformaconia.oficial/' ),
 		'description' => 'Consultoría de inteligencia artificial y automatización de procesos especializada en la industria, con base en Murcia: ERP para la industria (talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria e hidráulica), asistentes técnicos de catálogo, las apps IndunexIA Presupuestos (presupuestos desde plano) e IndunexIA Documentos (gestión documental con IA), automatizaciones y mejoras sobre SAP o cualquier ERP para empresas de toda España.',
 		'address'     => array( '@type' => 'PostalAddress', 'addressLocality' => 'Murcia', 'addressRegion' => 'Región de Murcia', 'addressCountry' => 'ES' ),
-		'areaServed'  => array( '@type' => 'Country', 'name' => 'España' ),
+		'areaServed'  => array(
+			array( '@type' => 'AdministrativeArea', 'name' => 'Región de Murcia' ),
+			array( '@type' => 'AdministrativeArea', 'name' => 'Provincia de Alicante' ),
+			array( '@type' => 'AdministrativeArea', 'name' => 'Provincia de Albacete' ),
+			array( '@type' => 'Country', 'name' => 'España' ),
+		),
 		'priceRange'  => '€€',
 		'knowsAbout'  => array( 'Automatización de procesos industriales', 'Inteligencia artificial', 'ERP para la industria', 'Talleres de mecanizado', 'Calderería', 'Carpintería metálica', 'Reparación de maquinaria industrial', 'Hidráulica y neumática', 'Distribución industrial', 'Gestión documental', 'SAP', 'Asistentes de IA' ),
 		'hasOfferCatalog' => array(

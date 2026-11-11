@@ -383,9 +383,22 @@ const FOTOS_SOL = { erp: 'sol-gestion', flujo: 'sol-procesos', doc: 'sol-documen
 const FOTO_SOL = `<section class="tc-sec tc-sec--fotos" id="soluciones"><div class="tc-wrap">${head('Soluciones', 'Soluciones de IA para la industria', 'Desde una automatización concreta hasta un programa de gestión completo. Cada solución tiene su página, con ejemplos y precios orientativos.', '<a class="tc-link" href="/soluciones/">Todas las soluciones y precios</a>')}
 <div class="tc-grid tc-grid--3">${SOL_HOME.map(([i, t, p, u, l]) => `<a class="tc-fsol tc-reveal" href="${u}"><img src="https://demo.transformaconia.com/web/portada/${FOTOS_SOL[i]}.webp" alt="" width="720" height="720" loading="lazy" decoding="async"><span class="tc-fsol__txt"><h3>${t}</h3><span>${p}</span><span class="tc-link">${l}</span></span></a>`).join('')}</div></div></section>`;
 
+// Señal local en la portada (2026-11-11): zonas con página propia, enlazadas desde la portada
+const ZONAS = [
+  ['Murcia y toda la región', '/consultor-ia-murcia/', 'Nuestra base · visita en tu empresa'],
+  ['Cartagena', '/automatizacion-industria-cartagena/', 'Talleres, contratas y calderería'],
+  ['Molina de Segura', '/automatizacion-industria-molina-de-segura/', 'Alimentación, envase y distribución'],
+  ['Lorca', '/automatizacion-industria-lorca/', 'Cárnico, agroindustria y maquinaria'],
+  ['Alcantarilla', '/automatizacion-industria-alcantarilla/', 'Distribución, almacén y talleres'],
+  ['Elche', '/automatizacion-industria-elche/', 'Calzado e industria auxiliar'],
+  ['Albacete', '/automatizacion-industria-albacete/', 'Cuchillería y maquinaria agrícola'],
+];
+const ZONAS_HOME = `<section class="tc-sec tc-sec--tight" id="donde-trabajamos"><div class="tc-wrap">${head('Dónde trabajamos', 'IA para talleres e industria de la Región de Murcia', 'En la Región de Murcia vamos a tu taller o nave; con el resto de España trabajamos en remoto.', '<a class="tc-link" href="/consultor-ia-murcia/">Automatización industrial en Murcia</a>')}
+<div class="tc-sectores tc-reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${ZONAS.map(([t, u, d]) => `<a class="tc-sector" href="${u}">${icon('mapa')}<span><b>${t}</b><small>${d}</small></span></a>`).join('')}</div></div></section>`;
+
 P['transforma-con-ia'] = {
   id: 5851, title: 'Transforma con IA',
-  seo: ['Consultoría de IA industrial | Transforma con IA', 'Consultoría de IA industrial en Murcia y toda España: ERP para la industria, automatización de pedidos, albaranes y facturas, y asistentes técnicos.', 'consultoría de IA industrial'],
+  seo: ['Consultoría de IA en Murcia para talleres e industria', 'IA y automatización para talleres y empresas industriales de la Región de Murcia y toda España: ERP, presupuestos desde plano y facturas sin teclear.', 'consultoría IA Murcia'],
   html: page(`
 <div class="tc-3dz"><div class="tc-3dz__layer" aria-hidden="true"><div class="tc-3dz__pin">
 <img class="tc-foto" loading="lazy" src="https://demo.transformaconia.com/web/portada/hero-1920.webp" srcset="https://demo.transformaconia.com/web/portada/hero-960.webp 960w, https://demo.transformaconia.com/web/portada/hero-1920.webp 1920w" sizes="100vw" alt="" style="object-position:72% 50%" decoding="async">
@@ -395,7 +408,7 @@ P['transforma-con-ia'] = {
 <header class="tc-hero tc-hero--home tc-hero--c">${DECO('a')}<div class="tc-wrap"><div class="tc-hero__copy">
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
-  <p class="tc-lead">Quitamos el trabajo repetitivo de tu empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP.<span class="tc-lead__mas"> Presencial en la Región de Murcia y en remoto en toda España.</span></p>
+  <p class="tc-lead">Quitamos el trabajo repetitivo de tu taller o empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP.<span class="tc-lead__mas"> Presencial en la Región de Murcia y en remoto en toda España.</span></p>
   <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${DOC_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
   <ul class="tc-proof"><li><span><b>Diagnóstico por escrito</b> en 48&nbsp;h · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
@@ -425,6 +438,8 @@ ${DEMOS_HOME}
 ${FOTO_SOL}
 
 ${calcu('Antes de hablar con nosotros, haz la cuenta')}
+
+${ZONAS_HOME}
 
 <section class="tc-sec tc-sec--alt" id="como-trabajamos"><div class="tc-wrap">${head('Cómo trabajamos', 'Cómo trabajamos: del diagnóstico por escrito a funcionando, sin pagar a ciegas', 'Todo empieza con un diagnóstico gratis y precios orientativos claros.', '<a class="tc-link" href="/soluciones/">Precios orientativos</a>')}${PASOS}</div></section>
 
@@ -462,7 +477,7 @@ const CALC_PASOS = ['Material', 'Horas de máquina o de taller', 'Otros costes',
 
 P['erp-industria'] = {
   id: null, title: 'ERP para la industria',
-  seo: ['ERP para la industria con IA | IndunexIA Gestión', 'Programa de gestión para talleres de mecanizado, calderería y reparación: costes y margen, presupuestos, albaranes firmados y facturas. Desde 590 €.', 'erp para la industria'],
+  seo: ['ERP para talleres de mecanizado e industria | IndunexIA', 'Programa de gestión para talleres de mecanizado, calderería y reparación: costes y margen, presupuestos, albaranes firmados y facturas. Desde 590 €.', 'erp para talleres de mecanizado'],
   html: page(`${pagehead('<a href="/soluciones/">Soluciones</a><span aria-hidden="true">/</span><span>ERP para la industria</span>', 'IndunexIA Gestión · ERP con IA para la industria', 'El ERP para la industria que se usa desde el móvil', 'Sabes lo que te cuesta cada trabajo, le pones tu margen y el presupuesto sale en minutos. Albaranes firmados, facturas, cobros y gastos en un solo programa, con un asistente de IA y Telegram para registrarlo todo sin sentarte al ordenador.', btn(DEMO_URL, DEMO_TXT) + btn('/contacto/', 'Pide tu diagnóstico gratis', true), device(IMG.erp_calculadora, 'Calculadora de costes: lo que te cuesta el trabajo y el precio con tu margen', '<span class="tc-device__ok">✓</span><span><b>Coste + margen</b><small>Precio de venta listo para presupuestar</small></span>'))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-stats tc-reveal"><div><b>Minutos</b><span>para un presupuesto con tu margen</span></div><div><b>1 clic</b><span>del albarán firmado a la factura</span></div><div><b>1 foto</b><span>para registrar un gasto</span></div><div><b>1 botón</b><span>para el paquete de la asesoría</span></div></div></div></section>
 <section class="tc-sec tc-sec--alt" id="talleres"><div class="tc-wrap">${head('Para quién', 'Pensado para talleres industriales', 'Nació en talleres de mecanizado y hoy se adapta a cualquier taller que presupueste, entregue y facture trabajos. Y se combina con empresas de otros sectores activando los módulos que cada una necesita.')}
@@ -876,8 +891,8 @@ ${eyebrow('Diagnóstico gratis')}<h1>Pide tu diagnóstico gratis</h1><p class="t
 
 P['consultor-ia-murcia'] = {
   title: 'Consultoría de IA en Murcia',
-  seo: ['Consultoría de IA en Murcia | Transforma con IA', 'Consultoría de inteligencia artificial y automatización para empresas industriales de la Región de Murcia, con diagnóstico gratis y puesta en marcha en tu empresa.', 'consultoría inteligencia artificial Murcia'],
-  html: page(`${pagehead('<span>Consultoría de IA en Murcia</span>', 'Región de Murcia', 'Consultoría de IA y automatización para la industria murciana', 'Automatizaciones, ERP para la industria, asistentes técnicos y herramientas a medida para empresas de Murcia, Cartagena, Lorca, Molina de Segura, Alcantarilla y el resto de la región. Vamos a tu empresa. <a class="tc-link" href="#donde-trabajamos">Dónde trabajamos</a>.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Visitas presenciales', [['Murcia y pedanías', 'Sí'], ['Cartagena', 'Sí'], ['Lorca', 'Sí'], ['Molina de Segura', 'Sí'], ['Resto de la región', 'Sí']]))}
+  seo: ['Automatización industrial y digitalización en Murcia', 'Transformación digital para talleres y fábricas de la Región de Murcia: automatización, ERP e IA por zonas, con visita en tu empresa y diagnóstico gratis.', 'automatización industrial Murcia'],
+  html: page(`${pagehead('<span>Automatización industrial en Murcia</span>', 'Región de Murcia', 'Automatización industrial y digitalización para talleres y fábricas de Murcia', 'Automatizaciones, ERP para la industria, asistentes técnicos y herramientas a medida para empresas de Murcia, Cartagena, Lorca, Molina de Segura, Alcantarilla y el resto de la región. Vamos a tu empresa. <a class="tc-link" href="#donde-trabajamos">Dónde trabajamos</a>.', btn('/contacto/', 'Pide tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Visitas presenciales', [['Murcia y pedanías', 'Sí'], ['Cartagena', 'Sí'], ['Lorca', 'Sí'], ['Molina de Segura', 'Sí'], ['Resto de la región', 'Sí']]))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow('Cerca de ti')}<h2>Un equipo de la tierra que conoce sus polígonos</h2><p>El tejido empresarial murciano tiene mucho de metal, mecanizado, distribución industrial, agroindustria y servicios técnicos. Conocemos bien ese mundo porque venimos de él, y sabemos que cada taller trabaja a su manera.</p><p>Por eso el diagnóstico parte de lo que nos cuentas de tu día a día y te lo enviamos por escrito. En la Región de Murcia la puesta en marcha la hacemos en tu empresa, y el resto en remoto para que sea más ágil y económico.</p></div><div class="tc-box tc-reveal"><h3>Qué podemos hacer juntos</h3>${list(['Implantar el ERP para la industria en tu taller o empresa', 'Automatizar pedidos, albaranes y facturas', 'Asistente técnico para tu catálogo o tu mostrador', 'Gestión documental: facturas y tickets que se registran solos', 'Mejoras y herramientas a medida sobre SAP o tu ERP', 'Formación práctica en IA para tu equipo'])}</div></div></section>
 <section class="tc-sec tc-sec--alt" id="donde-trabajamos"><div class="tc-wrap">${head('Dónde trabajamos', 'Automatización industrial en la Región de Murcia y alrededores', 'Cada zona industrial tiene sus sectores y sus polígonos. Estas son las páginas de cada ciudad.')}<div class="tc-grid tc-grid--3">${[
     ['mapa', 'Automatización industrial en Cartagena', '/automatizacion-industria-cartagena/', 'Los Camachos, Cabezo Beaza y el entorno del puerto: talleres, mantenimiento y calderería. Visita en tu empresa.'],
@@ -891,7 +906,7 @@ P['consultor-ia-murcia'] = {
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'IA para empresas de Murcia')}${faq([
     ['¿Hacéis visitas presenciales en Murcia?', 'Sí. En la Región de Murcia vamos a tu empresa, taller o nave para entender el proceso. El resto del proyecto se trabaja en remoto.'],
     ['¿Trabajáis con empresas de fuera de la región?', 'Sí, con empresas de toda España en remoto: diagnóstico por escrito y puesta en marcha a distancia.'],
-    ['¿Cuánto cuesta empezar?', 'El diagnóstico es gratis. Como referencia orientativa, una automatización parte de 450 € + IVA, el ERP para la industria desde 590 € de puesta en marcha (mantenimiento desde 59 €/mes de 69 €/mes) y un asistente técnico de 900 €.'],
+    ['¿Cuánto cuesta empezar?', 'El diagnóstico es gratis. Como referencia orientativa, una automatización parte de 450 € + IVA, el ERP para la industria desde 590 € de puesta en marcha y 59 €/mes, y un asistente técnico desde 900 €.'],
   ])}</div></section>
 ${band('¿Eres de la Región de Murcia?', 'Escríbenos y pasamos por tu empresa a ver qué se puede automatizar.')}`),
 };
@@ -920,6 +935,8 @@ const BK = '_backups/web-2026-10-13-t1/';
 fs.mkdirSync(BK, { recursive: true });
 for (const [slug, def] of Object.entries(P)) {
   if (solo.length && !solo.includes(slug)) continue;
+  // DRY=1 DUMP=carpeta: solo escribe el HTML generado para compararlo con lo publicado
+  if (process.env.DRY === '1') { if (process.env.DUMP) { fs.mkdirSync(process.env.DUMP, { recursive: true }); fs.writeFileSync(`${process.env.DUMP}/${slug}.html`, def.html); } console.log(slug, 'DRY', def.seo[0].length, def.seo[1].length); continue; }
   let id = def.id;
   for (const s of id ? [] : [slug, RENOMBRAR[slug]].filter(Boolean)) {
     const f = await wp('GET', `/wp/v2/pages?slug=${s}&status=publish,draft&_fields=id`);
