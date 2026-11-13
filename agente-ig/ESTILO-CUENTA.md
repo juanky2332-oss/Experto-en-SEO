@@ -92,3 +92,8 @@ La web pasó a un lenguaje realista (fotos de cine de taller, piezas y máquinas
 - Carruseles: `tuerqui` en la portada (abajo a la derecha) y en el cierre (saluda). Historias: pose automática por plantilla (`/api/ig/historia`).
 - Hashtags en piezas con Tuerqui: oficio · problema · #regiondemurcia · tema · #tuerqui (5 como máximo).
 - Profesional y cercano: nunca hace el payaso con temas serios (impagos, seguridad), nunca habla él en primera persona en los textos.
+
+## Vídeos «Demo» de producto (13-11-2026)
+- Formato `FABRICA DE VIDEOS/src/Demo.tsx` (composición «Demo»): móvil con la app REAL (capturas de erp-muestra a 1170 px con `ERP MUESTRA/scripts/capturas-movil.js`), zoom y toques donde importa, un título corto por escena, Tuerqui en 4-5 momentos y cierre con Tuerqui grande. Menos de 30 s.
+- Voz: `scripts/demo-voz.mjs` con gpt-audio-1.5 (voz cedar), una toma, pausas recortadas y tempo 1.05: más humana y ágil que gpt-4o-mini-tts. Usarla en los vídeos nuevos.
+- Primeros: `videos/demo/indunexia-30.json` (gestión de cabo a rabo, 24 s) y `videos/demo/planos-20.json` (presupuesto desde plano, 23 s), en cola el 25 y 27-11.
