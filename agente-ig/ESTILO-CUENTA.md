@@ -97,3 +97,13 @@ La web pasó a un lenguaje realista (fotos de cine de taller, piezas y máquinas
 - Formato `FABRICA DE VIDEOS/src/Demo.tsx` (composición «Demo»): móvil con la app REAL (capturas de erp-muestra a 1170 px con `ERP MUESTRA/scripts/capturas-movil.js`), zoom y toques donde importa, un título corto por escena, Tuerqui en 4-5 momentos y cierre con Tuerqui grande. Menos de 30 s.
 - Voz: `scripts/demo-voz.mjs` con gpt-audio-1.5 (voz cedar), una toma, pausas recortadas y tempo 1.05: más humana y ágil que gpt-4o-mini-tts. Usarla en los vídeos nuevos.
 - Primeros: `videos/demo/indunexia-30.json` (gestión de cabo a rabo, 24 s) y `videos/demo/planos-20.json` (presupuesto desde plano, 23 s), en cola el 25 y 27-11.
+
+## Perfil limpio y TODO en formato Demo (14-11-2026, pedido del dueño)
+Dijo: «los últimos vídeos me gustan mucho más que los primeros… tienen que ser así, incluso las publicaciones y las historias, así de animadas, de profesional, con la mascota; producto y servicio a la vez».
+- **Se borraron 18 publicaciones** de estilo antiguo (portadas de logo, noticias del blog, carruseles claros). Quedaron los 3 reels con Tuerqui y entraron los Demo. Copia completa en `_backups/ig-2026-11-14-antes-limpieza/` (vídeo/imagen + texto); en la app siguen 30 días en «Eliminado recientemente».
+- **Manda el formato Demo** para todo lo nuevo del feed: app real en el móvil + titular corto con una palabra en degradado + Tuerqui + cierre con Tuerqui grande y «Diagnóstico gratis». Gancho sin plano: `"cartas": [...]` (papeles que caen). Cierre de otro producto: `"marca": "Asistente *IA*"`.
+- **Portadas**: composición `PortadaDemo` (titular a partir de y=320 y Tuerqui en el centro: la cuadrícula del perfil recorta la portada a 3:4, del y=240 al y=1680). Nunca la primera imagen del vídeo, que se corta arriba.
+- **Cuadrícula oscura siempre**: nada de tema claro en el feed (la comparativa clara «Excel vs» se descartó).
+- **Noticias del blog: SOLO historias**, nunca en el feed (llegaban a 0-3 cuentas y rompían la cuadrícula). Cambiado en `src/lib/redes.ts`.
+- **Historias animadas**: el aviso de cada vídeo nuevo es un trozo del propio reel con el letrero «▶ Vídeo nuevo en el perfil» (`HistoriaDemo`, salida en `FABRICA DE VIDEOS/salida/instagram/historias-demo/`, servidas en demo.transformaconia.com/ig/historias/). Se enlaza poniendo `datos.historia_video` en el reel de la cola. El banco de historias también va en vídeo.
+- **Destacadas**: portadas `DestacadaTuerqui` (Tuerqui en círculo oscuro) en demo.transformaconia.com/ig/destacadas-tuerqui/; las crea él desde la app.

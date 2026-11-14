@@ -204,11 +204,13 @@ const urlHistoria = (id: string) => `${BASE}/api/ig/historia?id=${encodeURICompo
 
 /** Historia que avisa de la publicación nueva del feed (una sola vez por publicación). */
 async function avisoHistoria(nuevo: string) {
-  const [f] = await sql<{ titulo: string; tipo: string }[]>`select titulo, tipo from seo.ig_cola where id = ${nuevo}`;
+  const [f] = await sql<{ titulo: string; tipo: string; datos: { historia_video?: string } | null }[]>`select titulo, tipo, datos from seo.ig_cola where id = ${nuevo}`;
   if (!f) return null;
   const id = `h-aviso-${nuevo}`;
   const datos = { plantilla: "reel", reel: nuevo, etiqueta: f.tipo === "carrusel" ? "Nuevo en el perfil" : "Nuevo vídeo", titulo: f.titulo, texto: "Lo tienes en el perfil" };
-  await sql`insert into seo.ig_cola (id, tipo, titulo, texto, historia_url, datos) values (${id}, 'historia', ${"Aviso: " + f.titulo}, '', ${urlHistoria(id)}, ${sql.json(datos)})
+  // si el reel trae su historia animada (datos.historia_video), se usa esa; si no, la imagen de /api/ig/historia
+  const video = f.datos?.historia_video ?? null;
+  await sql`insert into seo.ig_cola (id, tipo, titulo, texto, historia_url, video_url, datos) values (${id}, 'historia', ${"Aviso: " + f.titulo}, '', ${urlHistoria(id)}, ${video}, ${sql.json(datos)})
     on conflict (id) do nothing`;
   return subir(id);
 }

@@ -6,7 +6,7 @@ import { revisarTexto } from "@/lib/ig-calidad";
 /** Ubicación de Instagram «Murcia, España» (id sacado de /explore/locations/633160150044387/murcia-espana/, 2-11-2026). */
 const IG_UBICACION = "633160150044387";
 
-// Instagram: reels y carruseles de la fábrica de vídeos, historias (/api/ig/historia) y noticias del blog (publicación 4:5 + historia 9:16).
+// Instagram: reels y carruseles de la fábrica de vídeos, historias (/api/ig/historia) y noticias del blog (SOLO historia 9:16 desde 14-11-2026).
 // Antes de subir cualquier cosa pasa el control de calidad (src/lib/ig-calidad.ts): reglas de marca y que no repita las últimas.
 // Nada se sube sin que él diga que sí: todo entra en seo.ig_cola, se le propone por Telegram
 // (vídeo o enlaces + texto) con «✅ Subir a Instagram» / «❌ No subir», y al pulsar se publica por la API.
@@ -208,7 +208,8 @@ export async function subir(id: string): Promise<string> {
   let r: { id: string; url: string | null };
   let extra = "";
   // control de calidad: reglas de marca (si no las cumple, no se sube) y que no repita las últimas publicaciones
-  if (e.tipo !== "historia") {
+  // 14-11-2026: las noticias del blog van SOLO a historias (en el feed rompían la cuadrícula y llegaban a 0-3 cuentas)
+  if (e.tipo !== "historia" && e.tipo !== "noticia") {
     const rev = await revisarTexto(e.texto, e.tipo, await ultimosTextos(c));
     if (!rev.ok) {
       await sql`update seo.ig_cola set estado = 'propuesto', error = ${"Control de calidad: " + rev.problemas.join("; ")} where id = ${id}`;
@@ -231,7 +232,10 @@ export async function subir(id: string): Promise<string> {
       for (const url of imgs) hijos.push(await igPost(c, `${c.user_id}/media`, { image_url: url, is_carousel_item: "true" }));
       await esperarListos(c, hijos);
       return await publicarEnInstagram(c, { media_type: "CAROUSEL", children: hijos.join(","), caption: e.texto, ...lugar }, 60_000);
-    } else if (e.tipo === "historia") {
+    } else if (e.tipo === "historia" && e.video_url) {
+      // historia animada (14-11-2026): trozo del reel con el aviso, servido desde demo.transformaconia.com/ig/
+      return await publicarEnInstagram(c, { media_type: "STORIES", video_url: e.video_url }, 180_000);
+    } else if (e.tipo === "historia" || e.tipo === "noticia") {
       return await publicarEnInstagram(c, { media_type: "STORIES", image_url: e.historia_url! });
     } else {
       return await publicarEnInstagram(c, { image_url: e.portada_url!, caption: e.texto, ...lugar });
@@ -252,14 +256,7 @@ export async function subir(id: string): Promise<string> {
   }
   // ya está en Instagram: pase lo que pase a partir de aquí, no vuelve a 'propuesto' (se duplicaría al pulsar otra vez)
   await sql`update seo.ig_cola set estado = 'publicado', ig_id = ${r.id}, ig_url = ${r.url}, publicado_at = now() where id = ${id}`.catch((err) => console.error("ig_cola publicado", err));
-  if (e.tipo === "noticia" && e.historia_url) {
-    try {
-      await publicarEnInstagram(c, { image_url: e.historia_url, media_type: "STORIES" });
-      extra = " · Historia ✅";
-    } catch (err) {
-      extra = ` · Historia ❌ (${esc((err as Error).message)})`;
-    }
-  }
+  if (e.tipo === "noticia") return `✅ Noticia del blog en historias: ${esc(e.titulo)}`;
   if (e.tipo === "historia") return `✅ Historia: ${esc(e.titulo)}`;
   const [q] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto')`.catch(() => [{ n: 0 }]);
   return `✅ <b>Subido a Instagram</b>: ${esc(e.titulo)}${extra}\n${r.url ?? ""}${e.tipo === "reel" || e.tipo === "carrusel" ? `\n\nQuedan ${q.n} publicaciones en la cola (/reel para ver la siguiente).` : ""}`;
