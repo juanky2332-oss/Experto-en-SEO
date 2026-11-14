@@ -107,3 +107,12 @@ Dijo: «los últimos vídeos me gustan mucho más que los primeros… tienen que
 - **Noticias del blog: SOLO historias**, nunca en el feed (llegaban a 0-3 cuentas y rompían la cuadrícula). Cambiado en `src/lib/redes.ts`.
 - **Historias animadas**: el aviso de cada vídeo nuevo es un trozo del propio reel con el letrero «▶ Vídeo nuevo en el perfil» (`HistoriaDemo`, salida en `FABRICA DE VIDEOS/salida/instagram/historias-demo/`, servidas en demo.transformaconia.com/ig/historias/). Se enlaza poniendo `datos.historia_video` en el reel de la cola. El banco de historias también va en vídeo.
 - **Destacadas**: portadas `DestacadaTuerqui` (Tuerqui en círculo oscuro) en demo.transformaconia.com/ig/destacadas-tuerqui/; las crea él desde la app.
+
+## Qué es la cuenta y qué publicamos (15-11-2026, palabras del dueño)
+«Una página de empresa que automatiza y hace consultoría a talleres e industria sobre todo, pero también a todos los sectores que se pueda, y que te va informando de apps nuevas que vea en el mercado, de sus apps y de todo lo que pueda dar valor al seguidor. No solo promocionar a saco.»
+- **Mezcla fija: 2 de VALOR por 1 de PRODUCTO**, y nunca dos de producto seguidas. Valor = noticias útiles del sector sacadas de NUESTRO blog (citando la fuente y con fecha si hay plazos), **apps útiles** del mercado (qué hacen, en qué plan, que hay que revisarlas), y consejos de IA en la empresa. Producto = nuestras apps (IndunexIA…) y servicios (asistente, automatización, consultoría).
+- Todo en formato Demo animado con Tuerqui: piezas de valor con escenas `portadilla` (etiqueta «Noticia · …», «App útil», «IA en tu empresa») + `puntos` + cierre `"marca": "Transforma con *IA*"` y «Enlace en el perfil». Guiones en `FABRICA DE VIDEOS/videos/valor/`, servidos en demo.transformaconia.com/ig/valor/.
+- **Castellano de España**, se nota que somos de Murcia (sin forzar el murciano); jamás acento ni vocabulario latino (móvil, ordenador, vale…). La voz lo lleva en las instrucciones de `scripts/demo-voz.mjs`.
+- En los textos, nombrar apps de terceros está bien en piezas de valor; NUNCA nuestras herramientas internas (n8n, OpenAI, Claude…), ni «ya funciona en…» (lo bloquea ig-calidad).
+- Colaboradores (p. ej. Flownexion): MÁS ADELANTE, cuando él lo diga. Hasta entonces, cero menciones.
+- Vídeo de presentación de la cuenta publicado el 15-11 (https://www.instagram.com/reel/DfvV_YrCVzv/): va fijado arriba.
