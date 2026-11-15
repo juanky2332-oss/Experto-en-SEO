@@ -982,7 +982,8 @@ P['privacidad'] = {
 const COL = 'https://demo.transformaconia.com/web/colaboradores';
 const extLink = (href, txt, ghost = false) => `<a class="tc-btn${ghost ? ' tc-btn--ghost' : ''}" href="${href}" target="_blank" rel="noopener sponsored">${txt} ${ARROW}</a>`;
 const FX_LOGO = (w = 240) => `<img src="${COL}/flownexion-logo.webp" alt="Flownexion" width="${w}" height="${Math.round(w / 5)}" loading="lazy" decoding="async" style="display:block;width:${w}px;max-width:100%;height:auto">`;
-const fxChip = (w = 240) => `<span style="display:inline-flex;align-items:center;padding:14px 22px;border-radius:18px;background:#0b0614;box-shadow:0 0 0 1px #ffffff22,0 20px 50px -25px #3d7bff">${FX_LOGO(w)}</span>`;
+// el logo lleva a la portada de Flownexion (16-11-2026, pedido del dueño)
+const fxChip = (w = 240) => `<a href="https://flownexion.com/?${FX_UTM}" target="_blank" rel="noopener sponsored" aria-label="Ir a la web de Flownexion" style="display:inline-flex;align-items:center;padding:14px 22px;border-radius:18px;background:#0b0614;box-shadow:0 0 0 1px #ffffff22,0 20px 50px -25px #3d7bff">${FX_LOGO(w)}</a>`;
 const FX_TIENDA = `https://flownexion.com/automatizacion-ecommerce/?${FX_UTM}`;
 const FX_LEADS = `https://flownexion.com/generacion-leads-cualificados/?${FX_UTM}`;
 const FX_CONTACTO = `https://flownexion.com/formulario-de-contacto/?${FX_UTM}`;
