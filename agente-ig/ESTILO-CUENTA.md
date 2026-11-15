@@ -177,3 +177,4 @@ Cada app tiene en su página una sección «Mírala en marcha» con su vídeo De
 
 ## Diseño web (16-11-2026)
 Nuestra web es la mejor muestra del servicio: /diseno-web/ lleva el vídeo «Esta web la hemos hecho nosotros» (web-v2) y enlaces a páginas reales (Soluciones, ERP, colaboración) como ejemplo.
+- **Vista previa para el dueño (16-11-2026)**: https://demo.transformaconia.com/ig/previa/ (sin enlazar, noindex) con cada día del plan, su vídeo, portada y texto exacto, y el banco de historias en orden. Se regenera con `node --env-file=.env.local n8n/ig-previa.mjs` + `vercel deploy --prod` en la landing, cada vez que cambie la cola o el plan.
