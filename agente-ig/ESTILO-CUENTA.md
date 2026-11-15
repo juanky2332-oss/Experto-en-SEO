@@ -161,3 +161,6 @@ Palabras del dueño: la última historia (presupuesto con la app del ERP) llegó
 
 ## Sin precios en público (16-11-2026)
 Decisión del dueño: como Flownexion, no damos precios en ningún sitio público (la gente compara sin ver todo lo que incluye). En Instagram nunca cifras de nuestras apps ni servicios: «presupuesto gratis», «te lo enviamos por escrito». `ig-calidad.ts` bloquea «€/mes», «puesta en marcha desde…» y «desde X €». Enlace para Flownexion en Instagram: transformaconia.com/colaboraciones/flownexion/ (lleva directo a su demo).
+
+## Vídeos y capturas de las apps en la web (16-11-2026)
+Cada app tiene en su página una sección «Mírala en marcha» con su vídeo Demo (Tuerqui en pocos momentos, profesional) y cada listado enseña una captura de la herramienta (zoom lento). Vídeos en demo.transformaconia.com/web/apps/: erp (indunexia-30), presupuestos (planos-20), asistente (asistente-20) y documentos (documentos-20, nuevo, con la escena `pantalla` de capturas de escritorio de Demo.tsx). El de Documentos está también en `FABRICA DE VIDEOS/salida/instagram/demo/documentos-20.mp4`, sin subir a Instagram.
