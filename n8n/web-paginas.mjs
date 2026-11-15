@@ -587,11 +587,14 @@ const nuevasCards = `<div class="tc-grid tc-grid--3">${NUEVAS.map(([i, t, p, pr,
 
 // Colaboradores (15-11-2026, pedido del dueño): para tiendas online recomendamos Flownexion. Enlace con UTM y
 // rel="sponsored" porque hay acuerdo comercial. El código TRANSFORMA10 (−10 % en su presupuesto) es el acordado con ellos.
+// OCULTA hasta que Flownexion confirme el código TRANSFORMA10 (pedido del dueño, 15-11-2026). Para mostrarla: true y publicar soluciones.
+// Nunca poner en público nada de comisiones: es interno.
+const FLOWNEXION_VISIBLE = false;
 const FLOWNEXION_URL = 'https://flownexion.com/automatizacion-ecommerce/?utm_source=transformaconia&amp;utm_medium=web&amp;utm_campaign=transforma10';
 const COLABORADORES = sec(head('Colaboradores', '¿Tienes tienda online? Te recomendamos Flownexion', 'Para tiendas online trabajamos con nuestros compañeros de Flownexion. Su herramienta sube y mantiene el catálogo por ti.')
   + `<div class="tc-box tc-box--star tc-reveal" style="max-width:860px">${icon('flujo')}<span class="tc-eyebrow tc-eyebrow--plain">Herramienta que recomendamos</span><h3>Automatización de tiendas online, de Flownexion</h3>`
   + list(['Importa productos desde la web del proveedor, un Excel, un PDF o una captura', 'Prepara la ficha: título, descripción, SEO, categoría e imagen', 'Precio y stock sincronizados con tus proveedores', 'Funciona con WooCommerce, PrestaShop y Shopify'])
-  + `<p><b>Di que vienes de parte de Transforma con IA</b> y usa el código <b>TRANSFORMA10</b>: tienes un 10 % de descuento en tu presupuesto.</p><p class="tc-nota" style="margin-top:6px">Colaboración comercial: si contratas con Flownexion, Transforma con IA recibe una comisión. A ti no te cuesta más.</p><div class="tc-btns"><a class="tc-btn" href="${FLOWNEXION_URL}" target="_blank" rel="noopener sponsored">Ver la herramienta de Flownexion ${ARROW}</a></div></div>`, 'tc-sec--alt');
+  + `<p><b>Di que vienes de parte de Transforma con IA</b> y usa el código <b>TRANSFORMA10</b>: tienes un 10 % de descuento en tu presupuesto.</p><div class="tc-btns"><a class="tc-btn" href="${FLOWNEXION_URL}" target="_blank" rel="noopener sponsored">Ver la herramienta de Flownexion ${ARROW}</a></div></div>`, 'tc-sec--alt');
 
 P['soluciones'] = {
   title: 'Soluciones de IA para empresas',
@@ -600,8 +603,8 @@ P['soluciones'] = {
 ${familia}
 ${sec(head('Servicios a medida', 'Cuando lo que necesitas no es una app, sino tu proceso automatizado', 'Lo montamos sobre los programas que ya usas.') + `<div class="tc-grid tc-grid--3">${SERVICIOS.filter(([i]) => ['flujo', 'chat', 'app'].includes(i)).map(([i, t, p, u, pr, l]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p><p class="tc-price"><span>Orientativo</span> ${pr}</p><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div>` + `<div class="tc-subhead tc-reveal"><span class="tc-eyebrow tc-eyebrow--plain">Soluciones concretas</span><p>Lo que montamos con más frecuencia:</p></div>` + chips, 'tc-sec--tight')}
 
-<section class="tc-sec"><div class="tc-wrap">${head('Cómo trabajamos', 'Tres pasos, y en ninguno pagas a ciegas')}${PASOS}</div></section>
-${COLABORADORES}
+<section class="tc-sec${FLOWNEXION_VISIBLE ? '' : ' tc-sec--alt'}"><div class="tc-wrap">${head('Cómo trabajamos', 'Tres pasos, y en ninguno pagas a ciegas')}${PASOS}</div></section>
+${FLOWNEXION_VISIBLE ? COLABORADORES : ''}
 <section class="tc-sec"><div class="tc-wrap">${head('Lo que no prometemos', 'Lo que no prometemos, y lo que sí', 'No prometemos porcentajes de ahorro antes de ver tus datos ni una IA que decida sola. Esto sí:')}<div class="tc-grid tc-grid--4">${GARANTIAS.map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'Antes de empezar')}${faq([
     ['¿Los precios son cerrados?', 'No: son orientativos para que sepas el orden de magnitud. Tras el diagnóstico gratuito te enviamos un presupuesto cerrado por escrito.'],
