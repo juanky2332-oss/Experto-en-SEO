@@ -1091,3 +1091,4 @@ html.tc-3d .tc-hero--home .tc-btns,html.tc-3d .tc-hero--home .tc-proof{animation
 .tc-box:hover .tc-thumb img{animation-duration:7s}
 @keyframes tcKen{from{transform:scale(1)}to{transform:scale(1.14) translate(-3%,-2%)}}
 @media (prefers-reduced-motion:reduce){.tc-thumb img{animation:none}}
+.tc-thumb video{display:block;width:100%;height:100%;object-fit:cover}
