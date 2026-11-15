@@ -589,14 +589,16 @@ const nuevasCards = `<div class="tc-grid tc-grid--3">${NUEVAS.map(([i, t, p, pr,
 //  - Sin cupones ni códigos de descuento (ellos no trabajan así).
 //  - Siempre «di que vienes de parte de Transforma con IA».
 //  - Nada de condiciones económicas con el colaborador en ningún texto público.
-// Apps elegidas que no compiten con las nuestras: tiendas online y ERP para construcción (Buildnexion).
+// Apps elegidas por el dueño (16-11-2026) porque no compiten con las nuestras: tiendas online y generación de leads.
+// NO enlazar las que sí compiten: chatbot/WhatsApp, voz, presupuestos automáticos, digitalización de facturas, diseño web, ERP.
+// Sin cifras suyas sin fuente (p. ej. «+35 %»): solo qué hace.
 const FLOWNEXION_VISIBLE = true;
 const FX_UTM = 'utm_source=transformaconia&amp;utm_medium=web&amp;utm_campaign=colaboracion';
 const FX_APPS = [
   ['flujo', 'Tiendas online', 'Automatización de tiendas online', 'Importa productos desde la web del proveedor, un Excel, un PDF o una captura, prepara cada ficha (título, descripción, SEO, categoría e imagen) y mantiene precio y stock sincronizados. Para WooCommerce, PrestaShop y Shopify.', `https://flownexion.com/automatizacion-ecommerce/?${FX_UTM}`, 'Ver la automatización de tiendas'],
-  ['app', 'Construcción y reformas', 'Buildnexion, el ERP para obras', 'Presupuestos y certificaciones, costes, partes y compras de cada obra en un solo programa, con la rentabilidad de cada obra al día. Para constructoras, reformas e instaladores.', `https://flownexion.com/erp-construccion/?${FX_UTM}`, 'Ver Buildnexion'],
+  ['iman', 'Clientes nuevos', 'Generación de leads cualificados', 'Recoge los contactos que llegan por la web, WhatsApp y redes, les responde al momento, les hace las preguntas clave y solo te pasa los que encajan, con la reunión ya en tu agenda y todo apuntado en tu CRM. Sin bases de datos compradas.', `https://flownexion.com/generacion-leads-cualificados/?${FX_UTM}`, 'Ver la generación de leads'],
 ];
-const COLABORADORES = sec(head('Colaboración', 'Trabajamos en colaboración con Flownexion', 'Para tiendas online y para construcción nos apoyamos en nuestros compañeros de Flownexion, especialistas en automatización con IA. Si contactas con ellos, di que vienes de parte de Transforma con IA.',
+const COLABORADORES = sec(head('Colaboración', 'Trabajamos en colaboración con Flownexion', 'Para tiendas online y para conseguir clientes nuevos nos apoyamos en nuestros compañeros de Flownexion, especialistas en automatización con IA. Si contactas con ellos, di que vienes de parte de Transforma con IA.',
     `<a href="https://flownexion.com/?${FX_UTM}" target="_blank" rel="noopener sponsored" style="display:inline-flex;align-items:center;padding:16px 26px;border-radius:18px;background:#0b0614;box-shadow:0 0 0 1px #ffffff22"><img src="https://demo.transformaconia.com/web/colaboradores/flownexion-logo.webp" alt="Flownexion" width="240" height="48" loading="lazy" style="display:block;width:240px;height:auto"></a>`)
   + `<div class="tc-grid tc-grid--2">${FX_APPS.map(([i, eb, t, p, u, l], n) => `<article class="tc-box tc-reveal${n === 0 ? ' tc-box--star' : ''}">${icon(i)}<span class="tc-eyebrow tc-eyebrow--plain">${eb}</span><h3>${t}</h3><p>${p}</p><a class="tc-link" href="${u}" target="_blank" rel="noopener sponsored">${l}</a></article>`).join('')}</div>`
   + `<p class="tc-nota tc-reveal" style="margin-top:18px"><b>Cuando contactes con Flownexion, di que vienes de parte de Transforma con IA.</b></p>`, 'tc-sec--alt');
