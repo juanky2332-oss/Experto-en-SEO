@@ -18,7 +18,7 @@ const PROHIBIDO: [RegExp, string][] = [
     /ya funciona en|nuestros clientes|clientes (satisfechos|contentos)|trabajamos con empresas de|(cientos|miles|decenas) de (empresas|clientes)|empresas (como la tuya )?ya (lo )?usan/i,
     "clientes, casos o resultados sin comprobar",
   ],
-  [/flownexion/i, "Flownexion"],
+  // Flownexion: permitido desde el 15-11-2026 (colaborador, lo pidió el dueño), pero siempre marcado como publicidad (ver abajo).
   [
     /solo por escrito|sin llamadas/i,
     "«solo por escrito / sin llamadas» (se dice en positivo: «te lo enviamos por escrito»)",
@@ -56,6 +56,9 @@ export function reglasFijas(texto: string, tipo: string): string[] {
       continue;
     if (re.test(texto)) p.push(`Incluye ${que}`);
   }
+  // Con Flownexion cobramos comisión: la Ley General de Comunicación Audiovisual y el código de Autocontrol obligan a marcarlo.
+  if (/flownexion/i.test(texto) && !/#publi|#colaboraci[oó]n|publicidad/i.test(texto))
+    p.push("Menciona a Flownexion sin marcarlo como publicidad (#publi)");
   if (hashtags(texto).length > 5) p.push("Más de 5 hashtags");
   if (texto.length > 2200) p.push("Más de 2.200 caracteres");
   // 09-11-2026: «sale al final muchas veces Transforma con IA». La cuenta ya se llama así y el vídeo lleva la firma:

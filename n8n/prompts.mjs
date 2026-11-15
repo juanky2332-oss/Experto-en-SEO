@@ -124,7 +124,7 @@ export const REDACCION_SISTEMA = `Eres el equipo editorial de Transforma con IA,
 ═══ REGLAS DE MARCA (NO NEGOCIABLES; el control automático las rechaza) ═══
 - NUNCA nombres herramientas internas por marca (n8n, OpenAI, ChatGPT, GPT, Claude, Anthropic, Gemini, Zapier, Make…) como algo que usamos o recomendamos: se habla del PROCESO y del RESULTADO («un asistente que lee el albarán», «una automatización que envía el informe»). Excepción: en artículos de Actualidad IA cuya NOTICIA trata de esa herramienta puede aparecer como tema, nunca como «lo que usamos».
 - Nunca «Flownexion». Nunca nombres de persona (ni del equipo, ni clientes, ni testimonios). Nunca clientes, cifras, resultados ni certificaciones inventadas: nada de «un cliente nuestro ahorró…».
-- El programa de gestión se llama «IndunexIA Gestión» y es un ERP PARA LA INDUSTRIA (nunca «para el metal»). Precios solo si vienen al caso y siempre exactos: tres planes, Básico (590 € de puesta en marcha y 59 €/mes), Profesional (690 € y 69 €/mes) y Pro (990 € y 89 €/mes); puesta en marcha en un solo pago al empezar, 3 primeros meses de cuota gratis, usuario extra 15 €/mes, sin permanencia, sin IVA, precios de temporada hasta el 31/12/2026. Si no hace falta detallar, «desde 590 €».
+- El programa de gestión se llama «IndunexIA Gestión» y es un ERP PARA LA INDUSTRIA (nunca «para el metal»). Precios solo si vienen al caso y siempre exactos: tres planes, Básico (790 € de puesta en marcha y 99 €/mes), Profesional (1.290 € y 169 €/mes) y Pro (1.990 € y 249 €/mes); puesta en marcha en un solo pago al empezar, 3 primeros meses de cuota gratis, usuario extra 15 €/mes, sin permanencia, sin IVA, precios de temporada hasta el 31/12/2026. Si no hace falta detallar, «desde 790 €».
 - Verifactu: puedes explicarlo con fuentes oficiales, pero NUNCA afirmes que nuestro ERP lo cumple, está adaptado o certificado.
 - Español de España: tuteo al lector; nada de «computadora», «celular», «ustedes», «chequear», «aplicativo», «ahorita».
 
@@ -297,7 +297,7 @@ function evaluar(a, ctx) {
   for (const e of ejemplos) if (!/ficticio/i.test(e)) B('Bloque de ejemplo sin marcar como ficticio');
   const ejNoMarcados = [...sinEjemplo.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => texto(m[1])).filter((p) => /\b(por ejemplo|ejemplo|imagina|supongamos)\b/i.test(p) && /\d[\d.,]*\s?(€|euros|%|horas|h\b|piezas)/i.test(p) && !/ficticio|ilustrativo|orientativo/i.test(p));
   if (ejNoMarcados.length) B('Ejemplo con cifras sin marcar como ficticio: «' + ejNoMarcados[0].slice(0, 100) + '»');
-  const PRECIOS_OK = /\b(590|59|690|69|990|89|1\.490|790|15)\s?€/;
+  const PRECIOS_OK = /\b(790|99|1\.290|169|1\.990|249|1\.190|1\.890|2\.990|15)\s?€/;
   const cifras = [...sinEjemplo.matchAll(/<(p|li)[^>]*>([\s\S]*?)<\/\1>/gi)].map((m) => texto(m[2]))
     .flatMap((p) => p.split(/(?<=[.!?])\s+/))
     .filter((f) => /\d[\d.,]*\s?(%|€|euros)/i.test(f) && !/según|fuente|datos de|informe|estudio|encuesta|orientativ|ficticio|ejemplo|aprox/i.test(f) && !PRECIOS_OK.test(f))

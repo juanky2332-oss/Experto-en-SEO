@@ -177,7 +177,7 @@ add_shortcode( 'tc_categoria', function ( $a ) {
 } );
 
 /* [tc_calculadora] «¿Cuánto te cuesta el papeleo?»: cálculo orientativo con las cifras de quien lo usa.
- * Usa el plan Profesional de /erp-industria/ (690 € de puesta en marcha y 69 €/mes desde el mes 4, 3 primeros meses gratis). Planes: Básico 590+59, Profesional 690+69, Pro 990+89.
+ * Usa el plan Profesional de /erp-industria/ (1.290 € de puesta en marcha y 169 €/mes desde el mes 4, 3 primeros meses gratis). Planes (15-11-2026): Básico 790+99, Profesional 1.290+169, Pro 1.990+249.
  * Si cambia la tarifa, cambiar aquí data-puesta / data-cuota / data-gratis y el texto de la página del ERP. */
 add_shortcode( 'tc_calculadora', function () {
 	static $n = 0;
@@ -185,7 +185,7 @@ add_shortcode( 'tc_calculadora', function () {
 	$i = 'tc-calc' . $n;
 	ob_start();
 	?>
-<div class="tc-calc tc-box" id="<?php echo esc_attr( $i ); ?>" data-puesta="690" data-cuota="69" data-gratis="3" data-pagos="2" role="group" aria-labelledby="<?php echo esc_attr( $i ); ?>-t">
+<div class="tc-calc tc-box" id="<?php echo esc_attr( $i ); ?>" data-puesta="1290" data-cuota="169" data-gratis="3" data-pagos="2" role="group" aria-labelledby="<?php echo esc_attr( $i ); ?>-t">
 	<div><h3 id="<?php echo esc_attr( $i ); ?>-t">¿Cuánto te cuesta el papeleo?</h3><p class="tc-calc__sub">Presupuestos, albaranes y facturas a mano. Pon tus cifras y mira el orden de magnitud: es un cálculo orientativo, no una promesa de ahorro.</p></div>
 	<div class="tc-calc__grid">
 		<div class="tc-field"><label for="<?php echo esc_attr( $i ); ?>-p">Personas en oficina</label><input id="<?php echo esc_attr( $i ); ?>-p" type="number" inputmode="numeric" min="1" max="50" step="1" value="2"></div>
@@ -196,7 +196,7 @@ add_shortcode( 'tc_calculadora', function () {
 	<div class="tc-calc__out" role="status" aria-live="polite">
 		<div class="tc-calc__big"><span data-o="anual">–</span> € <small>al año en papeleo</small></div>
 		<p class="tc-calc__rec" data-o="rec"></p>
-		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. La cuenta usa el plan Profesional: 690 € de puesta en marcha (un solo pago al empezar) y 69 €/mes desde el cuarto mes. Hay también un plan Básico desde 590 € y 59 €/mes. Los usuarios extra no entran en esta cuenta.</p>
+		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. La cuenta usa el plan Profesional: 1.290 € de puesta en marcha (un solo pago al empezar) y 169 €/mes desde el cuarto mes. Hay también un plan Básico desde 790 € y 99 €/mes. Los usuarios extra no entran en esta cuenta.</p>
 	</div>
 	<div class="tc-btns"><button type="button" class="tc-btn" data-o="ir">Quiero ver esto con mis números</button></div>
 </div>
@@ -211,7 +211,7 @@ add_shortcode( 'tc_calculadora', function () {
     function calc(){
       var p=num(P,1,50,2), h=num(H,0.5,40,8), co=num(C,5,150,20), pc=num(R,10,60,30)/100;
       var anual=p*h*52*co, ahorro=anual*pc/12, meses=null;
-      // coste acumulado al mes m: 690 € al empezar y la cuota desde el mes 4; se busca el mes desde el que lo ahorrado supera siempre lo pagado
+      // coste acumulado al mes m: la puesta en marcha al empezar y la cuota desde el mes 4; se busca el mes desde el que lo ahorrado supera siempre lo pagado
       var ultimo=0;for(var m=1;m<=60;m++){var gastado=puesta+cuota*Math.max(0,m-gratis);if(ahorro*m<gastado)ultimo=m;}
       if(ultimo<60)meses=ultimo+1;
       RV.textContent=Math.round(pc*100)+' %';
@@ -565,7 +565,7 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			'@type'           => 'OfferCatalog',
 			'name'            => 'Soluciones de IA y automatización para la industria',
 				'itemListElement' => array(
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 590, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 790, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Asistentes técnicos y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 900, 'priceCurrency' => 'EUR' ) ),
 					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Gestión documental con IA', 'url' => home_url( '/gestion-documental-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
@@ -607,9 +607,9 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			),
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
 			'offers'              => array(
-				array( '@type' => 'Offer', 'name' => 'Plan Básico', 'price' => 590, 'priceCurrency' => 'EUR', 'description' => 'Presupuestos, albaranes, facturas, envío por correo, cobros y gastos. Puesta en marcha en un solo pago al empezar; después 59 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
-				array( '@type' => 'Offer', 'name' => 'Plan Profesional', 'price' => 690, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Básico más gastos por foto con IA, albaranes firmados, calculadora de costes y margen, fiscal y paquete para el asesor, informes y Telegram. Puesta en marcha en un solo pago al empezar; después 69 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
-				array( '@type' => 'Offer', 'name' => 'Plan Pro', 'price' => 990, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Profesional más asistente con IA propio, presupuesto desde plano, histórico completo, una automatización a medida y 2 h/mes de mejoras. Puesta en marcha en un solo pago al empezar; después 89 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array( '@type' => 'Offer', 'name' => 'Plan Básico', 'price' => 790, 'priceCurrency' => 'EUR', 'description' => 'Presupuestos, albaranes, facturas, envío por correo, cobros y gastos. Puesta en marcha en un solo pago al empezar; después 99 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array( '@type' => 'Offer', 'name' => 'Plan Profesional', 'price' => 1290, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Básico más gastos por foto con IA, albaranes firmados, calculadora de costes y margen, fiscal y paquete para el asesor, informes y Telegram. Puesta en marcha en un solo pago al empezar; después 169 €/mes con los 3 primeros meses gratis. 2 usuarios incluidos. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
+				array( '@type' => 'Offer', 'name' => 'Plan Pro', 'price' => 1990, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Profesional más asistente con IA propio, presupuesto desde plano, histórico completo, una automatización a medida y 2 h/mes de mejoras. Puesta en marcha en un solo pago al empezar; después 249 €/mes con los 3 primeros meses gratis. 3 usuarios incluidos. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
 			),
 			'provider'            => array( '@id' => home_url( '/#person' ) ),
 		);
