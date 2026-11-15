@@ -59,6 +59,10 @@ export function reglasFijas(texto: string, tipo: string): string[] {
   // Publicaciones de un colaborador (Flownexion): la Ley General de Comunicación Audiovisual y el código de Autocontrol obligan a marcarlo.
   if (/flownexion/i.test(texto) && !/#publi|#colaboraci[oó]n|publicidad/i.test(texto))
     p.push("Menciona a Flownexion sin marcarlo como publicidad (#publi)");
+  // Sin precios nuestros en público (16-11-2026): ni cuotas, ni puestas en marcha, ni «desde X €» (las noticias pueden citar ayudas)
+  // Solo lo nuestro: las piezas de valor pueden citar ayudas o precios de apps de terceros
+  if (/(IndunexIA|Transforma con IA|nuestr[oa]s? (programa|ERP|app|aplicación|asistente|plan|planes|servicio|automatización)|con nosotros|puesta en marcha)[^.\n]{0,100}\d[\d.]*\s?€|\d[\d.]*\s?€[^.\n]{0,60}(IndunexIA|nuestr[oa]s? (programa|ERP|app|asistente|plan))/i.test(texto))
+    p.push("Da precios (no se publican precios: presupuesto gratis tras el diagnóstico)");
   if (hashtags(texto).length > 5) p.push("Más de 5 hashtags");
   if (texto.length > 2200) p.push("Más de 2.200 caracteres");
   // 09-11-2026: «sale al final muchas veces Transforma con IA». La cuenta ya se llama así y el vídeo lleva la firma:

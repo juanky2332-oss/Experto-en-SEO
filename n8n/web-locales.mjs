@@ -5,7 +5,7 @@
 //   node n8n/web-locales.mjs --t3 [slug ...]   -> TANDA 3: copia de seguridad en _backups/tanda3/ y actualización COMPLETA (contenido + Rank Math) de las ya publicadas
 // Murcia ya existe como /consultor-ia-murcia/ (no se duplica; se enlaza). No toca web-paginas.mjs ni el snippet.
 // Contenido propio por ciudad con fuentes y fecha de consulta (13-10-2026). Casos SIEMPRE ficticios y marcados. Sin nombrar herramientas internas.
-// Precios: solo los confirmados (planes Básico 790 €+99 €/mes, Profesional 1.290 €+169 €/mes y Pro 1.990 €+249 €/mes, pago único al empezar, 3 meses gratis, usuario extra 15 €/mes desde el primer mes, sin permanencia) o enlace a /erp-industria/#precio.
+// Precios: NUNCA en la web (desde 16-11-2026). Solo «presupuesto gratis tras el diagnóstico».
 import fs from 'node:fs';
 import { wp } from './gw.mjs';
 const BK3 = '_backups/tanda3/';
@@ -154,7 +154,7 @@ C.molina = {
   faqsH: 'Preguntas de empresas de Molina de Segura',
   faqs: [['¿Qué conviene automatizar primero en una empresa de golosinas o de envases?', 'Suele ser lo que más veces se repite: los pedidos de cliente o los albaranes de materia prima. Se hace un piloto con tus documentos y se compara el tiempo antes y después; no prometemos cifras de antemano.'],
     ['¿Venís a Molina o hay que desplazarse a Murcia?', 'Vamos nosotros. Molina está a unos diez kilómetros de nuestra base, así que la puesta en marcha y las revisiones se hacen en tu empresa; el diagnóstico te llega por escrito y la configuración y el soporte van en remoto.'],
-    ['¿Cuánto cuesta el ERP para un taller de la zona?', 'Hay tres planes: Básico, 790 € de puesta en marcha y 99 €/mes; Profesional, 1.290 € y 169 €/mes; y Pro, 1.990 € y 249 €/mes. Son precios de temporada sin IVA, en un solo pago al empezar, con los tres primeros meses de cuota gratis y sin permanencia. El precio es el mismo que en Murcia.']],
+    ['¿Cuánto cuesta el ERP para un taller de la zona?', 'Depende del plan y de lo que haya que adaptar a tu taller. Tras el diagnóstico gratis te enviamos por escrito el presupuesto cerrado, sin compromiso y sin permanencia. El precio es el mismo que en Murcia.']],
   band: ['¿Tienes una fábrica o un taller en Molina?', 'Enséñanos un pedido y un albarán de un día normal y te decimos qué proceso automatizaríamos primero.'],
   fuentes: [['Wikipedia, Molina de Segura (apartado de economía e industria)', 'https://es.wikipedia.org/wiki/Molina_de_Segura'],
     ['El Español, «El municipio español que factura más de 700 millones vendiendo chuches» (11-04-2026)', 'https://www.elespanol.com/sociedad/20260411/municipio-espanol-factura-meur-vendiendo-chuches-empresas-grandes-pais/1003744199290_0.amp.html'],
@@ -185,7 +185,7 @@ C.lorca = {
   faqsH: 'Preguntas de empresas de Lorca',
   faqs: [['¿Os desplazáis hasta Lorca o solo trabajáis en Murcia?', 'Vamos a Lorca con cita previa. Queda a unos 60 km, así que juntamos varias visitas de la zona en un mismo día para que sea más económico. El resto del proyecto va en remoto.'],
     ['¿Sirve para una sala de despiece o una empresa de transformados cárnicos?', 'Sí para la parte documental: albaranes, pesos, lotes y facturas. No sustituimos los registros sanitarios obligatorios ni el sistema oficial de trazabilidad: los alimentamos con menos tecleo. Antes de proponer nada hacemos un diagnóstico gratis.'],
-    ['¿Cuánto cuesta un ERP para un taller de maquinaria agrícola?', 'Los precios vigentes están en la página del ERP para la industria, en el apartado de precio: puesta en marcha en un solo pago, mantenimiento mensual con tres meses gratis, usuario extra desde el primer mes y sin permanencia. Tras la demo recibes el presupuesto cerrado por escrito.']],
+    ['¿Cuánto cuesta un ERP para un taller de maquinaria agrícola?', 'Depende del plan y de lo que haya que adaptar a tu taller. Tras el diagnóstico gratis recibes el presupuesto cerrado por escrito, sin compromiso y sin permanencia.']],
   band: ['¿Tienes una empresa en Lorca?', 'Cuéntanos qué papel te quita más tiempo, un albarán, un parte o un presupuesto, y vemos si merece la pena automatizarlo.'],
   fuentes: [['Wikipedia, Lorca (apartado de economía): polígonos y sectores', 'https://es.wikipedia.org/wiki/Lorca'],
     ['Papeles de Geografía n.º 35 (2002): industria y paisaje urbano de Lorca (Saprelorca, 1982)', 'https://dialnet.unirioja.es/descarga/articulo/291960.pdf'],
@@ -294,7 +294,7 @@ const ficha = (slug, c) => {
   const url = `${SITE}/automatizacion-industria-${slug === 'molina' ? 'molina-de-segura' : slug}/`;
   return JSON.stringify({
     '@context': 'https://schema.org', '@type': 'ProfessionalService', '@id': url + '#servicio', name: `Transforma con IA · ${c.nombre}`, url,
-    description: c.seo[1], email: 'info@transformaconia.com', priceRange: '€€', parentOrganization: { '@id': SITE + '/#organization' },
+    description: c.seo[1], email: 'info@transformaconia.com', parentOrganization: { '@id': SITE + '/#organization' },
     address: { '@type': 'PostalAddress', addressLocality: 'Murcia', addressRegion: 'Región de Murcia', addressCountry: 'ES' },
     areaServed: { '@type': 'City', name: c.nombre, containedInPlace: { '@type': 'AdministrativeArea', name: c.region } },
     serviceType: ['Automatización de procesos con IA', 'ERP para la industria', 'Asistentes técnicos de catálogo', 'Gestión documental con IA'],

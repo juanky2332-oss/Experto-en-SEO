@@ -158,3 +158,6 @@ Palabras del dueño: la última historia (presupuesto con la app del ERP) llegó
 - Flownexion publica primero su vídeo; lo nuestro sale DESPUÉS y solo cuando el dueño lo diga.
 - Como mucho 1 pieza de colaborador cada 2 semanas en el feed. En el texto: «herramienta que recomendamos», nunca «trabajamos con empresas de…» (lo bloquea ig-calidad).
 - Enlace con seguimiento: `https://flownexion.com/automatizacion-ecommerce/?utm_source=instagram&utm_medium=social&utm_campaign=colaboracion`.
+
+## Sin precios en público (16-11-2026)
+Decisión del dueño: como Flownexion, no damos precios en ningún sitio público (la gente compara sin ver todo lo que incluye). En Instagram nunca cifras de nuestras apps ni servicios: «presupuesto gratis», «te lo enviamos por escrito». `ig-calidad.ts` bloquea «€/mes», «puesta en marcha desde…» y «desde X €». Enlace para Flownexion en Instagram: transformaconia.com/colaboraciones/flownexion/ (lleva directo a su demo).

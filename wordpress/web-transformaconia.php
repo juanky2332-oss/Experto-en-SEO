@@ -177,15 +177,14 @@ add_shortcode( 'tc_categoria', function ( $a ) {
 } );
 
 /* [tc_calculadora] «¿Cuánto te cuesta el papeleo?»: cálculo orientativo con las cifras de quien lo usa.
- * Usa el plan Profesional de /erp-industria/ (1.290 € de puesta en marcha y 169 €/mes desde el mes 4, 3 primeros meses gratis). Planes (15-11-2026): Básico 790+99, Profesional 1.290+169, Pro 1.990+249.
- * Si cambia la tarifa, cambiar aquí data-puesta / data-cuota / data-gratis y el texto de la página del ERP. */
+ * Sin precios (16-11-2026, pedido del dueño): solo calcula lo que cuesta el papeleo y el tiempo que se liberaría. */
 add_shortcode( 'tc_calculadora', function () {
 	static $n = 0;
 	++$n;
 	$i = 'tc-calc' . $n;
 	ob_start();
 	?>
-<div class="tc-calc tc-box" id="<?php echo esc_attr( $i ); ?>" data-puesta="1290" data-cuota="169" data-gratis="3" data-pagos="2" role="group" aria-labelledby="<?php echo esc_attr( $i ); ?>-t">
+<div class="tc-calc tc-box" id="<?php echo esc_attr( $i ); ?>" role="group" aria-labelledby="<?php echo esc_attr( $i ); ?>-t">
 	<div><h3 id="<?php echo esc_attr( $i ); ?>-t">¿Cuánto te cuesta el papeleo?</h3><p class="tc-calc__sub">Presupuestos, albaranes y facturas a mano. Pon tus cifras y mira el orden de magnitud: es un cálculo orientativo, no una promesa de ahorro.</p></div>
 	<div class="tc-calc__grid">
 		<div class="tc-field"><label for="<?php echo esc_attr( $i ); ?>-p">Personas en oficina</label><input id="<?php echo esc_attr( $i ); ?>-p" type="number" inputmode="numeric" min="1" max="50" step="1" value="2"></div>
@@ -196,7 +195,7 @@ add_shortcode( 'tc_calculadora', function () {
 	<div class="tc-calc__out" role="status" aria-live="polite">
 		<div class="tc-calc__big"><span data-o="anual">–</span> € <small>al año en papeleo</small></div>
 		<p class="tc-calc__rec" data-o="rec"></p>
-		<p class="tc-calc__note">Orientativo y sin IVA. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. La cuenta usa el plan Profesional: 1.290 € de puesta en marcha (un solo pago al empezar) y 169 €/mes desde el cuarto mes. Hay también un plan Básico desde 790 € y 99 €/mes. Los usuarios extra no entran en esta cuenta.</p>
+		<p class="tc-calc__note">Orientativo. Parte de las horas y el coste que has escrito; el recorte es una suposición para hacer la cuenta, no un resultado garantizado. El presupuesto para tu caso te lo enviamos gratis y por escrito tras el diagnóstico.</p>
 	</div>
 	<div class="tc-btns"><button type="button" class="tc-btn" data-o="ir">Quiero ver esto con mis números</button></div>
 </div>
@@ -206,26 +205,20 @@ add_shortcode( 'tc_calculadora', function () {
   function num(el,min,max,def){var v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=def;return Math.min(max,Math.max(min,v));}
   function eur(x){return Math.round(x).toLocaleString('es-ES');}
   document.querySelectorAll('.tc-calc').forEach(function(c){
-    var q=function(s){return c.querySelector(s);}, id=c.id, P=q('#'+id+'-p'), H=q('#'+id+'-h'), C=q('#'+id+'-c'), R=q('#'+id+'-r'), RV=q('#'+id+'-rv'),
-        puesta=+c.dataset.puesta, cuota=+c.dataset.cuota, gratis=+c.dataset.gratis, r={};
+    var q=function(s){return c.querySelector(s);}, id=c.id, P=q('#'+id+'-p'), H=q('#'+id+'-h'), C=q('#'+id+'-c'), R=q('#'+id+'-r'), RV=q('#'+id+'-rv'), r={};
     function calc(){
       var p=num(P,1,50,2), h=num(H,0.5,40,8), co=num(C,5,150,20), pc=num(R,10,60,30)/100;
-      var anual=p*h*52*co, ahorro=anual*pc/12, meses=null;
-      // coste acumulado al mes m: la puesta en marcha al empezar y la cuota desde el mes 4; se busca el mes desde el que lo ahorrado supera siempre lo pagado
-      var ultimo=0;for(var m=1;m<=60;m++){var gastado=puesta+cuota*Math.max(0,m-gratis);if(ahorro*m<gastado)ultimo=m;}
-      if(ultimo<60)meses=ultimo+1;
+      var anual=p*h*52*co, ahorro=anual*pc/12;
       RV.textContent=Math.round(pc*100)+' %';
       q('[data-o=anual]').textContent=eur(anual);
-      q('[data-o=rec]').textContent=meses&&meses<=60
-        ? 'Si recortaras un '+Math.round(pc*100)+' % ese tiempo (unos '+eur(ahorro)+' € al mes de tiempo liberado), recuperarías lo invertido en '+meses+(meses===1?' mes.':' meses.')
-        : 'Con estas cifras y un recorte del '+Math.round(pc*100)+' % la inversión tardaría más de cinco años en compensarse: quizá no sea tu caso, y te lo diremos con franqueza en el diagnóstico.';
-      r={p:p,h:h,co:co,pc:Math.round(pc*100),anual:anual,meses:meses};
+      q('[data-o=rec]').textContent='Si recortaras un '+Math.round(pc*100)+' % ese tiempo, liberarías unos '+eur(ahorro)+' € al mes de tiempo de tu equipo para trabajo que sí deja dinero.';
+      r={p:p,h:h,co:co,pc:Math.round(pc*100),anual:anual,ahorro:ahorro};
     }
     [P,H,C,R].forEach(function(e){e.addEventListener('input',calc);});
     calc();
     q('[data-o=ir]').addEventListener('click',function(){
       calc();
-      var m='Quiero ver esto con mis números. Cifras de la calculadora «¿Cuánto te cuesta el papeleo?» (orientativas): '+r.p+(r.p===1?' persona':' personas')+' en oficina, '+r.h+' h por persona y semana con presupuestos, albaranes y facturas, a '+r.co+' €/h, unos '+eur(r.anual)+' € al año en papeleo.'+(r.meses&&r.meses<=60?' Suponiendo recortar un '+r.pc+' % ese tiempo, la puesta en marcha se recuperaría en unos '+r.meses+(r.meses===1?' mes.':' meses.'):'')+' Me gustaría revisarlo con mis datos reales.';
+      var m='Quiero ver esto con mis números. Cifras de la calculadora «¿Cuánto te cuesta el papeleo?» (orientativas): '+r.p+(r.p===1?' persona':' personas')+' en oficina, '+r.h+' h por persona y semana con presupuestos, albaranes y facturas, a '+r.co+' €/h, unos '+eur(r.anual)+' € al año en papeleo.'+' Suponiendo recortar un '+r.pc+' % ese tiempo, serían unos '+eur(r.ahorro)+' € al mes de tiempo liberado.'+' Me gustaría revisarlo con mis datos reales.';
       if(window.tcMedir)tcMedir('clic','Calculadora papeleo → quiero ver esto con mis números');
       var t=document.querySelector('form[data-tc-form="contacto"] textarea[name=mensaje]');
       if(t){t.value=m;t.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){t.focus({preventScroll:true});},400);}
@@ -559,17 +552,16 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			array( '@type' => 'AdministrativeArea', 'name' => 'Provincia de Albacete' ),
 			array( '@type' => 'Country', 'name' => 'España' ),
 		),
-		'priceRange'  => '€€',
 		'knowsAbout'  => array( 'Automatización de procesos industriales', 'Inteligencia artificial', 'ERP para la industria', 'Talleres de mecanizado', 'Calderería', 'Carpintería metálica', 'Reparación de maquinaria industrial', 'Hidráulica y neumática', 'Distribución industrial', 'Gestión documental', 'SAP', 'Asistentes de IA' ),
 		'hasOfferCatalog' => array(
 			'@type'           => 'OfferCatalog',
 			'name'            => 'Soluciones de IA y automatización para la industria',
 				'itemListElement' => array(
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 790, 'priceCurrency' => 'EUR' ) ),
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Asistentes técnicos y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 900, 'priceCurrency' => 'EUR' ) ),
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Gestión documental con IA', 'url' => home_url( '/gestion-documental-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 450, 'priceCurrency' => 'EUR' ) ),
-					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Herramientas a medida con IA e integración con SAP', 'url' => home_url( '/desarrollo-a-medida-ia/' ) ), 'priceSpecification' => array( '@type' => 'PriceSpecification', 'minPrice' => 2500, 'priceCurrency' => 'EUR' ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'ERP para la industria con IA', 'url' => home_url( '/erp-industria/' ) ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Automatización de procesos con IA', 'url' => home_url( '/automatizacion-procesos-ia/' ) ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Asistentes técnicos y chatbots de IA', 'url' => home_url( '/agentes-chatbots-ia/' ) ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Gestión documental con IA', 'url' => home_url( '/gestion-documental-ia/' ) ) ),
+					array( '@type' => 'Offer', 'itemOffered' => array( '@type' => 'Service', 'name' => 'Herramientas a medida con IA e integración con SAP', 'url' => home_url( '/desarrollo-a-medida-ia/' ) ) ),
 			),
 		),
 	);
@@ -589,7 +581,7 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 			$data[ $k ]['name'] = 'Transforma con IA';
 		}
 	}
-	// El ERP como producto de software (precio orientativo de la oferta de lanzamiento)
+	// El ERP como producto de software (sin precios: se publican solo por presupuesto, desde 16-11-2026)
 	if ( is_page( 'erp-industria' ) ) {
 		$data['TcErp'] = array(
 			'@type'               => 'SoftwareApplication',
@@ -606,11 +598,6 @@ add_filter( 'rank_math/json_ld', function ( $data ) {
 				'contentUrl'  => 'https://transformaconia.com/wp-content/uploads/2026/10/erp-industria-calculadora.webp',
 			),
 			'audience'            => array( '@type' => 'BusinessAudience', 'audienceType' => 'Talleres de mecanizado, calderería, carpintería metálica, reparación de maquinaria, hidráulica y neumática' ),
-			'offers'              => array(
-				array( '@type' => 'Offer', 'name' => 'Plan Básico', 'price' => 790, 'priceCurrency' => 'EUR', 'description' => 'Presupuestos, albaranes, facturas, envío por correo, cobros y gastos. Puesta en marcha en un solo pago al empezar; después 99 €/mes con los 3 primeros meses gratis. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
-				array( '@type' => 'Offer', 'name' => 'Plan Profesional', 'price' => 1290, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Básico más gastos por foto con IA, albaranes firmados, calculadora de costes y margen, fiscal y paquete para el asesor, informes y Telegram. Puesta en marcha en un solo pago al empezar; después 169 €/mes con los 3 primeros meses gratis. 2 usuarios incluidos. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
-				array( '@type' => 'Offer', 'name' => 'Plan Pro', 'price' => 1990, 'priceCurrency' => 'EUR', 'description' => 'Todo lo del Profesional más asistente con IA propio, presupuesto desde plano, histórico completo, una automatización a medida y 2 h/mes de mejoras. Puesta en marcha en un solo pago al empezar; después 249 €/mes con los 3 primeros meses gratis. 3 usuarios incluidos. Usuario extra 15 €/mes. Sin permanencia. Sin IVA. Precio de temporada hasta el 31/12/2026.', 'url' => home_url( '/erp-industria/#precio' ) ),
-			),
 			'provider'            => array( '@id' => home_url( '/#person' ) ),
 		);
 	}
