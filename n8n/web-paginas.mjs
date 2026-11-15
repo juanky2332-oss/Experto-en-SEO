@@ -879,6 +879,8 @@ P['diseno-web'] = servicio({
     ['lupa', 'Pensada para Google', 'Textos con las búsquedas de tus clientes, datos estructurados, velocidad y páginas por servicio y por zona.'],
     ['sobre', 'Contactos que llegan', 'Formularios conectados a tu correo o a Telegram, botones de llamada y, si quieres, un asistente de IA que atiende.']]],
   como: 'De la primera reunión a tu web publicada',
+  // nuestra web es la mejor muestra del servicio (16-11-2026): vídeo con Tuerqui y enlaces a páginas reales
+  extra: demoVideo('web', 'Esta web la hemos hecho nosotros', 'La mejor muestra de lo que hacemos es la web en la que estás. Mírala en 20 segundos, con Tuerqui, nuestra mascota, y luego date una vuelta: así quedaría la tuya.', ['Rápida, con tu marca y pensada para Google', 'Tus servicios explicados con capturas y vídeos', 'Perfecta en el móvil', "Ejemplos aquí mismo: <a class='tc-link' href='/soluciones/'>Soluciones</a>, <a class='tc-link' href='/erp-industria/'>una página de producto</a> y <a class='tc-link' href='/colaboraciones/flownexion/'>una página de colaboración</a>"]),
   precio: ['Adaptado a lo que necesitas', 'Depende del número de páginas, los textos, las integraciones y si quieres blog automático o asistente.', '<b>Presupuesto a medida</b>'],
   faqs: [
     ['¿Podré actualizar la web yo mismo?', 'Sí. La montamos sobre la plataforma que te resulte más cómoda de mantener después, o a medida si lo necesitas.'],
