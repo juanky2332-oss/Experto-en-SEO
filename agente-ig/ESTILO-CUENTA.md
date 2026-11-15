@@ -127,7 +127,7 @@ Palabras del dueño: la última historia (presupuesto con la app del ERP) llegó
   3. **IndunexIA Documentos**: facturas y documentos leídos, comprobados y ordenados.
   4. **IndunexIA Presupuestos** (del plano al presupuesto): suelto o dentro del plan Pro del ERP.
   5. **Fichas técnicas de producto** (idea del 15-11, dentro del asistente o como app aparte): NO se anuncia hasta que exista una demo real.
-- **Flownexion** (colaborador, flownexion.com): automatización de tiendas online y otras apps. Nos llevamos comisión por cliente que les llevamos. Se habla de ellos como «herramienta que recomendamos», nunca como si fuera nuestra.
+- **Flownexion** (colaborador, flownexion.com): automatización de tiendas online y otras apps (lo económico es interno: jamás se menciona en público). Se habla de ellos como «herramienta que recomendamos», nunca como si fuera nuestra.
 
 ### Mezcla semanal (reels lunes, miércoles y viernes)
 | Día | Qué | Ejemplo |
@@ -151,7 +151,8 @@ Palabras del dueño: la última historia (presupuesto con la app del ERP) llegó
 - Producto como mucho 1 de cada 4 historias fuera de los días de serie.
 
 ### Colaborador: Flownexion
-- Formato **reacción seguida**: su vídeo corre entero, SIN parones; Tuerqui encima con caras (palomitas, flipa, encantado, aplaude) y palabras sueltas escritas, sin voz. Al acabar, cierre con la voz de la cuenta (cedar) en tono de anuncio y cupón: «Contacta con Flownexion, di que vienes de parte de Transforma con IA y usa el código **TRANSFORMA10**: 10 % de descuento». Composición `ReaccionSeguida` (`FABRICA DE VIDEOS/scripts/reaccion-seguida.mjs`).
-- Siempre **#publi** y «Colaboración pagada» con @flownexion (cobramos comisión: Ley General de Comunicación Audiovisual y código de Autocontrol). `ig-calidad.ts` bloquea cualquier texto con Flownexion sin #publi.
+- Formato **reacción seguida**: su vídeo corre entero, SIN parones; Tuerqui encima con caras (palomitas, flipa, encantado, aplaude) y palabras sueltas escritas, sin voz. Al acabar, cierre con la voz de la cuenta (cedar) en tono de anuncio: «Contacta con Flownexion y di que vienes de parte de Transforma con IA». SIN cupones ni códigos (Flownexion no trabaja así; decidido el 16-11-2026). Composición `ReaccionSeguida` (`FABRICA DE VIDEOS/scripts/reaccion-seguida.mjs`).
+- Siempre **#publi** y «Colaboración pagada» con @flownexion (obligatorio por la Ley General de Comunicación Audiovisual y el código de Autocontrol). `ig-calidad.ts` bloquea cualquier texto con Flownexion sin #publi.
+- Flownexion publica primero su vídeo; lo nuestro sale DESPUÉS y solo cuando el dueño lo diga.
 - Como mucho 1 pieza de colaborador cada 2 semanas en el feed. En el texto: «herramienta que recomendamos», nunca «trabajamos con empresas de…» (lo bloquea ig-calidad).
-- Enlace con seguimiento: `https://flownexion.com/automatizacion-ecommerce/?utm_source=instagram&utm_medium=social&utm_campaign=transforma10`.
+- Enlace con seguimiento: `https://flownexion.com/automatizacion-ecommerce/?utm_source=instagram&utm_medium=social&utm_campaign=colaboracion`.

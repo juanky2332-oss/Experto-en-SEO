@@ -56,7 +56,7 @@ export function reglasFijas(texto: string, tipo: string): string[] {
       continue;
     if (re.test(texto)) p.push(`Incluye ${que}`);
   }
-  // Con Flownexion cobramos comisión: la Ley General de Comunicación Audiovisual y el código de Autocontrol obligan a marcarlo.
+  // Publicaciones de un colaborador (Flownexion): la Ley General de Comunicación Audiovisual y el código de Autocontrol obligan a marcarlo.
   if (/flownexion/i.test(texto) && !/#publi|#colaboraci[oó]n|publicidad/i.test(texto))
     p.push("Menciona a Flownexion sin marcarlo como publicidad (#publi)");
   if (hashtags(texto).length > 5) p.push("Más de 5 hashtags");
