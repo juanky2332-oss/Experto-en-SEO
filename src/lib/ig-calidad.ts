@@ -57,7 +57,7 @@ export function reglasFijas(texto: string, tipo: string): string[] {
     if (re.test(texto)) p.push(`Incluye ${que}`);
   }
   // Publicaciones de un colaborador (Flownexion): la Ley General de Comunicación Audiovisual y el código de Autocontrol obligan a marcarlo.
-  if (/flownexion/i.test(texto) && !/#publi|#colaboraci[oó]n|publicidad/i.test(texto))
+  if (/flownexion/i.test(texto) && !/#publi\b|#colaboraci[oó]n|publicidad/i.test(texto))
     p.push("Menciona a Flownexion sin marcarlo como publicidad (#publi)");
   // Sin precios nuestros en público (16-11-2026): ni cuotas, ni puestas en marcha, ni «desde X €» (las noticias pueden citar ayudas)
   // Solo lo nuestro: las piezas de valor pueden citar ayudas o precios de apps de terceros
