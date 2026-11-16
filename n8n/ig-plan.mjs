@@ -16,6 +16,15 @@ import { gw } from './gw.mjs';
 const sql = postgres(process.env.DATABASE_URL, { ssl: 'require', prepare: false });
 const IG = 'https://graph.instagram.com/v21.0';
 const hoy = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+// Radar de Tiendas (16-11-2026): de ahí salen las tiendas online objetivo y ahí se apunta lo que hacemos con cada una
+const radar = async (path, body) => {
+  if (!process.env.RADAR_URL || !process.env.RADAR_IG_KEY) return null;
+  try {
+    const r = await fetch(process.env.RADAR_URL + '/api/instagram/sync' + path, { method: body ? 'POST' : 'GET', headers: { 'x-ig-key': process.env.RADAR_IG_KEY, 'content-type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+};
+const aRadar = (tipo, cuenta, url, texto) => radar('', { handle: String(cuenta).replace(/^@/, ''), tipo, url, texto });
 const [cmd, ...args] = process.argv.slice(2);
 
 async function cred() {
@@ -120,6 +129,7 @@ if (cmd === 'cargar') {
   // node n8n/ig-plan.mjs hecho-item <id>  → la tarea de la lista ya está hecha (y queda apuntada)
   const [x] = await sql`update seo.ig_movil set hecho = true where id = ${Number(args[0])} and not hecho returning tipo, cuenta, url, texto, fecha`;
   if (x) await sql`insert into seo.ig_acciones (tipo, cuenta, url, texto, fecha) values (${x.tipo}, ${x.cuenta}, ${x.url}, ${x.texto}, ${x.fecha})`;
+  if (x && ['seguir', 'comentar'].includes(x.tipo)) await aRadar(x.tipo, x.cuenta, x.url, x.texto);
   console.log(x ? 'ok' : 'ya estaba hecha');
 } else if (cmd === 'hecho') {
   // informe del agente local a Telegram
@@ -129,7 +139,16 @@ if (cmd === 'cargar') {
 } else if (cmd === 'accion') {
   const [tipo, cuenta, url = null, texto = null] = args;
   await sql`insert into seo.ig_acciones (tipo, cuenta, url, texto, fecha) values (${tipo}, ${cuenta.replace(/^@/, '')}, ${url}, ${texto}, ${hoy()})`;
+  // «me gusta» y demás acciones sueltas también quedan apuntadas en el Radar si la empresa está allí
+  if (['seguir', 'comentar', 'megusta'].includes(tipo)) await aRadar(tipo, cuenta, url, texto);
   console.log('ok');
+} else if (cmd === 'radar') {
+  // node n8n/ig-plan.mjs radar [n] → tiendas online del Radar con Instagram seguro y sin seguir (PrestaShop primero), sin las ya seguidas
+  const n = Number(args[0] || 10);
+  const r = await radar('?n=' + n * 2);
+  const ya = new Set((await sql`select distinct cuenta from seo.ig_acciones where tipo = 'seguir'`).map((x) => x.cuenta.toLowerCase()));
+  const objetivos = (r?.objetivos ?? []).filter((x) => !ya.has(String(x.handle).toLowerCase())).slice(0, n);
+  console.log(JSON.stringify(r ? { objetivos } : { error: 'sin conexión con el Radar' }, null, 1));
 } else if (cmd === 'recientes') {
   const dias = Number(args[0] || 7);
   const r = await sql`select tipo, cuenta, max(fecha)::text fecha from seo.ig_acciones where fecha > current_date - ${dias}::int group by tipo, cuenta order by 3 desc`;
