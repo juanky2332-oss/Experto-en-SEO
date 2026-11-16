@@ -86,13 +86,16 @@ if (cmd === 'cargar') {
   // lo que el agente local tiene que hacer hoy: seguir y comentar pendientes de la lista (seo.ig_movil)
   const l = await sql`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho order by orden`;
   // día del plan sin lista preparada (desde el 2-11-2026): el agente la busca él mismo (INSTRUCCIONES.md → «Buscar la lista»)
-  // (también si quedó a medias: pide solo lo que falta hasta 5 seguir + 3 comentar)
+  // (también si quedó a medias: pide solo lo que falta hasta el volumen del día (VOL))
   const [n] = await sql`select count(*) filter (where tipo = 'seguir')::int s, count(*) filter (where tipo = 'comentar')::int c from seo.ig_movil where fecha = ${hoy()}`;
   const [plan] = await sql`select 1 from seo.ig_plan where fecha = ${hoy()} and estado <> 'rechazado'`;
   const hora = Number(new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Madrid' }));
-  const faltan = { seguir: Math.max(0, 5 - n.s), comentar: Math.max(0, 3 - n.c) };
+  // Subida escalonada (16-11-2026, el dueño quiere crecer más rápido sin que Instagram nos frene): semana del 16-11 12/6,
+  // semana del 23-11 18/8 y desde el 30-11 25/10. «me gusta»: el rango de VOL.megusta. Siempre despacio y en dos tandas (13:00 y 17:00).
+  const VOL = hoy() >= '2026-11-30' ? { seguir: 25, comentar: 10, megusta: '30 y 40' } : hoy() >= '2026-11-23' ? { seguir: 18, comentar: 8, megusta: '20 y 30' } : { seguir: 12, comentar: 6, megusta: '10 y 20' };
+  const faltan = { seguir: Math.max(0, VOL.seguir - n.s), comentar: Math.max(0, VOL.comentar - n.c) };
   const buscar = plan && hora < 17 && (faltan.seguir || faltan.comentar);
-  const r = { fecha: hoy(), ...(l.length ? { tareas: l } : {}), ...(buscar ? { buscar_lista: faltan } : {}) };
+  const r = { fecha: hoy(), megusta: VOL.megusta, ...(l.length ? { tareas: l } : {}), ...(buscar ? { buscar_lista: faltan } : {}) };
   console.log(JSON.stringify(l.length || buscar ? r : { nada_que_hacer: true }, null, 1));
 } else if (cmd === 'anadir') {
   // node n8n/ig-plan.mjs anadir seguir <cuenta>   ·   node n8n/ig-plan.mjs anadir comentar <cuenta> <url> "<texto>"
