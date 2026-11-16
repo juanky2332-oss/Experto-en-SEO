@@ -355,7 +355,7 @@ create table if not exists seo.ig_acciones (
   id bigserial primary key,
   created_at timestamptz not null default now(),
   fecha date not null default current_date,
-  tipo text not null check (tipo in ('seguir', 'dejar', 'comentar', 'responder')),
+  tipo text not null check (tipo in ('seguir', 'dejar', 'comentar', 'responder', 'megusta')),
   cuenta text not null,
   url text,
   texto text

@@ -122,6 +122,11 @@ if (cmd === 'cargar') {
     if (tipo === 'seguir') await aRadar('lista', cuenta, null, `Lista del ${hoy()}`);
     console.log(JSON.stringify({ id: x.id }));
   }
+} else if (cmd === 'descartar') {
+  // node n8n/ig-plan.mjs descartar <dominio> "<motivo>" → empresa del Radar que no encaja (cuenta personal, otro país, no es tienda…): «No seguir» con el motivo
+  const [dominio, motivo = 'No encaja'] = args;
+  const r = await radar('', { domain: dominio, tipo: 'descartada', texto: motivo });
+  console.log(r?.enRadar ? 'ok' : 'no está en el Radar');
 } else if (cmd === 'al-radar') {
   // node n8n/ig-plan.mjs al-radar <dominio> <cuenta> → una tienda online encontrada en Instagram que no está en el Radar:
   // se analiza allí (tipo de tienda y plataforma), se le busca el Instagram y queda apuntado que la trajo el agente
