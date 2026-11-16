@@ -118,8 +118,24 @@ if (cmd === 'cargar') {
   if (repetida.length) { console.log('repetida'); } else {
     const [{ o }] = await sql`select coalesce(max(orden), -1) + 1 o from seo.ig_movil where fecha = ${hoy()}`;
     const [x] = await sql`insert into seo.ig_movil (fecha, orden, tipo, cuenta, url, texto) values (${hoy()}, ${o}, ${tipo}, ${cuenta}, ${url ?? `https://www.instagram.com/${cuenta}/`}, ${texto}) returning id`;
+    // si es una empresa del Radar, allí se ve que está en la lista de hoy (trazabilidad)
+    if (tipo === 'seguir') await aRadar('lista', cuenta, null, `Lista del ${hoy()}`);
     console.log(JSON.stringify({ id: x.id }));
   }
+} else if (cmd === 'al-radar') {
+  // node n8n/ig-plan.mjs al-radar <dominio> <cuenta> → una tienda online encontrada en Instagram que no está en el Radar:
+  // se analiza allí (tipo de tienda y plataforma), se le busca el Instagram y queda apuntado que la trajo el agente
+  const [dominio, cuenta = ''] = args;
+  if (!dominio) throw new Error('Uso: al-radar <dominio> <cuenta>');
+  const H = { 'x-ig-key': process.env.RADAR_IG_KEY, 'content-type': 'application/json' };
+  const post = async (p, b) => { try { const r = await fetch(process.env.RADAR_URL + p, { method: 'POST', headers: H, body: JSON.stringify(b) }); return r.ok ? r.json() : { error: r.status }; } catch (e) { return { error: e.message }; } };
+  const a = await post('/api/analyze', { domain: dominio });
+  if (a.error || !a.record) { console.log(JSON.stringify({ error: 'no se pudo analizar', detalle: a.error ?? null })); process.exit(0); }
+  const d = a.record.domain;
+  const ig = a.record.instagram?.handle ? { instagram: a.record.instagram } : await post('/api/instagram', { domain: d });
+  await post('/api/instagram/sync', { domain: d, tipo: 'recomendada', texto: `La trajo el agente de Instagram${cuenta ? ` desde @${cuenta.replace(/^@/, '')}` : ''} el ${hoy()}` });
+  const an = a.record.analysis ?? {};
+  console.log(JSON.stringify({ dominio: d, duplicada: Boolean(a.duplicate), categoria: an.category ?? null, plataforma: an.platform ?? null, instagram: ig.instagram?.handle ?? null, instagram_estado: ig.instagram?.status ?? null }, null, 1));
 } else if (cmd === 'reclamar') {
   // node n8n/ig-plan.mjs reclamar <id>  → ANTES de hacer la tarea; si dice «no», otro (el móvil u otra ejecución) la tiene: sáltala
   const [x] = await sql`update seo.ig_movil set reclamada_at = now() where id = ${Number(args[0])} and not hecho

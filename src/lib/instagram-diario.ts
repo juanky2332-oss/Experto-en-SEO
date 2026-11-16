@@ -194,7 +194,13 @@ export async function tarde() {
 export async function movilHecho(fecha: string, hecho: boolean) {
   const l = await sql<Movil[]>`update seo.ig_movil set hecho = true where fecha = ${fecha} and not hecho
     and (reclamada_at is null or reclamada_at < now() - interval '60 minutes') returning id, tipo, cuenta, url, texto`;
-  if (hecho) for (const x of l) await sql`insert into seo.ig_acciones (tipo, cuenta, url, texto, fecha) values (${x.tipo}, ${x.cuenta}, ${x.url}, ${x.texto}, ${fecha})`;
+  if (hecho) for (const x of l) {
+    await sql`insert into seo.ig_acciones (tipo, cuenta, url, texto, fecha) values (${x.tipo}, ${x.cuenta}, ${x.url}, ${x.texto}, ${fecha})`;
+    // lo hecho desde el móvil también queda en el Radar de Tiendas si la empresa está allí (16-11-2026)
+    if (process.env.RADAR_URL && process.env.RADAR_IG_KEY && (x.tipo === "seguir" || x.tipo === "comentar"))
+      await fetch(`${process.env.RADAR_URL}/api/instagram/sync`, { method: "POST", headers: { "x-ig-key": process.env.RADAR_IG_KEY, "content-type": "application/json" },
+        body: JSON.stringify({ handle: x.cuenta, tipo: x.tipo, url: x.url, texto: x.tipo === "comentar" ? x.texto : null }) }).catch(() => null);
+  }
   return hecho ? `👏 Apuntado: ${l.length} tareas hechas. Mañana te cuento si alguien ha respondido.` : "De acuerdo, la de hoy la dejamos.";
 }
 
