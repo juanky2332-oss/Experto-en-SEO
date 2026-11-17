@@ -185,7 +185,7 @@ if (cmd === 'cargar') {
   if (prev) {
     for (const c of ahora.filter((x) => !antes.has(x))) await sql`insert into seo.ig_recibidos (tipo, cuenta, fecha) values ('nos_sigue', ${c}, ${hoy()}) on conflict do nothing`;
     for (const c of [...antes].filter((x) => !ahora.includes(x))) await sql`insert into seo.ig_recibidos (tipo, cuenta, fecha) values ('deja_de_seguir', ${c}, ${hoy()}) on conflict do nothing`;
-  } else for (const c of ahora) await sql`insert into seo.ig_recibidos (tipo, cuenta, fecha) values ('nos_sigue', ${c}, ${hoy()}) on conflict do nothing`;
+  } // la primera vez solo se guarda la foto de partida (no son seguidores «nuevos» de hoy)
   await sql`insert into seo.settings (key, value) values ('ig_seguidores_lista', ${sql.json({ lista: ahora, seguidos: (j.seguidos ?? []).map((x) => String(x).toLowerCase()), fecha: hoy() })})
     on conflict (key) do update set value = excluded.value, updated_at = now()`;
   const r = await fetch(process.env.RADAR_URL + '/api/instagram/relaciones', { method: 'POST', headers: { 'x-ig-key': process.env.RADAR_IG_KEY, 'content-type': 'application/json' }, body: JSON.stringify(j) });
