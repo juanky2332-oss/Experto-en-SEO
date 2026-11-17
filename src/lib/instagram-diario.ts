@@ -110,18 +110,11 @@ export async function mediodia() {
   const tocaHoy = toca(ritmo);
   const lineas: string[] = [];
   const [plan] = await sql<{ tareas: { tipo: string; ref?: string | null }[]; estado: string }[]>`select tareas, estado from seo.ig_plan where fecha = ${hoy()}`;
-  let reelOk = true;
-  // el reel sale en sus días de la semana (ritmo.ig_dias); a Telegram solo el día del ritmo o si falla
+  // El reel YA NO sale a mediodía (17-11-2026): sale a las 21:00 en reelNoche(). Con 12 seguidores, el de las 21:47
+  // tuvo 114 vistas y los de las 12:00 entre 3 y 39. Si hoy hay reel, el plan se cierra cuando salga por la noche.
+  const reelOk = !plan?.tareas.some((t) => t.tipo === "reel" && t.ref);
   const reelHoy = tocaReel(ritmo);
-  if ((reelHoy || tocaHoy) && plan && plan.estado !== "hecho" && plan.estado !== "rechazado") {
-    const reel = plan.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
-    if (reel) {
-      const r = await subir(reel);
-      reelOk = r.startsWith("✅") || r.startsWith("Ya estaba subido");
-      if (tocaHoy || !reelOk) lineas.push(`🎬 ${r.split("\n\nQuedan")[0]}${reelOk ? "" : "\nLo vuelvo a intentar a las 19:00; si quieres, escribe /reel."}`);
-    }
-    // las historias van en su propia pasada (13:10, historias()), para no quedarse sin tiempo detrás de un reel
-  }
+  // las historias van en su propia pasada (13:10, historias())
   try {
     const r = await responderComentarios(c);
     if (r.hechas.length) {
@@ -157,21 +150,28 @@ export async function mediodia() {
   return { ok: true, toca: tocaHoy, enviado: lineas.length > 0 };
 }
 
+// ---------------------------------------------------------------- 21:00 (reel del día; 21:30 segundo intento)
+export async function reelNoche() {
+  if ((await getRitmo()).pausas.instagram) return { ok: true, pausa: true };
+  const [plan] = await sql<{ tareas: { tipo: string; ref?: string | null }[] }[]>`select tareas from seo.ig_plan where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
+  const reel = plan?.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
+  if (!reel) return { ok: true, nada: true };
+  if (!(await cred())) return { ok: false, motivo: "Instagram no conectado" };
+  const r = await subir(reel);
+  const ok = r.startsWith("✅") || r.startsWith("Ya estaba subido");
+  // su historia de aviso, ahora que ha salido (la pasada de las 13:10 no podía ponerla)
+  if (r.startsWith("✅")) await avisoHistoria(reel).catch((e) => console.error("aviso historia", e));
+  if (ok) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now() where fecha = ${hoy()}`;
+  await telegram(`🎬 ${r.split("\n\nQuedan")[0]}${ok ? "" : "\nLo vuelvo a intentar a las 21:30; si quieres, escribe /reel."}`);
+  return { ok, reel };
+}
+
 // ---------------------------------------------------------------- 19:00 (lista al móvil si el PC no lo ha hecho)
 type Movil = { id: number; tipo: string; cuenta: string; url: string; texto: string | null };
 
 export async function tarde() {
   if ((await getRitmo()).pausas.instagram) return { ok: true, pausa: true };
-  // si el reel de mediodía falló, segundo intento
-  const [plan] = await sql<{ tareas: { tipo: string; ref?: string | null }[] }[]>`select tareas from seo.ig_plan where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
-  const reel = plan?.tareas.find((t) => t.tipo === "reel" && t.ref)?.ref;
-  if (reel && (await cred())) {
-    const r = await subir(reel);
-    await telegram(`🎬 Segundo intento: ${r.split("\n\nQuedan")[0]}`);
-    // si ahora sí ha salido, su historia de aviso (la de las 13:10 no la pudo poner)
-    if (r.startsWith("✅")) await avisoHistoria(reel).catch((e) => console.error("aviso historia", e));
-    if (r.startsWith("✅") || r.startsWith("Ya estaba subido")) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now() where fecha = ${hoy()}`;
-  }
+  // el reel ya no se intenta aquí: sale a las 21:00 (reelNoche)
   const l = await sql<Movil[]>`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho
     and (reclamada_at is null or reclamada_at < now() - interval '60 minutes') order by orden`;
   if (!l.length) return { ok: true, enviados: 0 };
