@@ -10,7 +10,9 @@ import { sql } from "@/lib/db";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-type Datos = { plantilla: string; etiqueta?: string; titulo: string; texto?: string; cifra?: string; nota?: string; img?: string; reel?: string; tuerqui?: string | false };
+type Datos = { plantilla: string; etiqueta?: string; titulo: string; texto?: string; cifra?: string; nota?: string; img?: string; reel?: string; tuerqui?: string | false;
+  // 17-11-2026 · plantillas problema / noticia / blog: el problema (o la noticia, o el artículo), qué hacer en 2-3 pasos y cómo lo resolvemos
+  puntos?: string[]; cierre?: string; fuente?: string };
 
 const ICONO = "https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png";
 const W = 1080, H = 1920;
@@ -19,7 +21,7 @@ const C = {
   claro: "#f7f3fd", tinta: "#1b1029", gris: "#5b4a6e", borde: "#e6dcf5",
 };
 // 11-11-2026: Tuerqui, la mascota (poses en demo.transformaconia.com/ig/tuerqui/). Pose según la plantilla; datos.tuerqui la cambia y false la quita.
-const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa" };
+const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa", problema: "agobiado", noticia: "senala", blog: "senala" };
 const POSES = new Set(["agobiado", "celebra", "piensa", "malabares", "senala", "saluda"]);
 // La mascota es decoración: si no llega, la historia sale igual (nunca un 500 por ella)
 async function pngDataUrl(url: string, ancho: number) {
@@ -72,7 +74,7 @@ export async function GET(req: Request) {
   const [e] = await sql<{ titulo: string; datos: Datos | null }[]>`select titulo, datos from seo.ig_cola where id = ${id} and tipo = 'historia'`;
   if (!e?.datos) return new Response("no existe", { status: 404 });
   const d = e.datos;
-  const claro = ["consejo", "respuesta", "app"].includes(d.plantilla);
+  const claro = ["consejo", "respuesta", "app", "problema", "blog"].includes(d.plantilla);
   const degradado = d.plantilla === "pregunta";
 
   let portadaReel: string | null = null;
@@ -124,6 +126,34 @@ export async function GET(req: Request) {
             <div style={{ display: "flex", marginTop: 60, padding: "22px 40px", borderRadius: 999, background: "rgba(11,6,20,0.35)", color: "#fff", fontSize: 34, fontWeight: 600 }}>{d.texto ?? "La respuesta, en la siguiente →"}</div>
           </div>
         );
+      case "problema":
+      case "noticia":
+      case "blog": {
+        // título grande, «qué hacer» en pasos numerados y un cierre destacado con la solución
+        const tinta2 = claro ? C.tinta : "#fff";
+        const t2 = largo > 80 ? 60 : largo > 55 ? 68 : 78;
+        return (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {d.etiqueta ? <Etiqueta t={d.etiqueta} claro={claro} /> : null}
+            <div style={{ display: "flex", marginTop: 30, fontSize: t2, fontWeight: 800, lineHeight: 1.1, color: tinta2 }}>{d.titulo}</div>
+            {d.fuente ? <div style={{ display: "flex", marginTop: 14, fontSize: 28, fontWeight: 500, color: claro ? C.gris : C.suave }}>{d.fuente}</div> : null}
+            {d.puntos?.length ? (
+              <div style={{ display: "flex", flexDirection: "column", marginTop: 36 }}>
+                {d.texto ? <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: 2, color: claro ? C.morado : C.rosa, marginBottom: 14 }}>{d.texto.toUpperCase()}</div> : null}
+                {d.puntos.slice(0, 3).map((p, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", marginTop: i ? 18 : 0 }}>
+                    <div style={{ display: "flex", width: 56, height: 56, borderRadius: 28, background: DEGRADADO, color: "#fff", fontSize: 30, fontWeight: 800, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
+                    <div style={{ display: "flex", marginLeft: 22, fontSize: 38, fontWeight: 500, lineHeight: 1.3, color: tinta2, flex: 1 }}>{p}</div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {d.cierre ? (
+              <div style={{ display: "flex", marginTop: 38, padding: "30px 36px", borderRadius: 30, background: claro ? "#fff" : "rgba(255,255,255,0.08)", border: `2px solid ${claro ? C.borde : "rgba(224,92,255,0.45)"}`, fontSize: 36, fontWeight: 600, lineHeight: 1.35, color: tinta2 }}>{d.cierre}</div>
+            ) : null}
+          </div>
+        );
+      }
       case "app":
         return (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -179,7 +209,7 @@ export async function GET(req: Request) {
           <Marca icono={icono} claro={claro} blanco={degradado} />
           <div style={{ display: "flex", flexDirection: "column" }}>
             {cuerpo}
-            {mascota ? <img src={mascota} width={440} height={440} style={{ width: 440, height: 440, marginTop: 10, alignSelf: d.plantilla === "pregunta" ? "center" : "flex-end" }} /> : null}
+            {mascota ? <img src={mascota} width={["problema", "noticia", "blog"].includes(d.plantilla) ? 300 : 440} height={["problema", "noticia", "blog"].includes(d.plantilla) ? 300 : 440} style={{ width: ["problema", "noticia", "blog"].includes(d.plantilla) ? 300 : 440, height: ["problema", "noticia", "blog"].includes(d.plantilla) ? 300 : 440, marginTop: 10, alignSelf: d.plantilla === "pregunta" ? "center" : "flex-end" }} /> : null}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 30, fontWeight: 500, color: suave }}>
             {/* 17-11-2026: la marca sale UNA sola vez (el logo de arriba); abajo ni la web ni la cuenta */}
