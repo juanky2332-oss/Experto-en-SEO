@@ -109,3 +109,38 @@ export async function estadisticas(forzar = false) {
     actividad: acc,
   };
 }
+
+/**
+ * Lo aprendido de las publicaciones (cada domingo, en el programa de la semana): mejor franja horaria, mejor día,
+ * qué tipo funciona y qué hashtags acompañan a las publicaciones con más visualizaciones. Se guarda en
+ * seo.settings «ig_aprendizaje» para preparar las siguientes (hashtags y horas). Con pocos datos, son pistas.
+ */
+export async function aprendizaje(): Promise<string[]> {
+  await refrescar().catch((e) => console.error("estadísticas", e));
+  const pubs = await sql<{ tipo: string; publicado_at: Date; datos: { vistas?: number; texto?: string } }[]>`select tipo, publicado_at, datos from seo.ig_metricas where tipo <> 'historia'`;
+  if (pubs.length < 3) return [];
+  const media = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+  const hora = (d: Date) => Number(d.toLocaleString("sv-SE", { timeZone: "Europe/Madrid" }).slice(11, 13));
+  const franja = (h: number) => (h < 12 ? "mañana" : h < 15 ? "mediodía" : h < 19 ? "tarde" : "noche");
+  const grupo = <K extends string>(clave: (p: (typeof pubs)[number]) => K) => {
+    const m = new Map<K, number[]>();
+    for (const p of pubs) m.set(clave(p), [...(m.get(clave(p)) ?? []), p.datos.vistas ?? 0]);
+    return [...m.entries()].map(([k, v]) => ({ k, media: media(v), n: v.length })).sort((a, b) => b.media - a.media);
+  };
+  const franjas = grupo((p) => franja(hora(p.publicado_at)));
+  const dias = grupo((p) => ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"][new Date(p.publicado_at.toLocaleString("sv-SE", { timeZone: "Europe/Madrid" }).replace(" ", "T")).getDay()]);
+  const tipos = grupo((p) => p.tipo);
+  const tags = new Map<string, number[]>();
+  for (const p of pubs) for (const t of new Set((p.datos.texto ?? "").toLowerCase().match(/#[\p{L}\p{N}_]+/gu) ?? [])) tags.set(t, [...(tags.get(t) ?? []), p.datos.vistas ?? 0]);
+  const topTags = [...tags.entries()].filter(([t]) => t !== "#publi" && t !== "#tuerqui").map(([t, v]) => ({ t, media: media(v), n: v.length })).sort((a, b) => b.media - a.media).slice(0, 6);
+  await sql`insert into seo.settings (key, value) values ('ig_aprendizaje', ${sql.json({ franjas, dias, tipos, hashtags: topTags, publicaciones: pubs.length, generado: new Date().toISOString() } as never)})
+    on conflict (key) do update set value = excluded.value, updated_at = now()`;
+  const r = (x: { media: number }) => Math.round(x.media);
+  const l: string[] = [];
+  if (franjas.length > 1) l.push(`🕘 Mejor franja: <b>${franjas[0].k}</b> (${r(franjas[0])} visualizaciones de media) · peor: ${franjas.at(-1)!.k} (${r(franjas.at(-1)!)})`);
+  if (dias.length > 1) l.push(`📆 Mejor día: <b>${dias[0].k}</b> (${r(dias[0])})`);
+  if (tipos.length > 1) l.push(`🎞 Lo que más se ve: <b>${tipos[0].k}</b> (${r(tipos[0])})`);
+  if (topTags.length) l.push(`#️⃣ Hashtags que mejor van: ${topTags.slice(0, 5).map((x) => `${x.t} (${r(x)})`).join(" · ")}`);
+  l.push(`Con ${pubs.length} publicaciones: son pistas, se afinan cada semana.`);
+  return l;
+}

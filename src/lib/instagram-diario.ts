@@ -114,7 +114,7 @@ export async function mediodia() {
   // tuvo 114 vistas y los de las 12:00 entre 3 y 39. Si hoy hay reel, el plan se cierra cuando salga por la noche.
   const reelOk = !plan?.tareas.some((t) => t.tipo === "reel" && t.ref);
   const reelHoy = tocaReel(ritmo);
-  // las historias van en su propia pasada (13:10, historias())
+  // las historias van en su propia pasada (20:30 desde el 17-11-2026, historias())
   try {
     const r = await responderComentarios(c);
     if (r.hechas.length) {
@@ -221,7 +221,7 @@ async function avisoHistoria(nuevo: string) {
   return subir(id);
 }
 
-/** 13:10 del día que toca: aviso de lo publicado hoy en el feed + 2 historias del banco (una pregunta arrastra su respuesta).
+/** 20:30 del día que toca (antes 13:10; la noche es cuando más alcance tenemos): aviso de lo publicado hoy en el feed + 2 historias del banco (una pregunta arrastra su respuesta).
  *  Una vez al día como mucho; a Telegram solo si algo falla. */
 export async function historias() {
   const ritmo = await getRitmo();
