@@ -57,6 +57,15 @@ export async function programaSemana() {
   if (hist < 5) avisos.push(`⚠️ Quedan ${hist} historias en el banco.`);
   if (avisos.length) avisos.push("Cuando abras Claude Code, dime <b>«prepara dos semanas de Instagram»</b> y lo dejo todo listo: reels, historias, publicaciones, empresas para seguir, comentarios y me gusta.");
 
+  // 17-11-2026: antes del programa, el RESUMEN de la semana que acaba (seguidores y por qué, me gusta y comentarios
+  // recibidos, lo que hicimos, comparación con el histórico y decisiones para la semana que empieza)
+  try {
+    const { resumenSemanal } = await import("./ig-aprende");
+    const r = await resumenSemanal();
+    await telegram(r.texto.slice(0, 4000));
+  } catch (e) {
+    console.error("resumen semanal", e);
+  }
   // 17-11-2026: lo aprendido de las estadísticas (Radar → Instagram), para ir afinando horas y hashtags
   const { aprendizaje } = await import("./ig-estadisticas");
   const aprendido = await aprendizaje().catch(() => [] as string[]);

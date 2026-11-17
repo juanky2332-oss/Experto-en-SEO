@@ -25,6 +25,8 @@ const radar = async (path, body) => {
   } catch { return null; }
 };
 // 17-11-2026: si el Radar no contesta, se avisa (antes fallaba en silencio y se perdía el rastro)
+// lo que RECIBIMOS en Instagram (17-11-2026): nos siguen, dejan de seguir, nos dan me gusta, nos comentan
+const tablaRecibidos = () => sql`create table if not exists seo.ig_recibidos (id serial primary key, tipo text not null, cuenta text not null, url text, texto text, fecha date not null default current_date, unique (tipo, cuenta, url, fecha))`;
 const aRadar = async (tipo, cuenta, url, texto) => { const r = await radar('', { handle: String(cuenta).replace(/^@/, ''), tipo, url, texto }); if (!r?.ok) console.error('⚠ No se ha podido apuntar en el Radar:', tipo, cuenta); return r; };
 const [cmd, ...args] = process.argv.slice(2);
 
@@ -175,10 +177,38 @@ if (cmd === 'cargar') {
   // node n8n/ig-plan.mjs relaciones <fichero.json>  → { seguidores: [...], seguidos: [...] } leídos de Instagram (17-11-2026):
   // el Radar marca en cada empresa si la seguimos y si nos sigue (y desde cuándo)
   const j = JSON.parse(fs.readFileSync(args[0] || 0, 'utf8'));
+  // 17-11-2026: también aquí queda el histórico (seo.ig_recibidos «nos_sigue» / «deja_de_seguir») para el resumen del domingo
+  await tablaRecibidos();
+  const [prev] = await sql`select value from seo.settings where key = 'ig_seguidores_lista'`;
+  const antes = new Set(prev?.value?.lista ?? []);
+  const ahora = (j.seguidores ?? []).map((x) => String(x).toLowerCase());
+  if (prev) {
+    for (const c of ahora.filter((x) => !antes.has(x))) await sql`insert into seo.ig_recibidos (tipo, cuenta, fecha) values ('nos_sigue', ${c}, ${hoy()}) on conflict do nothing`;
+    for (const c of [...antes].filter((x) => !ahora.includes(x))) await sql`insert into seo.ig_recibidos (tipo, cuenta, fecha) values ('deja_de_seguir', ${c}, ${hoy()}) on conflict do nothing`;
+  } else for (const c of ahora) await sql`insert into seo.ig_recibidos (tipo, cuenta, fecha) values ('nos_sigue', ${c}, ${hoy()}) on conflict do nothing`;
+  await sql`insert into seo.settings (key, value) values ('ig_seguidores_lista', ${sql.json({ lista: ahora, seguidos: (j.seguidos ?? []).map((x) => String(x).toLowerCase()), fecha: hoy() })})
+    on conflict (key) do update set value = excluded.value, updated_at = now()`;
   const r = await fetch(process.env.RADAR_URL + '/api/instagram/relaciones', { method: 'POST', headers: { 'x-ig-key': process.env.RADAR_IG_KEY, 'content-type': 'application/json' }, body: JSON.stringify(j) });
   const out = await r.json().catch(() => ({ error: r.status }));
   console.log(JSON.stringify(out));
   if (!out.ok) console.error('⚠ No se ha podido actualizar en el Radar quién nos sigue');
+} else if (cmd === 'decisiones') {
+  // node n8n/ig-plan.mjs decisiones → lo que se decidió en el resumen del domingo (el agente lo aplica esta semana)
+  const [d] = await sql`select value from seo.settings where key = 'ig_decisiones'`;
+  console.log(JSON.stringify(d?.value ?? { decisiones: [] }, null, 1));
+} else if (cmd === 'recibidos') {
+  // node n8n/ig-plan.mjs recibidos <fichero.json>  → [{ cuenta, url }] = quién ha dado «me gusta» a nuestras publicaciones
+  // (lo lee el agente en Instagram: la API oficial no da la lista). Queda en seo.ig_recibidos y en el Radar («❤️ Nos da me gusta»).
+  await tablaRecibidos();
+  const lista = JSON.parse(fs.readFileSync(args[0] || 0, 'utf8'));
+  let nuevos = 0;
+  for (const x of lista) {
+    const c = String(x.cuenta).replace(/^@/, '').toLowerCase();
+    if (c === 'transformaconia.oficial') continue;
+    const [n] = await sql`insert into seo.ig_recibidos (tipo, cuenta, url, fecha) values ('le_gusta', ${c}, ${x.url ?? null}, ${hoy()}) on conflict do nothing returning id`;
+    if (n) { nuevos++; await radar('', { handle: c, tipo: 'le_gusta', url: x.url ?? null }); }
+  }
+  console.log(JSON.stringify({ ok: true, leidos: lista.length, nuevos }));
 } else if (cmd === 'recientes') {
   const dias = Number(args[0] || 7);
   const r = await sql`select tipo, cuenta, max(fecha)::text fecha from seo.ig_acciones where fecha > current_date - ${dias}::int group by tipo, cuenta order by 3 desc`;

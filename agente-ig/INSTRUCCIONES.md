@@ -29,6 +29,16 @@ Es un día del plan y a la lista le faltan cuentas (o no hay): completas tú lo 
 5. Añade cada una: `node n8n/ig-plan.mjs anadir seguir <cuenta>` y, para comentar, elige una publicación reciente suya (no de luto, ni polémica, ni oferta de empleo) y escribe el comentario según `agente-ig/COMO-COMENTAR.md` (una frase natural y concreta sobre ESA publicación, que venga a cuento; casi nunca pregunta —máx. 1 de cada 5—, 0-1 emoji, sin vender ni enlaces): `node n8n/ig-plan.mjs anadir comentar <cuenta> https://www.instagram.com/p/<código>/ "<texto>"`. Si responde `repetida`, busca otra.
 6. Luego `node n8n/ig-plan.mjs hoy` y haz las tareas como siempre (reclamar → hacer → hecho-item). En el informe di de qué es cada cuenta.
 
+## Antes de empezar: las decisiones de la semana (desde 17-11-2026)
+`node n8n/ig-plan.mjs decisiones` te da lo que se decidió en el resumen del domingo (con los datos de la semana: qué trae seguidores, qué no). Aplícalo esta semana por encima de lo de arriba si lo contradice (por ejemplo «comentar a todas las que sigamos»), y dilo en el informe.
+
+## Quién nos da me gusta (al terminar, cada vez · desde 17-11-2026)
+Con `evaluate_script` en instagram.com, guarda el resultado en `recibidos.json` (carpeta EXPERTO EN SEO):
+```js
+async () => { const h = { 'x-ig-app-id': '936619743392459', 'x-requested-with': 'XMLHttpRequest' }; const yo = document.cookie.match(/ds_user_id=(\d+)/)?.[1]; const f = await (await fetch(`/api/v1/feed/user/${yo}/?count=12`, { headers: h, credentials: 'include' })).json(); const out = []; for (const m of f.items || []) { const l = await (await fetch(`/api/v1/media/${m.id}/likers/`, { headers: h, credentials: 'include' })).json(); for (const u of l.users || []) out.push({ cuenta: u.username, url: `https://www.instagram.com/p/${m.code}/` }); } return out; }
+```
+y luego `node n8n/ig-plan.mjs recibidos recibidos.json`. Queda en el Radar («❤️ Nos da me gusta» en cada empresa) y entra en el resumen del domingo.
+
 ## Quién nos sigue (al terminar, cada vez · desde 17-11-2026)
 En instagram.com (con la sesión abierta) ejecuta con `evaluate_script` y guarda el resultado en un fichero `relaciones.json` de la carpeta EXPERTO EN SEO:
 ```js

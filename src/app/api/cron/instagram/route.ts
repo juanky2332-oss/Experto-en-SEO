@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   }
   const fase = req.nextUrl.searchParams.get("fase");
+  // ?fase=resumen → el resumen semanal que aprende (lo manda el domingo con el programa); aquí solo lo devuelve, para probarlo
+  if (fase === "resumen") { const { resumenSemanal } = await import("@/lib/ig-aprende"); return NextResponse.json(await resumenSemanal()); }
   const r = fase === "semana" ? await programaSemana() : fase === "tarde" ? await tarde() : fase === "historias" ? await historias() : fase === "reel" ? await reelNoche() : await mediodia();
   return NextResponse.json(r);
 }

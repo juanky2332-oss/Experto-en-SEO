@@ -18,11 +18,20 @@ const ig = async <T>(c: Cred, path: string): Promise<T> => {
   return (await r.json()) as T;
 };
 
+/** Apunta en el Radar algo de una cuenta (lo que hacemos o lo que nos hacen); si falla, no para nada. */
+export async function aRadar(tipo: string, handle: string, url: string | null, texto: string | null, fecha?: string) {
+  if (!process.env.RADAR_URL || !process.env.RADAR_IG_KEY) return;
+  await fetch(`${process.env.RADAR_URL}/api/instagram/sync`, { method: 'POST', headers: { 'x-ig-key': process.env.RADAR_IG_KEY, 'content-type': 'application/json' },
+    body: JSON.stringify({ handle, tipo, url, texto, ...(fecha ? { at: fecha + 'T12:00:00Z' } : {}) }) }).catch(() => null);
+}
+
 let creada = false;
 async function tabla() {
   if (creada) return;
   await sql`create table if not exists seo.ig_metricas (
     id text primary key, tipo text not null, publicado_at timestamptz, datos jsonb not null default '{}', actualizado timestamptz not null default now())`;
+  await sql`create table if not exists seo.ig_recibidos (id serial primary key, tipo text not null, cuenta text not null, url text, texto text, fecha date not null default current_date, unique (tipo, cuenta, url, fecha))`;
+  await sql`create table if not exists seo.ig_semanas (semana date primary key, datos jsonb not null, creado timestamptz not null default now())`;
   creada = true;
 }
 
@@ -68,6 +77,18 @@ export async function refrescar() {
     // si una historia ya caducó y no devuelve datos, se conserva la última foto buena
     await sql`insert into seo.ig_metricas (id, tipo, publicado_at, datos, actualizado) values (${m.id}, ${datos.tipo}, ${m.timestamp}, ${sql.json(datos as never)}, now())
       on conflict (id) do update set datos = case when excluded.datos->>'error' is not null and seo.ig_metricas.datos->>'error' is null then seo.ig_metricas.datos else excluded.datos end, actualizado = now()`;
+    // quién nos comenta (la API sí lo da): a seo.ig_recibidos y al Radar
+    if ((m.comments_count ?? 0) > 0) {
+      const cs: { data?: { username?: string; text?: string; timestamp?: string }[] } = await ig(c, `${m.id}/comments?fields=username,text,timestamp`);
+      for (const x of cs.data ?? []) {
+        const cuenta = (x.username ?? "").toLowerCase();
+        if (!cuenta || cuenta === "transformaconia.oficial") continue;
+        const fecha = (x.timestamp ?? m.timestamp).slice(0, 10);
+        const [n] = await sql`insert into seo.ig_recibidos (tipo, cuenta, url, texto, fecha) values ('nos_comenta', ${cuenta}, ${m.permalink ?? null}, ${(x.text ?? "").slice(0, 500)}, ${fecha})
+          on conflict do nothing returning id`;
+        if (n) await aRadar("nos_comenta", cuenta, m.permalink ?? null, x.text ?? null, fecha);
+      }
+    }
   }
   // cuenta + evolución de 30 días
   const yo: { followers_count?: number; follows_count?: number; media_count?: number; username?: string } = await ig(c, "me?fields=followers_count,follows_count,media_count,username");
@@ -107,6 +128,9 @@ export async function estadisticas(forzar = false) {
     seguidoresHistorico: hist?.value ?? {},
     publicaciones: medias.map((m) => ({ id: m.id, tipo: m.tipo, fecha: m.publicado_at.toISOString(), ...m.datos })),
     actividad: acc,
+    // lo recibido (quién nos sigue, nos da me gusta, nos comenta) y el histórico de semanas con lo aprendido
+    recibidos: await sql`select tipo, cuenta, url, texto, fecha::text from seo.ig_recibidos order by fecha desc limit 500`,
+    semanas: (await sql<{ semana: string; datos: unknown }[]>`select semana::text, datos from seo.ig_semanas order by semana desc limit 26`).map((x) => x.datos),
   };
 }
 
