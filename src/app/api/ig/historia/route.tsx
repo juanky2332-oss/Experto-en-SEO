@@ -71,7 +71,7 @@ const Etiqueta = ({ t, claro }: { t: string; claro: boolean }) => (
 
 export async function GET(req: Request) {
   const id = new URL(req.url).searchParams.get("id") ?? "";
-  const [e] = await sql<{ titulo: string; datos: Datos | null }[]>`select titulo, datos from seo.ig_cola where id = ${id} and tipo = 'historia'`;
+  const [e] = await sql<{ titulo: string; datos: Datos | null }[]>`select titulo, datos from seo.ig_cola where id = ${id} and tipo in ('historia', 'noticia')`;
   if (!e?.datos) return new Response("no existe", { status: 404 });
   const d = e.datos;
   const claro = ["consejo", "respuesta", "app", "problema", "blog"].includes(d.plantilla);
@@ -131,7 +131,8 @@ export async function GET(req: Request) {
       case "blog": {
         // título grande, «qué hacer» en pasos numerados y un cierre destacado con la solución
         const tinta2 = claro ? C.tinta : "#fff";
-        const t2 = largo > 80 ? 60 : largo > 55 ? 68 : 78;
+        // la historia dura 5 s: poco texto y grande (título corto, 2 pasos, cierre corto)
+        const t2 = largo > 55 ? 76 : largo > 35 ? 86 : 96;
         return (
           <div style={{ display: "flex", flexDirection: "column" }}>
             {d.etiqueta ? <Etiqueta t={d.etiqueta} claro={claro} /> : null}
@@ -140,16 +141,16 @@ export async function GET(req: Request) {
             {d.puntos?.length ? (
               <div style={{ display: "flex", flexDirection: "column", marginTop: 36 }}>
                 {d.texto ? <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: 2, color: claro ? C.morado : C.rosa, marginBottom: 14 }}>{d.texto.toUpperCase()}</div> : null}
-                {d.puntos.slice(0, 3).map((p, i) => (
+                {d.puntos.slice(0, 2).map((p, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "flex-start", marginTop: i ? 18 : 0 }}>
                     <div style={{ display: "flex", width: 56, height: 56, borderRadius: 28, background: DEGRADADO, color: "#fff", fontSize: 30, fontWeight: 800, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
-                    <div style={{ display: "flex", marginLeft: 22, fontSize: 38, fontWeight: 500, lineHeight: 1.3, color: tinta2, flex: 1 }}>{p}</div>
+                    <div style={{ display: "flex", marginLeft: 22, fontSize: 46, fontWeight: 600, lineHeight: 1.3, color: tinta2, flex: 1 }}>{p}</div>
                   </div>
                 ))}
               </div>
             ) : null}
             {d.cierre ? (
-              <div style={{ display: "flex", marginTop: 38, padding: "30px 36px", borderRadius: 30, background: claro ? "#fff" : "rgba(255,255,255,0.08)", border: `2px solid ${claro ? C.borde : "rgba(224,92,255,0.45)"}`, fontSize: 36, fontWeight: 600, lineHeight: 1.35, color: tinta2 }}>{d.cierre}</div>
+              <div style={{ display: "flex", marginTop: 38, padding: "30px 36px", borderRadius: 30, background: claro ? "#fff" : "rgba(255,255,255,0.08)", border: `2px solid ${claro ? C.borde : "rgba(224,92,255,0.45)"}`, fontSize: 42, fontWeight: 700, lineHeight: 1.3, color: tinta2 }}>{d.cierre}</div>
             ) : null}
           </div>
         );

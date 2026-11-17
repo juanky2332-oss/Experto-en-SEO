@@ -277,9 +277,11 @@ export async function recuperar(id: string) {
 /** Mete la noticia en la cola y se la propone por Telegram. */
 export async function compartir(a: Articulo, base: string) {
   const id = `blog-${a.id}`;
-  const [e] = await sql<ElementoCola[]>`insert into seo.ig_cola (id, tipo, titulo, texto, portada_url, historia_url)
-    values (${id}, 'noticia', ${a.titulo}, ${textoInstagram(a)}, ${urlTarjeta(base, a.id, "post")}, ${urlTarjeta(base, a.id, "story")})
-    on conflict (id) do update set estado = case when seo.ig_cola.estado in ('publicado', 'publicando', 'descartado') then seo.ig_cola.estado else 'pendiente' end
+  // 17-11-2026: la historia del artículo usa la plantilla «blog» (poco texto: una historia dura 5 s) en vez de la tarjeta larga
+  const datos = { plantilla: "blog", etiqueta: "Nuevo en el blog", titulo: a.titulo.split(/[:|·—]\s/)[0].slice(0, 70), cierre: "📖 Léelo entero: enlace en el perfil" };
+  const [e] = await sql<ElementoCola[]>`insert into seo.ig_cola (id, tipo, titulo, texto, portada_url, historia_url, datos)
+    values (${id}, 'noticia', ${a.titulo}, ${textoInstagram(a)}, ${urlTarjeta(base, a.id, "post")}, ${`${base}/api/ig/historia?id=${id}`}, ${sql.json(datos as never)})
+    on conflict (id) do update set datos = excluded.datos, historia_url = excluded.historia_url, estado = case when seo.ig_cola.estado in ('publicado', 'publicando', 'descartado') then seo.ig_cola.estado else 'pendiente' end
     returning *`;
   if (e.estado === "publicado" || e.estado === "publicando" || e.estado === "descartado") return { id, estado: e.estado };
   // con Instagram conectado se publica sola (decidido el 26-10-2026: «hazlo tú y dame el informe»); sin conectar, se propone
