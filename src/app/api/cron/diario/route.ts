@@ -69,7 +69,11 @@ export async function GET(req: NextRequest) {
   }
   // Publicación del blog: el día que toca, una idea con «Redactar y publicar» (si no hay otra esperando respuesta)
   let idea = false;
-  if (tocaHoy && !ritmo.pausas.publicaciones) {
+  // desde el 17-11-2026 manda el calendario del blog (lista aprobada, martes y viernes, /api/cron/blog):
+  // si hay calendario, aquí ya no se piden ideas sueltas
+  const { leerPlan } = await import("@/lib/que-publicar/plan-blog");
+  const conCalendario = Boolean((await leerPlan().catch(() => null))?.items?.length);
+  if (tocaHoy && !ritmo.pausas.publicaciones && !conCalendario) {
     try {
       const actual = await ideaActual();
       const esperando = actual && actual.rec.estado !== "publicada" && !actual.atascada && (!actual.brief || actual.brief.status === "pending");

@@ -303,6 +303,14 @@ async function boton(data: string): Promise<Respuesta | null> {
     }
     case "plno":
       return { text: await rechazar(valor) };
+    case "blsi": {
+      const { aprobarLista } = await import("./que-publicar/plan-blog");
+      return { text: await aprobarLista() };
+    }
+    case "blno": {
+      const { otraLista } = await import("./que-publicar/plan-blog");
+      return { text: await otraLista() };
+    }
     case "mvok":
       return { text: await movilHecho(valor, true) };
     case "mvno":
