@@ -386,7 +386,8 @@ const P = {};
 // Portada (29-10-2026): las demos en primer plano (ver funcionando convence más que cualquier texto) y las soluciones con foto real
 const DEMOS = [
   ['IndunexIA Gestión', 'El programa de gestión para talleres y empresas industriales: presupuestos con tu margen, albaranes firmados en el móvil, facturas y cobros.', IMG.erp_inicio, DEMO_URL, 'Abrir el ERP de ejemplo', '/erp-industria/', 'Conocer IndunexIA Gestión'],
-  ['Asistente técnico', 'Una tienda online de ejemplo con un asistente que entiende referencias y medidas, propone equivalencias y lo añade al carrito.', 'https://demo.transformaconia.com/web/portada/demo-asistente.webp', 'https://demo.transformaconia.com/asistente/', 'Probar el asistente', '/agentes-chatbots-ia/', 'Ver los asistentes'],
+  // 17-11-2026: se enseña el chatbot de verdad (Tuerqui abajo a la derecha, conversando), no solo la tienda
+  ['Chatbot con IA para tu web', 'Tuerqui atiende a tus clientes 24/7 desde la esquina de tu web: resuelve dudas, encuentra la pieza por referencia o medida y la añade al carrito. Lo adaptamos a cualquier empresa.', 'https://demo.transformaconia.com/web/portada/demo-asistente.webp?v=2', 'https://demo.transformaconia.com/asistente/#chat', 'Hablar con Tuerqui', '/agentes-chatbots-ia/', 'Ver los chatbots'],
   ['Presupuestos desde plano', 'Del plano o la foto al presupuesto con tus tarifas y tu margen, listo para enviar en PDF.', 'https://demo.transformaconia.com/web/portada/demo-presupuesto.webp', 'https://presupuestos.transformaconia.com/demo', 'Ver un presupuesto de ejemplo', '/presupuestos-desde-plano/', 'Conocer IndunexIA Presupuestos'],
 ];
 // v8 (10-11-2026): cinta en movimiento tras la historia: lo que la IA lee y lo que hace con ello (sin marcas ni cifras)
