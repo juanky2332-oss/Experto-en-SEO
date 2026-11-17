@@ -171,6 +171,14 @@ if (cmd === 'cargar') {
   const ya = new Set((await sql`select distinct cuenta from seo.ig_acciones where tipo = 'seguir'`).map((x) => x.cuenta.toLowerCase()));
   const objetivos = (r?.objetivos ?? []).filter((x) => !ya.has(String(x.handle).toLowerCase())).slice(0, n);
   console.log(JSON.stringify(r ? { objetivos } : { error: 'sin conexión con el Radar' }, null, 1));
+} else if (cmd === 'relaciones') {
+  // node n8n/ig-plan.mjs relaciones <fichero.json>  → { seguidores: [...], seguidos: [...] } leídos de Instagram (17-11-2026):
+  // el Radar marca en cada empresa si la seguimos y si nos sigue (y desde cuándo)
+  const j = JSON.parse(fs.readFileSync(args[0] || 0, 'utf8'));
+  const r = await fetch(process.env.RADAR_URL + '/api/instagram/relaciones', { method: 'POST', headers: { 'x-ig-key': process.env.RADAR_IG_KEY, 'content-type': 'application/json' }, body: JSON.stringify(j) });
+  const out = await r.json().catch(() => ({ error: r.status }));
+  console.log(JSON.stringify(out));
+  if (!out.ok) console.error('⚠ No se ha podido actualizar en el Radar quién nos sigue');
 } else if (cmd === 'recientes') {
   const dias = Number(args[0] || 7);
   const r = await sql`select tipo, cuenta, max(fecha)::text fecha from seo.ig_acciones where fecha > current_date - ${dias}::int group by tipo, cuenta order by 3 desc`;

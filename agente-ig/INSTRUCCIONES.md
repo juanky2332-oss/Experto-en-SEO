@@ -29,6 +29,13 @@ Es un día del plan y a la lista le faltan cuentas (o no hay): completas tú lo 
 5. Añade cada una: `node n8n/ig-plan.mjs anadir seguir <cuenta>` y, para comentar, elige una publicación reciente suya (no de luto, ni polémica, ni oferta de empleo) y escribe el comentario según `agente-ig/COMO-COMENTAR.md` (una frase natural y concreta sobre ESA publicación, que venga a cuento; casi nunca pregunta —máx. 1 de cada 5—, 0-1 emoji, sin vender ni enlaces): `node n8n/ig-plan.mjs anadir comentar <cuenta> https://www.instagram.com/p/<código>/ "<texto>"`. Si responde `repetida`, busca otra.
 6. Luego `node n8n/ig-plan.mjs hoy` y haz las tareas como siempre (reclamar → hacer → hecho-item). En el informe di de qué es cada cuenta.
 
+## Quién nos sigue (al terminar, cada vez · desde 17-11-2026)
+En instagram.com (con la sesión abierta) ejecuta con `evaluate_script` y guarda el resultado en un fichero `relaciones.json` de la carpeta EXPERTO EN SEO:
+```js
+async () => { const h = { 'x-ig-app-id': '936619743392459', 'x-requested-with': 'XMLHttpRequest' }; const yo = document.cookie.match(/ds_user_id=(\d+)/)?.[1]; const lee = async (t) => { let u = [], max = ''; for (let i = 0; i < 10; i++) { const j = await (await fetch(`/api/v1/friendships/${yo}/${t}/?count=200${max ? '&max_id=' + max : ''}`, { headers: h, credentials: 'include' })).json(); u = u.concat((j.users || []).map((x) => x.username)); if (!j.next_max_id) break; max = j.next_max_id; } return u; }; return { seguidores: await lee('followers'), seguidos: await lee('following') }; }
+```
+y luego `node n8n/ig-plan.mjs relaciones relaciones.json`. Así el Radar sabe de cada empresa si la seguimos y si nos sigue. Pon en el informe «Nos siguen: N (nuevos: @a, @b)» si hay seguidores nuevos.
+
 ## Al terminar
 `node n8n/ig-plan.mjs hecho "<informe>"` (un solo argumento entre comillas, con saltos de línea), corto, en español y sin formato:
 - Seguidas: @a, @b…
