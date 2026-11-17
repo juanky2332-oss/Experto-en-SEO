@@ -182,8 +182,9 @@ export async function GET(req: Request) {
             {mascota ? <img src={mascota} width={440} height={440} style={{ width: 440, height: 440, marginTop: 10, alignSelf: d.plantilla === "pregunta" ? "center" : "flex-end" }} /> : null}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 30, fontWeight: 500, color: suave }}>
-            <span>{d.nota && !claro ? d.nota : "transformaconia.com"}</span>
-            <span style={{ color: tinta, fontWeight: 600 }}>{d.plantilla === "pregunta" ? "" : "@transformaconia.oficial"}</span>
+            {/* 17-11-2026: la marca sale UNA sola vez (el logo de arriba); abajo ni la web ni la cuenta */}
+            <span>{d.nota && !claro ? d.nota : ""}</span>
+            <span style={{ color: tinta, fontWeight: 600 }}></span>
           </div>
         </div>
       </div>
