@@ -24,7 +24,8 @@ const radar = async (path, body) => {
     return r.ok ? await r.json() : null;
   } catch { return null; }
 };
-const aRadar = (tipo, cuenta, url, texto) => radar('', { handle: String(cuenta).replace(/^@/, ''), tipo, url, texto });
+// 17-11-2026: si el Radar no contesta, se avisa (antes fallaba en silencio y se perdía el rastro)
+const aRadar = async (tipo, cuenta, url, texto) => { const r = await radar('', { handle: String(cuenta).replace(/^@/, ''), tipo, url, texto }); if (!r?.ok) console.error('⚠ No se ha podido apuntar en el Radar:', tipo, cuenta); return r; };
 const [cmd, ...args] = process.argv.slice(2);
 
 async function cred() {
