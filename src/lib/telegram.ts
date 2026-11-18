@@ -307,6 +307,10 @@ async function boton(data: string): Promise<Respuesta | null> {
       const { aprobarLista } = await import("./que-publicar/plan-blog");
       return { text: await aprobarLista() };
     }
+    case "hnno": {
+      const { quitarNoticia } = await import("./ig-noticia");
+      return { text: await quitarNoticia(valor) };
+    }
     case "blno": {
       const { otraLista } = await import("./que-publicar/plan-blog");
       return { text: await otraLista() };

@@ -54,7 +54,11 @@ export async function programaSemana() {
   else if (reels < 2) avisos.push(`⚠️ Solo hay ${reels} publicación(es) en el feed esta semana.`);
   if (!dias.some((d) => d.tareas.some((t) => t.tipo === "seguir"))) avisos.push("⚠️ No hay días de seguir y comentar programados.");
   if (cola < 3) avisos.push(`⚠️ Después de esta semana solo quedan ${cola} publicación(es) en la cola${ult ? ` (el plan llega hasta el ${nombre(ult)})` : ""}.`);
-  if (hist < 5) avisos.push(`⚠️ Quedan ${hist} historias en el banco.`);
+  // 18-11-2026: las historias van con fecha; se avisa si el calendario se acaba en menos de 2 semanas
+  const { coberturaHistorias } = await import("@/lib/ig-noticia");
+  const cob = await coberturaHistorias();
+  if (cob.avisar) avisos.push(`⚠️ ${cob.texto} (${hist} en el banco)`);
+  else lineas.push(`\n${cob.texto} Noticias del día: cuando el radar encuentra una útil, te llega a las 13:00 con botón para quitarla.`);
   if (avisos.length) avisos.push("Cuando abras Claude Code, dime <b>«prepara dos semanas de Instagram»</b> y lo dejo todo listo: reels, historias, publicaciones, empresas para seguir, comentarios y me gusta.");
 
   // 17-11-2026: antes del programa, el RESUMEN de la semana que acaba (seguidores y por qué, me gusta y comentarios

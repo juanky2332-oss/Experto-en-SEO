@@ -4,6 +4,7 @@ import { telegram, esc } from "@/lib/gateway";
 import { subir } from "@/lib/redes";
 import { json, MODELO_RAPIDO } from "@/lib/ai";
 import { getRitmo, toca, tocaReel, proximos, bonita, DIA_SEMANA } from "@/lib/ritmo";
+import { noticiaDelDia, recolocarAtrasadas, coberturaHistorias } from "@/lib/ig-noticia";
 
 // Instagram en automático (decidido el 26-10-2026: «hazlo tú y dame el informe después»; el 27-10: cada 3 días y
 // a Telegram SOLO si ha pasado algo, ver src/lib/ritmo.ts).
@@ -138,8 +139,9 @@ export async function mediodia() {
     // avisos de lo que va a faltar (solo cuando falta de verdad; también los días de reel, que gastan cola más rápido)
     const [quedan] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo in ('reel', 'carrusel') and estado in ('pendiente', 'propuesto')`;
     if (quedan.n <= 1) lineas.push(`🛠 ${quedan.n ? "Solo queda 1 publicación" : "No quedan publicaciones"} en la cola. Cuando abras Claude Code, dime «prepara publicaciones nuevas para Instagram».`);
-    const [hist] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_cola where tipo = 'historia' and estado = 'pendiente' and orden is not null`;
-    if (hist.n < 4) lineas.push(`🛠 Quedan ${hist.n} historias en el banco. Dime «prepara historias para Instagram» y lo relleno.`);
+    // 18-11-2026: aviso cuando el calendario de historias se acaba (menos de 2 semanas)
+    const cob = await coberturaHistorias();
+    if (cob.avisar && DIA_SEMANA(hoy()) === 1) lineas.push(`🛠 ${cob.texto} Cuando abras Claude Code, dime «prepara historias para Instagram» y amplío el calendario dos semanas más.`);
     const manana = new Date(Date.now() + 86400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
     const [siguiente] = proximos(ritmo, 1, manana);
     const [lista] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha = ${siguiente}`;
@@ -147,7 +149,9 @@ export async function mediodia() {
   }
   if ((tocaHoy || reelHoy) && plan && reelOk) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now(), informe = ${lineas.join("\n\n")} where fecha = ${hoy()} and estado not in ('hecho', 'rechazado')`;
   if (lineas.length) await enTrozos(`📲 <b>Instagram</b>`, lineas);
-  return { ok: true, toca: tocaHoy, enviado: lineas.length > 0 };
+  // 18-11-2026: la noticia del día para las historias de las 20:30 (si hay una real y útil; te llega con botón para quitarla)
+  const noticia = await noticiaDelDia().catch((e) => { console.error("noticia del día", e); return { ok: false, error: String(e) }; });
+  return { ok: true, toca: tocaHoy, enviado: lineas.length > 0, noticia };
 }
 
 // ---------------------------------------------------------------- 21:00 (reel del día; 21:30 segundo intento)
@@ -241,23 +245,20 @@ export async function historias() {
     if (r?.startsWith("✅")) hechas.push("aviso");
     else if (r) fallos.push(r);
   }
-  // las de hoy (ig_cola.fecha) primero; las que fallaron otro día ('propuesto' o con fecha pasada) vuelven a intentarse;
-  // las de días futuros esperan su día; las que no tienen fecha, por orden del banco
-  const banco = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia'
-    and estado in ('pendiente', 'propuesto') and orden is not null and (fecha is null or fecha <= ${hoy()}::date)
-    order by fecha nulls last, orden limit 3`;
-  // 2 al día (una pregunta arrastra su respuesta)
-  const cuantas = 2;
-  const elegidas = banco.slice(0, cuantas);
-  if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[cuantas]) elegidas.push(banco[cuantas]);
+  // 18-11-2026 · calendario fijo: lo que no salió otro día se recoloca en el primer hueco libre (no empuja a las demás)
+  const movidas = await recolocarAtrasadas().catch((e) => { console.error("recolocar", e); return [] as string[]; });
+  // las 2 programadas para hoy (+ la noticia del día si la hay, como extra); si hoy no hay programadas, las del banco sin fecha
+  const deHoy = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia'
+    and estado in ('pendiente', 'propuesto') and orden is not null and fecha = ${hoy()}::date order by (id like 'hn-%'), orden`;
+  const programadas = deHoy.filter((h) => !h.id.startsWith("hn-"));
+  const sinFecha = programadas.length >= 2 ? [] : await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola
+    where tipo = 'historia' and estado in ('pendiente', 'propuesto') and orden is not null and fecha is null order by orden limit ${2 - programadas.length}`;
+  const elegidas = [...programadas.slice(0, 2), ...sinFecha, ...deHoy.filter((h) => h.id.startsWith("hn-"))];
   for (const h of elegidas) {
     const r = await subir(h.id);
     if (r.startsWith("✅")) hechas.push(h.id);
-    else {
-      fallos.push(r);
-      if (h.datos.plantilla === "pregunta") break; // sin la pregunta, la respuesta no tiene sentido
-    }
+    else fallos.push(r);
   }
-  if (fallos.length) await telegram(`⚠️ <b>Historias de hoy</b>: han salido ${hechas.length}; no han salido:\n${fallos.join("\n")}\nSe reintentan el próximo día que toque.`);
-  return { ok: true, hechas, fallos: fallos.length };
+  if (fallos.length) await telegram(`⚠️ <b>Historias de hoy</b>: han salido ${hechas.length}; no han salido:\n${fallos.join("\n")}\nLas que no han salido pasan al primer hueco libre del calendario (las demás no se mueven).`);
+  return { ok: true, hechas, fallos: fallos.length, movidas };
 }
