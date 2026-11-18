@@ -71,7 +71,7 @@ export function proximos(r: Ritmo, n: number, desdeFecha = hoyMadrid()) {
   return l;
 }
 
-const DIA_SEMANA = (f: string) => ((new Date(f + "T12:00:00Z").getUTCDay() + 6) % 7) + 1; // 1 = lunes
+export const DIA_SEMANA = (f: string) => ((new Date(f + "T12:00:00Z").getUTCDay() + 6) % 7) + 1; // 1 = lunes
 export const NOMBRE_DIA = ["", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
 /** ¿Ese día sale publicación en el feed de Instagram? */

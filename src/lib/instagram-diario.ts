@@ -3,7 +3,7 @@ import { sql } from "@/lib/db";
 import { telegram, esc } from "@/lib/gateway";
 import { subir } from "@/lib/redes";
 import { json, MODELO_RAPIDO } from "@/lib/ai";
-import { getRitmo, toca, tocaReel, proximos, bonita } from "@/lib/ritmo";
+import { getRitmo, toca, tocaReel, proximos, bonita, DIA_SEMANA } from "@/lib/ritmo";
 
 // Instagram en automático (decidido el 26-10-2026: «hazlo tú y dame el informe después»; el 27-10: cada 3 días y
 // a Telegram SOLO si ha pasado algo, ver src/lib/ritmo.ts).
@@ -227,7 +227,8 @@ async function avisoHistoria(nuevo: string) {
  *  Una vez al día como mucho; a Telegram solo si algo falla. */
 export async function historias() {
   const ritmo = await getRitmo();
-  if (ritmo.pausas.instagram || !(toca(ritmo) || tocaReel(ritmo))) return { ok: true, nada: true };
+  // 18-11-2026 (él: «déjalo todo programado»): historias de lunes a viernes, 2 al día, cada una en la fecha que le toca
+  if (ritmo.pausas.instagram || DIA_SEMANA(hoy()) > 5) return { ok: true, nada: true };
   const [yo] = await sql`insert into seo.settings (key, value) values ('ig_historias_dia', ${sql.json(hoy())})
     on conflict (key) do update set value = excluded.value, updated_at = now() where seo.settings.value <> excluded.value returning key`;
   if (!yo) return { ok: true, yaHechas: true };
@@ -240,11 +241,13 @@ export async function historias() {
     if (r?.startsWith("✅")) hechas.push("aviso");
     else if (r) fallos.push(r);
   }
-  // las que fallaron otro día ('propuesto') vuelven a intentarse
+  // las de hoy (ig_cola.fecha) primero; las que fallaron otro día ('propuesto' o con fecha pasada) vuelven a intentarse;
+  // las de días futuros esperan su día; las que no tienen fecha, por orden del banco
   const banco = await sql<{ id: string; datos: { plantilla: string } }[]>`select id, datos from seo.ig_cola where tipo = 'historia'
-    and estado in ('pendiente', 'propuesto') and orden is not null order by orden limit 3`;
-  // día del ritmo: 2 del banco; día solo de reel: 1 (el banco dura el doble). Una pregunta arrastra su respuesta.
-  const cuantas = toca(ritmo) ? 2 : 1;
+    and estado in ('pendiente', 'propuesto') and orden is not null and (fecha is null or fecha <= ${hoy()}::date)
+    order by fecha nulls last, orden limit 3`;
+  // 2 al día (una pregunta arrastra su respuesta)
+  const cuantas = 2;
   const elegidas = banco.slice(0, cuantas);
   if (elegidas.at(-1)?.datos.plantilla === "pregunta" && banco[cuantas]) elegidas.push(banco[cuantas]);
   for (const h of elegidas) {
