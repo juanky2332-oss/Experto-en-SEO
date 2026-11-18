@@ -71,7 +71,7 @@ export async function noticiaDelDia(opts: { avisar?: boolean; prueba?: boolean }
   const [ya] = await sql<{ estado: string }[]>`select estado from seo.ig_cola where id = ${id}`;
   if (ya && !opts.prueba) return { ok: true, ya: ya.estado };
   const usadas = (await sql<{ r: string | null }[]>`select datos->>'radar_id' r from seo.ig_cola where id like 'hn-%'`).map((x) => Number(x.r)).filter(Boolean);
-  const cands = (await sql<Cand[]>`select id, title, source, url, published_at, resumen, snippet, score from seo.radar
+  const cands = (await sql<Cand[]>`select id::int id, title, source, url, published_at, resumen, snippet, score from seo.radar
     where coalesce(published_at, created_at) > now() - interval '3 days' and coalesce(score, 0) >= 50 and coalesce(status, '') <> 'skip'
     order by score desc nulls last limit 30`).filter((c) => !usadas.includes(c.id)).slice(0, 20);
   if (!cands.length) return { ok: true, nada: "el radar no tiene noticias de estos días" };
