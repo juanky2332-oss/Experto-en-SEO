@@ -249,6 +249,8 @@ export async function GET(req: Request) {
             for (const c of todos) {
               const w = anchos.slice(a, c).reduce((x, y) => x + y, 0) + hueco * (c - a - 1);
               if (w > MAXW || (c - a === 1 && n > lineas && anchos[a] < MAXW * 0.6)) ok = false;
+              // la parte en color nunca se parte en dos renglones
+              if (c < n && palabras[c - 1].some((s) => s.c) && palabras[c].some((s) => s.c)) ok = false;
               max = Math.max(max, w); min = Math.min(min, w); a = c;
             }
             if (ok && (!mejor || max - min < mejor.nota)) mejor = { cortes: todos, nota: max - min };
