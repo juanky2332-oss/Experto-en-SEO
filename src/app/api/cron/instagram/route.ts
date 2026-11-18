@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   }
   const fase = req.nextUrl.searchParams.get("fase");
   // ?fase=resumen → el resumen semanal que aprende (lo manda el domingo con el programa); aquí solo lo devuelve, para probarlo
-  if (fase === "resumen") { const { resumenSemanal } = await import("@/lib/ig-aprende"); return NextResponse.json(await resumenSemanal()); }
+  if (fase === "resumen") { const { resumenSemanal } = await import("@/lib/ig-aprende"); return NextResponse.json(await resumenSemanal(undefined, false)); } // prueba: no guarda nada
   const r = fase === "semana" ? await programaSemana() : fase === "tarde" ? await tarde() : fase === "historias" ? await historias() : fase === "reel" ? await reelNoche() : await mediodia();
   return NextResponse.json(r);
 }

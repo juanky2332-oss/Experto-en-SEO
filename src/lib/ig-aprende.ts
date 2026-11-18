@@ -26,7 +26,7 @@ export type Semana = {
   revision: string[];
 };
 
-export async function resumenSemanal(hasta = dia(new Date())): Promise<{ semana: Semana; texto: string }> {
+export async function resumenSemanal(hasta = dia(new Date()), guardar = true): Promise<{ semana: Semana; texto: string }> {
   await refrescar().catch((e) => console.error("estadísticas", e));
   const desde = sumar(hasta, -6);
   // seguidores al empezar y ahora (foto diaria)
@@ -79,7 +79,8 @@ export async function resumenSemanal(hasta = dia(new Date())): Promise<{ semana:
   const decisiones: string[] = [];
   const revision: string[] = [];
   const dif = (a: number, b?: number) => (b === undefined ? "" : ` (${a - b >= 0 ? "+" : ""}${a - b} frente a la semana anterior)`);
-  if (conCom.length >= 3 && sinCom.length >= 3) {
+  // solo se decide con muestra suficiente (10 o más en cada grupo y 3 puntos de diferencia): con menos, cambia de una semana a otra
+  if (conCom.length >= 10 && sinCom.length >= 10 && Math.abs(pct(conComDev, conCom.length) - pct(sinComDev, sinCom.length)) >= 3) {
     const a = pct(conComDev, conCom.length), b = pct(sinComDev, sinCom.length);
     aprendizajes.push(`Nos devuelven el seguimiento el ${a} % de las que seguimos Y comentamos, frente al ${b} % de las que solo seguimos.`);
     decisiones.push(a > b ? "Comentar a todas las empresas que sigamos (devuelven más el seguimiento)." : "Comentar solo cuando la publicación lo merezca: comentar no está trayendo más seguidores.");
@@ -105,10 +106,10 @@ export async function resumenSemanal(hasta = dia(new Date())): Promise<{ semana:
       devuelven, devuelvenPct: pct(devuelven, seguidas.length), conComentario: conCom.length, conComentarioPct: pct(conComDev, conCom.length) },
     alcance, aprendizajes, decisiones, revision,
   };
-  await sql`insert into seo.ig_semanas (semana, datos) values (${desde}, ${sql.json(semana as never)})
+  if (guardar) await sql`insert into seo.ig_semanas (semana, datos) values (${desde}, ${sql.json(semana as never)})
     on conflict (semana) do update set datos = excluded.datos, creado = now()`;
   // las decisiones quedan donde el agente las lee antes de trabajar
-  await sql`insert into seo.settings (key, value) values ('ig_decisiones', ${sql.json({ semana: desde, decisiones } as never)})
+  if (guardar) await sql`insert into seo.settings (key, value) values ('ig_decisiones', ${sql.json({ semana: desde, decisiones } as never)})
     on conflict (key) do update set value = excluded.value, updated_at = now()`;
 
   const e = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
@@ -135,7 +136,7 @@ export async function resumenSemanal(hasta = dia(new Date())): Promise<{ semana:
   if (sig) ideas.push(`Próximo reel de la cola («${sig.titulo}», ${sig.fecha?.slice(5)}): revisar que el gancho de los 2 primeros segundos sea el problema, no la marca.`);
   if (ideas.length) L.push(`💡 <b>Ideas de contenido para esta semana</b>\n${ideas.map((a) => "• " + e(a)).join("\n")}`);
   semana.decisiones = decisiones; // (las ideas no se guardan como decisiones: son propuestas)
-  await sql`update seo.ig_semanas set datos = jsonb_set(datos, '{ideas}', ${sql.json(ideas as never)}) where semana = ${desde}`;
+  if (guardar) await sql`update seo.ig_semanas set datos = jsonb_set(datos, '{ideas}', ${sql.json(ideas as never)}) where semana = ${desde}`;
   L.push(`📘 Guía que sigo: agente-ig/GUIA-CONTENIDO.md`);
   return { semana, texto: L.join("\n\n") };
 }
