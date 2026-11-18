@@ -28,9 +28,13 @@ Con la elegida escribe la historia (dura 5 segundos: muy poco texto, español de
 - titulo: máximo 45 caracteres, una frase o pregunta clara sobre la noticia («Ayudas para que tu nave gaste menos luz»). Sin siglas raras.
 - acento: 1 a 3 palabras SEGUIDAS copiadas tal cual del título, las que más importan (van en color).
 - puntos: exactamente 2 «qué hacer» concretos, en imperativo, máximo 42 caracteres cada uno («Junta las facturas de luz de un año»).
-- dice: lo que dice Tuerqui (nuestra mascota, una tuerca simpática) en un bocadillo: máximo 65 caracteres, gracioso pero profesional y lógico, que ofrezca ayuda sin vender en frío. Nunca precios.
+- dice: lo que dice Tuerqui (nuestra mascota, una tuerca simpática y currante) en un bocadillo: máximo 65 caracteres, con gracia pero profesional y lógico, una frase redonda que se entienda sola. Puede ofrecer ayuda, sin vender en frío. Nunca precios.
 - tuerqui: la pose que mejor encaja: ${POSES.join(", ")}.
 - murcia: true si la noticia es de la Región de Murcia.
+EJEMPLOS del tono que el dueño ha aprobado (imítalos, no los copies):
+  título «Ayudas para que tu nave gaste menos luz» · pasos «Junta las facturas de luz de un año» / «Atento al BORM: ahí salen las bases» · Tuerqui «¿Las facturas en una caja de zapatos? Te las ordeno yo.»
+  Tuerqui: «Tú haz la foto y sigue con tu café. Del resto me encargo yo.» · «Y si quieres, contesto yo por ti… ¡aunque estés durmiendo!» · «Ni uno más perdido en la furgoneta. Palabra de Tuerqui.»
+Los pasos tienen que ser cosas que alguien puede hacer HOY sin saber de tecnología (nada de «evalúa soluciones» ni «analiza tu caso»: di exactamente qué hacer).
 No inventes NADA que no esté en el texto de la noticia: ni cifras, ni plazos, ni requisitos. Nada de precios nuestros, comisiones ni cupones.`;
 
 const ESQUEMA = {
@@ -45,8 +49,23 @@ const ESQUEMA = {
 };
 
 /** «Europa Press Murcia (búsqueda: …) · 13 nov» */
+// el medio se saca del enlace (el nombre de la fuente del radar a veces es el del canal, no el del medio que la publica)
+const MEDIOS: Record<string, string> = {
+  "interempresas.net": "Interempresas", "europapress.es": "Europa Press", "expansion.com": "Expansión", "laverdad.es": "La Verdad",
+  "laopiniondemurcia.es": "La Opinión de Murcia", "murcia.com": "Murcia.com", "carm.es": "Región de Murcia", "borm.es": "BORM",
+  "institutofomentomurcia.es": "Instituto de Fomento", "cincodias.elpais.com": "Cinco Días", "elpais.com": "El País", "eleconomista.es": "elEconomista",
+  "xataka.com": "Xataka", "genbeta.com": "Genbeta", "agenciatributaria.es": "Agencia Tributaria", "boe.es": "BOE", "cdti.es": "CDTI",
+};
+function medioDe(c: Cand) {
+  let host = "";
+  try { host = new URL(c.url).hostname.replace(/^www\./, ""); } catch { /* sin enlace válido */ }
+  const k = Object.keys(MEDIOS).find((d) => host === d || host.endsWith("." + d));
+  if (k) return /murcia/i.test(c.source) && k === "europapress.es" ? "Europa Press Murcia" : MEDIOS[k];
+  const nombre = c.source.replace(/\s*\(.*?\)\s*/g, " ").replace(/\s*·.*$/, "").replace(/\s+/g, " ").trim();
+  return host && !nombre ? host : nombre || host;
+}
 function fuenteDe(c: Cand) {
-  const medio = c.source.replace(/\s*\(.*?\)\s*/g, " ").replace(/\s+/g, " ").trim();
+  const medio = medioDe(c);
   const f = c.published_at ? new Date(c.published_at).toLocaleDateString("es-ES", { day: "numeric", month: "short", timeZone: "Europe/Madrid" }).replace(".", "") : "";
   return f ? `${medio} · ${f}` : medio;
 }
