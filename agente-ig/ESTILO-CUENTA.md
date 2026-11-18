@@ -11,7 +11,7 @@ Esta guía manda sobre todo lo que se prepare para Instagram (reels, carruseles,
 ## Ritmo
 - Cada día del ritmo (cada 3 días, `seo.settings.ritmo`) salen 1 publicación del feed y 2-3 historias. Las respuestas a comentarios salen cada día.
 - Feed: alternar **reel** y **carrusel**. Nunca dos piezas seguidas con el mismo tema (cobros, presupuestos, gastos, asistente, diagnóstico…). Antes de meter algo en la cola, mirar lo publicado: si ya hay un reel de un tema, el siguiente de ese tema va en otro formato y con otro ángulo.
-- Historias (13:10 del día que toca, `historias()`): el aviso de la publicación nueva + 2 del banco (`n8n/ig-historias.mjs`). Una «pregunta» va siempre seguida de su «respuesta»; las que fallan se reintentan el siguiente día que toque.
+- Historias (20:30 del día que toca, `historias()`): el aviso de la publicación nueva + 2 del banco. Desde el 18-11-2026, estilo 3 claro (ver GUIA-CONTENIDO.md, sección 6; modelo: `n8n/ig-historias-estilo3-banco-2026-11.mjs`). Las que fallan se reintentan el siguiente día que toque.
 
 ## Formato de vídeo: Flash v2 (desde el 08-11-2026, Instagram y TikTok)
 Dicho por el dueño el 07-11: la voz se nota de IA y hay que entrar por los ojos. El 08-11: «más directos, que la voz no parezca robótica, profesional para la venta; nada de “datos de ejemplo”: son vídeos para captar clientes».
@@ -26,7 +26,7 @@ Dicho por el dueño el 07-11: la voz se nota de IA y hay que entrar por los ojos
 
 ## Aspecto
 - Dos temas, que se **alternan** en la cuadrícula para que tenga ritmo: **oscuro** (`#0b0614` con brillos morados) y **claro** (`#f7f3fd`, tinta `#1b1029`, círculos suaves). Mismo degradado de acento (`#e05cff → #a11cf0 → #5b3cff`), letra Poppins y símbolo de la marca.
-- Portadas de reel: `Portada` de la fábrica con `tema: "claro"` u `"oscuro"`. Carruseles: `"tema"` en el JSON (`scripts/carrusel.mjs`). Historias: la plantilla decide el tema (consejo, respuesta y app en claro; dato y mito en oscuro; pregunta con el degradado).
+- Portadas de reel: `Portada` de la fábrica con `tema: "claro"` u `"oscuro"`. Carruseles: `"tema"` en el JSON (`scripts/carrusel.mjs`). Historias: estilo 3, siempre claras (v: 3).
 - Enseñar el producto: al menos 1 de cada 3 piezas lleva pantallas reales de la app en el móvil (siempre con datos ficticios: «Empresa X», «Cliente Demo»).
 - Formatos de carrusel: portada · comparativa (antes / con IndunexIA Gestión) · pasos · lista · pantalla · precio · cierre. Que el contenido llene la diapositiva (centrado, letra grande); nada de medias diapositivas vacías.
 - Zona segura de historias: nada importante en los 250 px de arriba y de abajo.
