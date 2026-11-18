@@ -1,6 +1,7 @@
 # Guía de contenido de Instagram · @transformaconia.oficial
 
 Versión 1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta.
+**Está también en el Radar** (apartados Instagram y Empresas que seguimos, con las decisiones de la semana). **Cada vez que se cambie este fichero:** `node --env-file=.env.local n8n/ig-guia.mjs` para que el Radar tenga la versión nueva.
 **La leen antes de trabajar:** Claude (al preparar publicaciones), el agente del ordenador (al seguir y comentar) y el sistema (control de calidad, avisos y resumen del domingo). Se revisa cada domingo con los datos: lo que cambie se apunta abajo, en «Cambios por los datos».
 
 ---
