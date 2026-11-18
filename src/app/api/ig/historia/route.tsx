@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import sharp from "sharp";
+import type { ReactNode } from "react";
 import { sql } from "@/lib/db";
 
 // Imagen 1080x1920 de una historia de Instagram (seo.ig_cola, tipo 'historia'): ?id=<id de la cola>. JPEG.
@@ -12,7 +13,10 @@ export const maxDuration = 60;
 
 type Datos = { plantilla: string; etiqueta?: string; titulo: string; texto?: string; cifra?: string; nota?: string; img?: string; reel?: string; tuerqui?: string | false;
   // 17-11-2026 · plantillas problema / noticia / blog: el problema (o la noticia, o el artículo), qué hacer en 2-3 pasos y cómo lo resolvemos
-  puntos?: string[]; cierre?: string; fuente?: string };
+  puntos?: string[]; cierre?: string; fuente?: string;
+  // 18-11-2026 · estilo 2 (él: «céntralo todo, no tan aglutinado, Tuerqui más abajo, más directo»): v: 2.
+  // acento = trozo del título que va en color. Plantilla «actualidad»: lo último del día en 3 bloques (IA · industria · automatización).
+  v?: number; acento?: string; fecha?: string; tema?: "claro" | "oscuro"; items?: { cat: string; titular: string; significa?: string }[] };
 
 const ICONO = "https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png";
 const W = 1080, H = 1920;
@@ -21,7 +25,7 @@ const C = {
   claro: "#f7f3fd", tinta: "#1b1029", gris: "#5b4a6e", borde: "#e6dcf5",
 };
 // 11-11-2026: Tuerqui, la mascota (poses en demo.transformaconia.com/ig/tuerqui/). Pose según la plantilla; datos.tuerqui la cambia y false la quita.
-const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa", problema: "agobiado", noticia: "senala", blog: "senala" };
+const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa", problema: "agobiado", noticia: "senala", blog: "senala", actualidad: "senala" };
 const POSES = new Set(["agobiado", "celebra", "piensa", "malabares", "senala", "saluda"]);
 // La mascota es decoración: si no llega, la historia sale igual (nunca un 500 por ella)
 async function pngDataUrl(url: string, ancho: number) {
@@ -199,8 +203,86 @@ export async function GET(req: Request) {
     }
   })();
 
+  // ── Estilo 2 (18-11-2026): todo centrado, con aire, Tuerqui abajo en el centro y un mensaje directo ──
+  const v2 = d.v === 2 || d.plantilla === "actualidad";
+  const Titulo = ({ t, size, color, acento }: { t: string; size: number; color: string; acento: string }) => {
+    const i = d.acento ? t.indexOf(d.acento) : -1;
+    return (
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", textAlign: "center", fontSize: size, fontWeight: 800, lineHeight: 1.08, letterSpacing: -1.5, color }}>
+        {i < 0 ? t : <>{t.slice(0, i)}<span style={{ color: acento, margin: "0 0.22em" }}>{d.acento}</span>{t.slice(i + d.acento!.length)}</>}
+      </div>
+    );
+  };
+  const lienzoV2 = (() => {
+    if (!v2) return null;
+    const oscuro = d.plantilla === "actualidad" ? d.tema !== "claro" : d.plantilla === "noticia";
+    const tinta = oscuro ? "#fff" : C.tinta;
+    const suave = oscuro ? C.suave : C.gris;
+    const acento = oscuro ? C.rosa : C.morado;
+    const pill = (t: string) => (
+      <div style={{ display: "flex", padding: "14px 30px", borderRadius: 999, background: oscuro ? "rgba(224,92,255,0.16)" : "#efe4fb", color: acento, fontSize: 30, fontWeight: 700, letterSpacing: 4 }}>{t.toUpperCase()}</div>
+    );
+    let medio: ReactNode;
+    if (d.plantilla === "actualidad") {
+      const COL: Record<string, string> = { ia: "#e05cff", industria: "#ffb547", automatizacion: "#4fd1c5", "automatización": "#4fd1c5", ayudas: "#7cc4ff" };
+      medio = (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          {pill(`Lo último${d.fecha ? ` · ${d.fecha}` : ""}`)}
+          <div style={{ display: "flex", marginTop: 34 }}><Titulo t={d.titulo} size={largo > 34 ? 72 : 84} color={tinta} acento={acento} /></div>
+          <div style={{ display: "flex", flexDirection: "column", width: "100%", marginTop: 54 }}>
+            {(d.items ?? []).slice(0, 3).map((it, i) => {
+              const col = COL[it.cat.toLowerCase()] ?? C.rosa;
+              return (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: i ? 30 : 0, padding: "30px 40px", borderRadius: 32, background: oscuro ? "rgba(255,255,255,0.06)" : "#fff", border: `2px solid ${oscuro ? "rgba(255,255,255,0.10)" : C.borde}` }}>
+                  <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 4, color: col }}>{it.cat.toUpperCase()}</div>
+                  <div style={{ display: "flex", marginTop: 12, fontSize: 42, fontWeight: 700, lineHeight: 1.2, color: tinta, textAlign: "center", justifyContent: "center" }}>{it.titular}</div>
+                  {it.significa ? <div style={{ display: "flex", marginTop: 12, fontSize: 31, fontWeight: 500, lineHeight: 1.3, color: suave, textAlign: "center", justifyContent: "center" }}>→ {it.significa}</div> : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    } else {
+      const t2 = largo > 50 ? 84 : largo > 32 ? 96 : 112;
+      medio = (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          {d.etiqueta ? pill(d.etiqueta) : null}
+          <div style={{ display: "flex", marginTop: 44 }}><Titulo t={d.titulo} size={t2} color={tinta} acento={acento} /></div>
+          {d.fuente ? <div style={{ display: "flex", marginTop: 22, fontSize: 28, fontWeight: 500, color: suave }}>{d.fuente}</div> : null}
+          {d.puntos?.length ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 70 }}>
+              {d.puntos.slice(0, 2).map((p, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", marginTop: i ? 26 : 0, fontSize: 44, fontWeight: 600, color: tinta }}>
+                  <div style={{ display: "flex", width: 54, height: 54, borderRadius: 27, background: DEGRADADO, color: "#fff", fontSize: 28, fontWeight: 800, alignItems: "center", justifyContent: "center", marginRight: 22 }}>{i + 1}</div>
+                  {p}
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {d.cierre ? (
+            <div style={{ display: "flex", marginTop: 70, padding: "28px 48px", borderRadius: 999, background: DEGRADADO, color: "#fff", fontSize: 40, fontWeight: 700, textAlign: "center", justifyContent: "center", boxShadow: "0 18px 50px rgba(161,28,240,0.35)" }}>{d.cierre}</div>
+          ) : null}
+        </div>
+      );
+    }
+    const tamM = d.plantilla === "actualidad" ? 250 : 330;
+    return (
+      <div style={{ width: W, height: H, display: "flex", position: "relative", background: oscuro ? C.fondo : C.claro, fontFamily: "Poppins" }}>
+        {oscuro
+          ? <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", background: "radial-gradient(circle at 50% 8%, rgba(161,28,240,0.38) 0%, rgba(11,6,20,0) 45%), radial-gradient(circle at 50% 100%, rgba(91,60,255,0.40) 0%, rgba(11,6,20,0) 45%)" }} />
+          : <div style={{ position: "absolute", top: -300, left: 240, width: 600, height: 600, borderRadius: 300, display: "flex", background: "rgba(224,92,255,0.12)" }} />}
+        <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", flexDirection: "column", alignItems: "center", padding: "170px 90px 200px" }}>
+          <Marca icono={icono} claro={!oscuro} />
+          <div style={{ display: "flex", flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>{medio}</div>
+          {mascota ? <img src={mascota} width={tamM} height={tamM} style={{ width: tamM, height: tamM }} /> : null}
+        </div>
+      </div>
+    );
+  })();
+
   const png = new ImageResponse(
-    (
+    lienzoV2 ?? (
       <div style={{ width: W, height: H, display: "flex", position: "relative", background: fondo, fontFamily: "Poppins" }}>
         {!claro && !degradado ? (
           <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", background: "radial-gradient(circle at 15% 12%, rgba(161,28,240,0.40) 0%, rgba(11,6,20,0) 45%), radial-gradient(circle at 90% 92%, rgba(91,60,255,0.40) 0%, rgba(11,6,20,0) 50%)" }} />
