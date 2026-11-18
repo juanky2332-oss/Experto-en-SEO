@@ -1,6 +1,6 @@
 # Guía de contenido de Instagram · @transformaconia.oficial
 
-Versión 1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta.
+Versión 1.1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias con el estilo 3).
 **Está también en el Radar** (apartados Instagram y Empresas que seguimos, con las decisiones de la semana). **Cada vez que se cambie este fichero:** `node --env-file=.env.local n8n/ig-guia.mjs` para que el Radar tenga la versión nueva.
 **La leen antes de trabajar:** Claude (al preparar publicaciones), el agente del ordenador (al seguir y comentar) y el sistema (control de calidad, avisos y resumen del domingo). Se revisa cada domingo con los datos: lo que cambie se apunta abajo, en «Cambios por los datos».
 
@@ -47,9 +47,18 @@ Versión 1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuent
 - **Blog: martes y viernes**; ese día, su historia «Nuevo en el blog».
 - Ritmo: **2-3 reels por semana**. Mejor menos y buenos que muchos flojos.
 
-## 6. Historias (duran 5 s: poco texto)
-- Formatos: **problema → 2 pasos → nuestra solución** · **noticia real → qué hacer** · **nuevo en el blog** · aviso del reel.
-- ~20 palabras. La marca solo en el logo. Sin precios.
+## 6. Historias (duran 5 s: poco texto) · estilo 3, aprobado el 18-11-2026
+- **Siempre claras** (fondo claro), centradas y con aire. Plantilla `/api/ig/historia` con `v: 3`. La marca solo en el logo de arriba. Sin precios.
+- **Título = una pregunta o una orden que se entiende a la primera** y que toca el día a día: «¿Metes las facturas a mano?», «Cobra antes de que se te olvide». Nada de frases raras («tecleas…»). La parte clave, en color (`acento`).
+- **Formatos**:
+  - **Problema** (`problema`): pregunta + tarjeta **antes / ahora** + «Diagnóstico gratis · enlace en el perfil».
+  - **Truco del día** (`truco`): 2 pasos que se pueden hacer hoy mismo, sin nosotros.
+  - **IA que ya puedes usar** (`ia`): 2 pasos con herramientas que ya existen (grabar, ChatGPT…).
+  - **Noticia útil** (`noticia`): solo noticias REALES con fuente y fecha, y qué hacer (2 pasos). Nada de resúmenes genéricos de «lo que se mueve en IA».
+  - **Nuevo en el blog** y **aviso del reel** (salen solos, mismo estilo).
+- **Tuerqui habla en un bocadillo** (`dice`): gracioso pero profesional y lógico, una o dos frases («Tú haz la foto y sigue con tu café. Del resto me encargo yo.», «Y si quieres, contesto yo por ti… ¡aunque estés durmiendo!»). La pose, a juego con el mensaje.
+- **Cero fallos de texto**: ningún signo ni palabra suelta en un renglón (la plantilla reparte el título sola, pero revisa la imagen antes de meterla en el banco).
+- Se rellenan con `n8n/ig-historias-estilo3-banco-2026-11.mjs` como modelo. Cuando queden menos de 4, avisa por Telegram.
 
 ## 7. Actividad diaria (lo hace el agente, L-V)
 - **Primero 8 empresas de la Región** (industria, talleres, metal, instaladores, asociaciones) y **después 4 tiendas del Radar**.
