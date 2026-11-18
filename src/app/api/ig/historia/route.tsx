@@ -213,9 +213,31 @@ export async function GET(req: Request) {
     const tinta = oscuro ? "#fff" : C.tinta;
     const suave = oscuro ? C.suave : C.gris;
     const acento = oscuro ? C.rosa : C.morado;
-    const i = d.acento ? d.titulo.indexOf(d.acento) : -1;
-    const trozos = i < 0 ? [{ t: d.titulo, c: false }] : [{ t: d.titulo.slice(0, i), c: false }, { t: d.acento!, c: true }, { t: d.titulo.slice(i + d.acento!.length), c: false }];
-    const palabras = trozos.flatMap((p) => p.t.split(" ").filter(Boolean).map((w) => ({ w, c: p.c })));
+    // palabra a palabra (para que parta renglón bien); dentro de cada palabra, lo que cae en el acento va en color.
+    // Así «mano?» sigue junta y el «?» nunca se queda solo en una línea.
+    const ini = d.acento ? d.titulo.indexOf(d.acento) : -1;
+    const fin = ini < 0 ? -1 : ini + d.acento!.length;
+    const palabras: { w: string; c: boolean }[][] = [];
+    let pos = 0;
+    for (const w of d.titulo.split(" ")) {
+      if (w) {
+        const segs: { w: string; c: boolean }[] = [];
+        for (let k = 0; k < w.length; k++) {
+          const c = pos + k >= ini && pos + k < fin;
+          if (segs.length && segs[segs.length - 1].c === c) segs[segs.length - 1].w += w[k];
+          else segs.push({ w: w[k], c });
+        }
+        palabras.push(segs);
+      }
+      pos += w.length + 1;
+    }
+    // Sin palabras sueltas: las dos últimas del título van siempre juntas en el mismo renglón
+    if (palabras.length >= 3) {
+      const ult = palabras.pop()!, pen = palabras.pop()!;
+      palabras.push([...pen, { w: "\u00a0", c: pen[pen.length - 1].c && ult[0].c }, ...ult]);
+    }
+    // …y en los textos, espacio que no parte entre las dos últimas palabras (nunca una palabra sola en la última línea)
+    const sv = (t?: string) => (t ? t.replace(/ (\S+)$/, "\u00a0$1") : t);
     const tt = largo > 44 ? 82 : largo > 30 ? 94 : 106;
     const tarjeta = { display: "flex", flexDirection: "column" as const, width: "100%", marginTop: 64, padding: "40px 46px", borderRadius: 44,
       background: oscuro ? "rgba(255,255,255,0.06)" : "#fff", border: `2px solid ${oscuro ? "rgba(255,255,255,0.12)" : "rgba(161,28,240,0.10)"}`,
@@ -230,12 +252,12 @@ export async function GET(req: Request) {
         <div style={tarjeta}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             {chip("ANTES", false)}
-            <div style={{ display: "flex", marginTop: 14, fontSize: 36, fontWeight: 500, lineHeight: 1.3, color: suave }}>{d.antes}</div>
+            <div style={{ display: "flex", marginTop: 14, fontSize: 36, fontWeight: 500, lineHeight: 1.3, color: suave }}>{sv(d.antes)}</div>
           </div>
           <div style={{ display: "flex", height: 2, margin: "30px 0", background: oscuro ? "rgba(255,255,255,0.10)" : "#efe7f8" }} />
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             {chip("AHORA", true)}
-            <div style={{ display: "flex", marginTop: 14, fontSize: 40, fontWeight: 700, lineHeight: 1.25, color: tinta }}>{d.ahora}</div>
+            <div style={{ display: "flex", marginTop: 14, fontSize: 40, fontWeight: 700, lineHeight: 1.25, color: tinta }}>{sv(d.ahora)}</div>
           </div>
         </div>
       );
@@ -245,7 +267,7 @@ export async function GET(req: Request) {
           {d.puntos.slice(0, 3).map((p, k) => (
             <div key={k} style={{ display: "flex", alignItems: "center", marginTop: k ? 26 : 0 }}>
               <div style={{ display: "flex", width: 58, height: 58, borderRadius: 18, background: DEGRADADO, color: "#fff", fontSize: 30, fontWeight: 800, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{k + 1}</div>
-              <div style={{ display: "flex", marginLeft: 24, fontSize: 38, fontWeight: 600, lineHeight: 1.25, color: tinta, flex: 1 }}>{p}</div>
+              <div style={{ display: "flex", marginLeft: 24, fontSize: 38, fontWeight: 600, lineHeight: 1.25, color: tinta, flex: 1 }}>{sv(p)}</div>
             </div>
           ))}
         </div>
@@ -274,7 +296,11 @@ export async function GET(req: Request) {
               </div>
             ) : null}
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", marginTop: 40, fontSize: tt, fontWeight: 800, lineHeight: 1.06, letterSpacing: -2, color: tinta }}>
-              {palabras.map((p, k) => <span key={k} style={{ color: p.c ? acento : tinta, margin: "0 0.12em" }}>{p.w}</span>)}
+              {palabras.map((segs, k) => (
+                <div key={k} style={{ display: "flex", margin: "0 0.12em" }}>
+                  {segs.map((s, j) => <span key={j} style={{ color: s.c ? acento : tinta }}>{s.w}</span>)}
+                </div>
+              ))}
             </div>
             {d.fuente ? <div style={{ display: "flex", marginTop: 22, fontSize: 26, fontWeight: 500, color: suave }}>{d.fuente}</div> : null}
             {contenido}
@@ -284,12 +310,12 @@ export async function GET(req: Request) {
                 {d.dice ? (
                   <div style={{ display: "flex", position: "relative", marginLeft: 18, maxWidth: 560, padding: "26px 32px", borderRadius: 34, background: oscuro ? "#fff" : C.tinta, color: oscuro ? C.tinta : "#fff", fontSize: 32, fontWeight: 600, lineHeight: 1.3 }}>
                     <div style={{ display: "flex", position: "absolute", left: -12, top: "50%", marginTop: -14, width: 28, height: 28, background: oscuro ? "#fff" : C.tinta, transform: "rotate(45deg)", borderRadius: 4 }} />
-                    {d.dice}
+                    {sv(d.dice)}
                   </div>
                 ) : null}
               </div>
             ) : null}
-            {d.cierre ? <div style={{ display: "flex", marginTop: 34, fontSize: 28, fontWeight: 600, color: acento, letterSpacing: 0.5 }}>{d.cierre}</div> : null}
+            {d.cierre ? <div style={{ display: "flex", marginTop: 34, fontSize: 28, fontWeight: 600, color: acento, letterSpacing: 0.5 }}>{sv(d.cierre)}</div> : null}
           </div>
         </div>
       </div>
