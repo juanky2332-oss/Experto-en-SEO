@@ -208,7 +208,7 @@ export async function GET(req: Request) {
   const Titulo = ({ t, size, color, acento }: { t: string; size: number; color: string; acento: string }) => {
     const i = d.acento ? t.indexOf(d.acento) : -1;
     const trozos = i < 0 ? [{ t, c: false }] : [{ t: t.slice(0, i), c: false }, { t: d.acento!, c: true }, { t: t.slice(i + d.acento!.length), c: false }];
-    const palabras = trozos.flatMap((p) => p.t.split(/s+/).filter(Boolean).map((w) => ({ w, c: p.c })));
+    const palabras = trozos.flatMap((p) => p.t.split(" ").filter(Boolean).map((w) => ({ w, c: p.c })));
     return (
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", textAlign: "center", fontSize: size, fontWeight: 800, lineHeight: 1.08, letterSpacing: -1.5, color }}>
         {palabras.map((p, k) => <span key={k} style={{ color: p.c ? acento : color, margin: "0 0.13em" }}>{p.w}</span>)}
@@ -230,7 +230,7 @@ export async function GET(req: Request) {
       medio = (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
           {pill(`Lo último${d.fecha ? ` · ${d.fecha}` : ""}`)}
-          <div style={{ display: "flex", marginTop: 34 }}><Titulo t={d.titulo} size={largo > 34 ? 72 : 84} color={tinta} acento={acento} /></div>
+          <div style={{ display: "flex", marginTop: 34 }}><Titulo t={d.titulo} size={largo > 30 ? 66 : 76} color={tinta} acento={acento} /></div>
           <div style={{ display: "flex", flexDirection: "column", width: "100%", marginTop: 54 }}>
             {(d.items ?? []).slice(0, 3).map((it, i) => {
               const col = COL[it.cat.toLowerCase()] ?? C.rosa;
