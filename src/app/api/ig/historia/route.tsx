@@ -235,12 +235,12 @@ export async function GET(req: Request) {
     // el reparto con menos renglones, todos parecidos y SIN ningún renglón de una palabra suelta. Si no cabe, baja la letra.
     const anchoLetra = (ch: string) => (/[¿?]/.test(ch) ? 0.5 : /[A-ZÁÉÍÓÚÑ0-9]/.test(ch) ? 0.72 : /[ilj.,:;'!¡]/.test(ch) ? 0.3 : /[mw]/.test(ch) ? 0.92 : 0.62);
     const MAXW = 880;
-    const repartir = (size: number) => {
+    const repartir = (size: number, lineas: number) => {
       const anchos = palabras.map((segs) => segs.reduce((a, s) => a + [...s.w].reduce((b, ch) => b + anchoLetra(ch) * size - 2, 0), 0));
       const hueco = size * 0.26;
       const n = anchos.length;
       let mejor: { cortes: number[]; nota: number } | null = null;
-      for (let lineas = 1; lineas <= Math.min(4, n) && !mejor; lineas++) {
+      if (lineas <= n) {
         // todas las formas de cortar las n palabras en «lineas» renglones
         const probar = (desde: number, quedan: number, cortes: number[]) => {
           if (quedan === 1) {
@@ -248,7 +248,7 @@ export async function GET(req: Request) {
             let a = 0, max = 0, min = Infinity, ok = true;
             for (const c of todos) {
               const w = anchos.slice(a, c).reduce((x, y) => x + y, 0) + hueco * (c - a - 1);
-              if (w > MAXW || (c - a === 1 && n > lineas && anchos[a] < MAXW * 0.45)) ok = false;
+              if (w > MAXW || (c - a === 1 && n > lineas && anchos[a] < MAXW * 0.6)) ok = false;
               max = Math.max(max, w); min = Math.min(min, w); a = c;
             }
             if (ok && (!mejor || max - min < mejor.nota)) mejor = { cortes: todos, nota: max - min };
@@ -261,8 +261,9 @@ export async function GET(req: Request) {
       return mejor as { cortes: number[]; nota: number } | null;
     };
     let tt = largo > 44 ? 82 : largo > 30 ? 94 : 106;
-    let reparto = repartir(tt);
-    while (!reparto && tt > 64) { tt -= 6; reparto = repartir(tt); }
+    let reparto: ReturnType<typeof repartir> = null;
+    // primero pocos renglones (bajando la letra hasta 24 px si hace falta); solo si no hay manera, uno más
+    fuera: for (let lineas = 1; lineas <= 4; lineas++) for (let s = tt; s >= Math.max(tt - 24, 64); s -= 6) { const r = repartir(s, lineas); if (r) { reparto = r; tt = s; break fuera; } }
     const renglones: { w: string; c: boolean }[][][] = [];
     { let a = 0; for (const c of reparto?.cortes ?? [palabras.length]) { renglones.push(palabras.slice(a, c)); a = c; } }
     // En los textos: espacio que no parte entre las dos últimas palabras (nunca una palabra sola en la última línea)
