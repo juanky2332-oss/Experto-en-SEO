@@ -1,6 +1,6 @@
 # Guía de contenido de Instagram · @transformaconia.oficial
 
-Versión 1.1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias con el estilo 3).
+Versión 1.2 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias con el estilo 3; 1.2: calendario fijo y noticia del día).
 **Está también en el Radar** (apartados Instagram y Empresas que seguimos, con las decisiones de la semana). **Cada vez que se cambie este fichero:** `node --env-file=.env.local n8n/ig-guia.mjs` para que el Radar tenga la versión nueva.
 **La leen antes de trabajar:** Claude (al preparar publicaciones), el agente del ordenador (al seguir y comentar) y el sistema (control de calidad, avisos y resumen del domingo). Se revisa cada domingo con los datos: lo que cambie se apunta abajo, en «Cambios por los datos».
 
@@ -58,7 +58,9 @@ Versión 1.1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cue
   - **Nuevo en el blog** y **aviso del reel** (salen solos, mismo estilo).
 - **Tuerqui habla en un bocadillo** (`dice`): gracioso pero profesional y lógico, una o dos frases («Tú haz la foto y sigue con tu café. Del resto me encargo yo.», «Y si quieres, contesto yo por ti… ¡aunque estés durmiendo!»). La pose, a juego con el mensaje.
 - **Cero fallos de texto**: ningún signo ni palabra suelta en un renglón (la plantilla reparte el título sola, pero revisa la imagen antes de meterla en el banco).
-- Se rellenan con `n8n/ig-historias-estilo3-banco-2026-11.mjs` como modelo. Cuando queden menos de 4, avisa por Telegram.
+- **Calendario fijo** (L-V, 20:30, 2 al día + el aviso del reel): cada historia lleva su fecha (`ig_cola.fecha`) y su tema va con lo que sale ese día (reel o blog). Si una no sale su día, **no empuja a las demás**: se recoloca sola en el primer hueco libre. Modelo para ampliarlo: `n8n/ig-historias-calendario-2026-11.mjs`.
+- **Siempre 2 semanas por delante**: si el calendario se acaba en menos de 14 días, llega aviso (lunes a las 13:00 y en el programa del domingo) → «prepara historias para Instagram» y se amplía dos semanas más con temas nuevos (sin repetir).
+- **Noticia del día** (automática): el radar busca noticias cada mañana a las 8 (Región de Murcia, ayudas, industria, automatización, factura electrónica, IA útil). A las 13:00 se elige, si la hay, UNA real y útil para una pyme de aquí; se prepara con su fuente (el medio del enlace) y 2 pasos que se pueden hacer hoy, y llega por Telegram con botón «Quitar». Sale a las 20:30 **como extra** (no quita ninguna programada). Si no hay nada que valga, no sale nada. Una noticia que no sale su día se descarta (una noticia vieja no vale). Prueba sin guardar: `/api/cron/instagram?fase=noticia&prueba=1`.
 
 ## 7. Actividad diaria (lo hace el agente, L-V)
 - **Primero 8 empresas de la Región** (industria, talleres, metal, instaladores, asociaciones) y **después 4 tiendas del Radar**.
