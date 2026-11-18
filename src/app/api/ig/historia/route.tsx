@@ -231,14 +231,42 @@ export async function GET(req: Request) {
       }
       pos += w.length + 1;
     }
-    // Sin palabras sueltas: las dos últimas del título van siempre juntas en el mismo renglón
-    if (palabras.length >= 3) {
-      const ult = palabras.pop()!, pen = palabras.pop()!;
-      palabras.push([...pen, { w: "\u00a0", c: pen[pen.length - 1].c && ult[0].c }, ...ult]);
-    }
-    // …y en los textos, espacio que no parte entre las dos últimas palabras (nunca una palabra sola en la última línea)
+    // Renglones equilibrados (él, 18-11: «que no aparezca ningún fallo»): se mide cada palabra (Poppins 800) y se elige
+    // el reparto con menos renglones, todos parecidos y SIN ningún renglón de una palabra suelta. Si no cabe, baja la letra.
+    const anchoLetra = (ch: string) => (/[¿?]/.test(ch) ? 0.5 : /[A-ZÁÉÍÓÚÑ0-9]/.test(ch) ? 0.72 : /[ilj.,:;'!¡]/.test(ch) ? 0.3 : /[mw]/.test(ch) ? 0.92 : 0.62);
+    const MAXW = 880;
+    const repartir = (size: number) => {
+      const anchos = palabras.map((segs) => segs.reduce((a, s) => a + [...s.w].reduce((b, ch) => b + anchoLetra(ch) * size - 2, 0), 0));
+      const hueco = size * 0.26;
+      const n = anchos.length;
+      let mejor: { cortes: number[]; nota: number } | null = null;
+      for (let lineas = 1; lineas <= Math.min(4, n) && !mejor; lineas++) {
+        // todas las formas de cortar las n palabras en «lineas» renglones
+        const probar = (desde: number, quedan: number, cortes: number[]) => {
+          if (quedan === 1) {
+            const todos = [...cortes, n];
+            let a = 0, max = 0, min = Infinity, ok = true;
+            for (const c of todos) {
+              const w = anchos.slice(a, c).reduce((x, y) => x + y, 0) + hueco * (c - a - 1);
+              if (w > MAXW || (c - a === 1 && n > lineas && anchos[a] < MAXW * 0.45)) ok = false;
+              max = Math.max(max, w); min = Math.min(min, w); a = c;
+            }
+            if (ok && (!mejor || max - min < mejor.nota)) mejor = { cortes: todos, nota: max - min };
+            return;
+          }
+          for (let c = desde + 1; c <= n - quedan + 1; c++) probar(c, quedan - 1, [...cortes, c]);
+        };
+        probar(0, lineas, []);
+      }
+      return mejor as { cortes: number[]; nota: number } | null;
+    };
+    let tt = largo > 44 ? 82 : largo > 30 ? 94 : 106;
+    let reparto = repartir(tt);
+    while (!reparto && tt > 64) { tt -= 6; reparto = repartir(tt); }
+    const renglones: { w: string; c: boolean }[][][] = [];
+    { let a = 0; for (const c of reparto?.cortes ?? [palabras.length]) { renglones.push(palabras.slice(a, c)); a = c; } }
+    // En los textos: espacio que no parte entre las dos últimas palabras (nunca una palabra sola en la última línea)
     const sv = (t?: string) => (t ? t.replace(/ (\S+)$/, "\u00a0$1") : t);
-    const tt = largo > 44 ? 82 : largo > 30 ? 94 : 106;
     const tarjeta = { display: "flex", flexDirection: "column" as const, width: "100%", marginTop: 64, padding: "40px 46px", borderRadius: 44,
       background: oscuro ? "rgba(255,255,255,0.06)" : "#fff", border: `2px solid ${oscuro ? "rgba(255,255,255,0.12)" : "rgba(161,28,240,0.10)"}`,
       boxShadow: oscuro ? "none" : "0 30px 80px rgba(60,20,120,0.12)" };
@@ -295,10 +323,14 @@ export async function GET(req: Request) {
                 {d.etiqueta.toUpperCase()}
               </div>
             ) : null}
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", marginTop: 40, fontSize: tt, fontWeight: 800, lineHeight: 1.06, letterSpacing: -2, color: tinta }}>
-              {palabras.map((segs, k) => (
-                <div key={k} style={{ display: "flex", margin: "0 0.12em" }}>
-                  {segs.map((s, j) => <span key={j} style={{ color: s.c ? acento : tinta }}>{s.w}</span>)}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 40, fontSize: tt, fontWeight: 800, lineHeight: 1.06, letterSpacing: -2, color: tinta }}>
+              {renglones.map((linea, r) => (
+                <div key={r} style={{ display: "flex", justifyContent: "center" }}>
+                  {linea.map((segs, k) => (
+                    <div key={k} style={{ display: "flex", margin: "0 0.13em" }}>
+                      {segs.map((s, j) => <span key={j} style={{ color: s.c ? acento : tinta }}>{s.w}</span>)}
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>

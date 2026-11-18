@@ -12,7 +12,7 @@ const EJ = [
   ['ej3-facturas-oscuro', { v: 3, tema: 'oscuro', plantilla: 'problema', tuerqui: 'celebra', etiqueta: '¿Te pasa?', titulo: '¿Metes las facturas a mano?', acento: 'a mano',
     antes: 'Una a una, copiando datos al ordenador', ahora: 'Una foto con el móvil y se apuntan solas', dice: 'Tú haz la foto y sigue con tu café. Del resto me encargo yo.', cierre: CTA }],
   ['ej3-presupuestos', { v: 3, plantilla: 'problema', tuerqui: 'senala', etiqueta: '¿Te suena?', titulo: '¿Tu presupuesto llega tarde?', acento: 'tarde',
-    antes: 'El cliente espera días y se va con otro', ahora: 'Lo mandas el mismo día, desde el plano', dice: 'Pásame el plano y el presupuesto sale hoy. Así no te lo quitan.', cierre: CTA }],
+    antes: 'El cliente espera días y se va con otro', ahora: 'Lo mandas el mismo día, desde el plano', dice: 'Pásame el plano y el presupuesto sale hoy. ¡Que no se te escape el cliente!', cierre: CTA }],
   ['ej3-partes', { v: 3, plantilla: 'problema', tuerqui: 'agobiado', etiqueta: '¿Te pasa?', titulo: '¿Los partes llegan en papel arrugado?', acento: 'papel arrugado',
     antes: 'Llegan días después y no hay quien los lea', ahora: 'Se firman en el móvil y pasan a la factura', dice: 'Ni uno más perdido en la furgoneta. Palabra de Tuerqui.', cierre: CTA }],
   ['ej3-truco-cobros', { v: 3, plantilla: 'truco', etiqueta: 'Truco para el lunes', titulo: 'Cobra antes de que se te olvide', acento: 'antes',
