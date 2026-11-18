@@ -16,7 +16,10 @@ type Datos = { plantilla: string; etiqueta?: string; titulo: string; texto?: str
   puntos?: string[]; cierre?: string; fuente?: string;
   // 18-11-2026 · estilo 2 (él: «céntralo todo, no tan aglutinado, Tuerqui más abajo, más directo»): v: 2.
   // acento = trozo del título que va en color. Plantilla «actualidad»: lo último del día en 3 bloques (IA · industria · automatización).
-  v?: number; acento?: string; fecha?: string; tema?: "claro" | "oscuro"; items?: { cat: string; titular: string; significa?: string }[] };
+  v?: number; acento?: string; fecha?: string; tema?: "claro" | "oscuro"; items?: { cat: string; titular: string; significa?: string }[];
+  // 18-11-2026 · estilo 3 (él: «más estético, más moderno, que se note profesional, del tono de Tuerqui»): v: 3.
+  // Tarjeta con «antes / ahora» o con pasos, y Tuerqui hablando en un bocadillo (dice).
+  antes?: string; ahora?: string; dice?: string };
 
 const ICONO = "https://transformaconia.com/wp-content/uploads/2026/10/transforma-con-ia-icono-v2.png";
 const W = 1080, H = 1920;
@@ -25,7 +28,7 @@ const C = {
   claro: "#f7f3fd", tinta: "#1b1029", gris: "#5b4a6e", borde: "#e6dcf5",
 };
 // 11-11-2026: Tuerqui, la mascota (poses en demo.transformaconia.com/ig/tuerqui/). Pose según la plantilla; datos.tuerqui la cambia y false la quita.
-const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa", problema: "agobiado", noticia: "senala", blog: "senala", actualidad: "senala" };
+const TUERQUI: Record<string, string> = { consejo: "senala", respuesta: "celebra", dato: "malabares", mito: "piensa", pregunta: "piensa", problema: "agobiado", noticia: "senala", blog: "senala", actualidad: "senala", truco: "senala", ia: "malabares" };
 const POSES = new Set(["agobiado", "celebra", "piensa", "malabares", "senala", "saluda"]);
 // La mascota es decoración: si no llega, la historia sale igual (nunca un 500 por ella)
 async function pngDataUrl(url: string, ancho: number) {
@@ -203,6 +206,96 @@ export async function GET(req: Request) {
     }
   })();
 
+  // ── Estilo 3 (18-11-2026): tarjeta moderna centrada + Tuerqui con bocadillo ──
+  const lienzoV3 = (() => {
+    if (d.v !== 3) return null;
+    const oscuro = d.tema ? d.tema === "oscuro" : ["noticia", "ia"].includes(d.plantilla);
+    const tinta = oscuro ? "#fff" : C.tinta;
+    const suave = oscuro ? C.suave : C.gris;
+    const acento = oscuro ? C.rosa : C.morado;
+    const i = d.acento ? d.titulo.indexOf(d.acento) : -1;
+    const trozos = i < 0 ? [{ t: d.titulo, c: false }] : [{ t: d.titulo.slice(0, i), c: false }, { t: d.acento!, c: true }, { t: d.titulo.slice(i + d.acento!.length), c: false }];
+    const palabras = trozos.flatMap((p) => p.t.split(" ").filter(Boolean).map((w) => ({ w, c: p.c })));
+    const tt = largo > 44 ? 82 : largo > 30 ? 94 : 106;
+    const tarjeta = { display: "flex", flexDirection: "column" as const, width: "100%", marginTop: 64, padding: "40px 46px", borderRadius: 44,
+      background: oscuro ? "rgba(255,255,255,0.06)" : "#fff", border: `2px solid ${oscuro ? "rgba(255,255,255,0.12)" : "rgba(161,28,240,0.10)"}`,
+      boxShadow: oscuro ? "none" : "0 30px 80px rgba(60,20,120,0.12)" };
+    const chip = (t: string, activo: boolean) => (
+      <div style={{ display: "flex", padding: "8px 18px", borderRadius: 999, fontSize: 22, fontWeight: 700, letterSpacing: 3, color: activo ? "#fff" : suave,
+        background: activo ? DEGRADADO : oscuro ? "rgba(255,255,255,0.10)" : "#f1ecf7" }}>{t}</div>
+    );
+    let contenido: ReactNode = null;
+    if (d.antes && d.ahora) {
+      contenido = (
+        <div style={tarjeta}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            {chip("ANTES", false)}
+            <div style={{ display: "flex", marginTop: 14, fontSize: 36, fontWeight: 500, lineHeight: 1.3, color: suave }}>{d.antes}</div>
+          </div>
+          <div style={{ display: "flex", height: 2, margin: "30px 0", background: oscuro ? "rgba(255,255,255,0.10)" : "#efe7f8" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            {chip("AHORA", true)}
+            <div style={{ display: "flex", marginTop: 14, fontSize: 40, fontWeight: 700, lineHeight: 1.25, color: tinta }}>{d.ahora}</div>
+          </div>
+        </div>
+      );
+    } else if (d.puntos?.length) {
+      contenido = (
+        <div style={tarjeta}>
+          {d.puntos.slice(0, 3).map((p, k) => (
+            <div key={k} style={{ display: "flex", alignItems: "center", marginTop: k ? 26 : 0 }}>
+              <div style={{ display: "flex", width: 58, height: 58, borderRadius: 18, background: DEGRADADO, color: "#fff", fontSize: 30, fontWeight: 800, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{k + 1}</div>
+              <div style={{ display: "flex", marginLeft: 24, fontSize: 38, fontWeight: 600, lineHeight: 1.25, color: tinta, flex: 1 }}>{p}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div style={{ width: W, height: H, display: "flex", position: "relative", background: oscuro ? C.fondo : "#f6f2fc", fontFamily: "Poppins" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex",
+          background: oscuro
+            ? "radial-gradient(circle at 10% 8%, rgba(161,28,240,0.45) 0%, rgba(11,6,20,0) 42%), radial-gradient(circle at 95% 85%, rgba(91,60,255,0.40) 0%, rgba(11,6,20,0) 45%)"
+            : "radial-gradient(circle at 8% 6%, rgba(224,92,255,0.26) 0%, rgba(246,242,252,0) 40%), radial-gradient(circle at 96% 90%, rgba(91,60,255,0.20) 0%, rgba(246,242,252,0) 45%)" }} />
+        <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex",
+          backgroundImage: `radial-gradient(circle, ${oscuro ? "rgba(255,255,255,0.07)" : "rgba(91,60,255,0.09)"} 2px, transparent 2.5px)`, backgroundSize: "44px 44px" }} />
+        <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", flexDirection: "column", alignItems: "center", padding: "160px 76px 190px" }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {icono ? <img src={icono} width={50} height={50} style={{ borderRadius: 14 }} /> : null}
+            <div style={{ display: "flex", marginLeft: 14, fontSize: 30, fontWeight: 600, color: tinta }}>
+              Transforma<span style={{ color: suave, fontWeight: 500, margin: "0 8px" }}>con</span><span style={{ color: acento }}>IA</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", flex: 1, flexDirection: "column", width: "100%", alignItems: "center", justifyContent: "center" }}>
+            {d.etiqueta ? (
+              <div style={{ display: "flex", alignItems: "center", padding: "12px 26px", borderRadius: 999, background: oscuro ? "rgba(224,92,255,0.14)" : "#fff", border: `2px solid ${oscuro ? "rgba(224,92,255,0.30)" : "rgba(161,28,240,0.14)"}`, color: acento, fontSize: 26, fontWeight: 700, letterSpacing: 3 }}>
+                <div style={{ display: "flex", width: 12, height: 12, borderRadius: 6, background: DEGRADADO, marginRight: 14 }} />
+                {d.etiqueta.toUpperCase()}
+              </div>
+            ) : null}
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", marginTop: 40, fontSize: tt, fontWeight: 800, lineHeight: 1.06, letterSpacing: -2, color: tinta }}>
+              {palabras.map((p, k) => <span key={k} style={{ color: p.c ? acento : tinta, margin: "0 0.12em" }}>{p.w}</span>)}
+            </div>
+            {d.fuente ? <div style={{ display: "flex", marginTop: 22, fontSize: 26, fontWeight: 500, color: suave }}>{d.fuente}</div> : null}
+            {contenido}
+            {mascota || d.dice ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 56, width: "100%" }}>
+                {mascota ? <img src={mascota} width={250} height={250} style={{ width: 250, height: 250 }} /> : null}
+                {d.dice ? (
+                  <div style={{ display: "flex", position: "relative", marginLeft: 18, maxWidth: 560, padding: "26px 32px", borderRadius: 34, background: oscuro ? "#fff" : C.tinta, color: oscuro ? C.tinta : "#fff", fontSize: 32, fontWeight: 600, lineHeight: 1.3 }}>
+                    <div style={{ display: "flex", position: "absolute", left: -12, top: "50%", marginTop: -14, width: 28, height: 28, background: oscuro ? "#fff" : C.tinta, transform: "rotate(45deg)", borderRadius: 4 }} />
+                    {d.dice}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {d.cierre ? <div style={{ display: "flex", marginTop: 34, fontSize: 28, fontWeight: 600, color: acento, letterSpacing: 0.5 }}>{d.cierre}</div> : null}
+          </div>
+        </div>
+      </div>
+    );
+  })();
+
   // ── Estilo 2 (18-11-2026): todo centrado, con aire, Tuerqui abajo en el centro y un mensaje directo ──
   const v2 = d.v === 2 || d.plantilla === "actualidad";
   const Titulo = ({ t, size, color, acento }: { t: string; size: number; color: string; acento: string }) => {
@@ -285,7 +378,7 @@ export async function GET(req: Request) {
   })();
 
   const png = new ImageResponse(
-    lienzoV2 ?? (
+    lienzoV3 ?? lienzoV2 ?? (
       <div style={{ width: W, height: H, display: "flex", position: "relative", background: fondo, fontFamily: "Poppins" }}>
         {!claro && !degradado ? (
           <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", background: "radial-gradient(circle at 15% 12%, rgba(161,28,240,0.40) 0%, rgba(11,6,20,0) 45%), radial-gradient(circle at 90% 92%, rgba(91,60,255,0.40) 0%, rgba(11,6,20,0) 50%)" }} />
