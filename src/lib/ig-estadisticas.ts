@@ -90,6 +90,7 @@ export async function refrescar() {
       }
     }
   }
+  await avisosSobreLaMarcha().catch((e) => console.error("avisos", e));
   // cuenta + evolución de 30 días
   const yo: { followers_count?: number; follows_count?: number; media_count?: number; username?: string } = await ig(c, "me?fields=followers_count,follows_count,media_count,username");
   const hasta = Math.floor(Date.now() / 1000), desde = hasta - 29 * 86400;
@@ -167,4 +168,40 @@ export async function aprendizaje(): Promise<string[]> {
   if (topTags.length) l.push(`#️⃣ Hashtags que mejor van: ${topTags.slice(0, 5).map((x) => `${x.t} (${r(x)})`).join(" · ")}`);
   l.push(`Con ${pubs.length} publicaciones: son pistas, se afinan cada semana.`);
   return l;
+}
+
+/**
+ * Avisos sobre la marcha (GUIA-CONTENIDO.md §8, 18-11-2026): cada noche, los reels de las últimas 20-72 h se comparan
+ * con lo normal de la cuenta (la mediana de los anteriores). Si uno va muy bien (el doble) o no arranca (la cuarta parte),
+ * llega un aviso por Telegram con qué hacer. Cada reel avisa una sola vez por cada caso.
+ */
+async function avisosSobreLaMarcha() {
+  const reels = await sql<{ id: string; publicado_at: Date; datos: { vistas?: number; texto?: string; enlace?: string; retencionMs?: number } }[]>`
+    select id, publicado_at, datos from seo.ig_metricas where tipo = 'reel' order by publicado_at`;
+  if (reels.length < 4) return;
+  const [av] = await sql<{ value: Record<string, string> }[]>`select value from seo.settings where key = 'ig_avisos'`;
+  const hechos = av?.value ?? {};
+  const { telegram } = await import("./gateway");
+  for (const r of reels) {
+    const horas = (Date.now() - r.publicado_at.getTime()) / 3600_000;
+    if (horas < 20 || horas > 72) continue;
+    const otros = reels.filter((x) => x.id !== r.id && x.publicado_at < r.publicado_at).map((x) => x.datos.vistas ?? 0).sort((a, b) => a - b);
+    if (otros.length < 3) continue;
+    const mediana = otros[Math.floor(otros.length / 2)];
+    const v = r.datos.vistas ?? 0;
+    const titulo = (r.datos.texto ?? "").split("\n")[0].slice(0, 80);
+    let caso: string | null = null, texto = "";
+    if (v >= Math.max(20, mediana * 2)) {
+      caso = "bien";
+      texto = `🔥 <b>Este reel está funcionando</b>: «${titulo}» lleva ${v} visualizaciones (lo normal en la cuenta: ${mediana}).\nQué hago: repetir el formato (mismo tipo de gancho y duración) con otro problema en el próximo reel, compartirlo en historias y, si sigue subiendo, fijarlo en el perfil.\n${r.datos.enlace ?? ""}`;
+    } else if (v < Math.max(3, mediana / 4)) {
+      caso = "flojo";
+      texto = `❄️ <b>Este reel no ha arrancado</b>: «${titulo}» tiene ${v} visualizaciones a las ${Math.round(horas)} h (lo normal: ${mediana}).\nPosibles causas: gancho flojo en los 2 primeros segundos, tema poco nuestro o contenido de otra empresa. No lo borres (Instagram castiga borrar y resubir); lo tengo en cuenta para el próximo.\n${r.datos.enlace ?? ""}`;
+    }
+    if (caso && hechos[r.id] !== caso) {
+      await telegram(texto);
+      hechos[r.id] = caso;
+    }
+  }
+  await sql`insert into seo.settings (key, value) values ('ig_avisos', ${sql.json(hechos)}) on conflict (key) do update set value = excluded.value, updated_at = now()`;
 }

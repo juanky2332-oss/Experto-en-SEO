@@ -64,6 +64,12 @@ export function reglasFijas(texto: string, tipo: string): string[] {
   if (/(IndunexIA|Transforma con IA|nuestr[oa]s? (programa|ERP|app|aplicación|asistente|plan|planes|servicio|automatización)|con nosotros|puesta en marcha)[^.\n]{0,100}\d[\d.]*\s?€|\d[\d.]*\s?€[^.\n]{0,60}(IndunexIA|nuestr[oa]s? (programa|ERP|app|asistente|plan))/i.test(texto))
     p.push("Da precios (no se publican precios: presupuesto gratis tras el diagnóstico)");
   if (hashtags(texto).length > 5) p.push("Más de 5 hashtags");
+  // GUIA-CONTENIDO.md (18-11-2026): hashtags siempre con sentido; nada genérico ni de la marca
+  const SIN_SENTIDO = /^#(love|fyp|foryou|parati|viral|instagood|photooftheday|explore|explorepage|reels|reel|trending|tuerqui|like4like|follow)$/i;
+  const malos = hashtags(texto).filter((h) => SIN_SENTIDO.test(h));
+  if (malos.length) p.push(`Hashtags sin relación con el contenido: ${malos.join(" ")}`);
+  // los vídeos de Flownexion no van como reel (0-2 visualizaciones): por historias y en la web
+  if (tipo === "reel" && /flownexion/i.test(texto)) p.push("Reel de un colaborador (Flownexion): va por historias con enlace, no como reel");
   if (texto.length > 2200) p.push("Más de 2.200 caracteres");
   // 09-11-2026: «sale al final muchas veces Transforma con IA». La cuenta ya se llama así y el vídeo lleva la firma:
   // como mucho UNA mención de la marca o el dominio en el texto (hashtags aparte).

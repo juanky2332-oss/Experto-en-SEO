@@ -123,5 +123,19 @@ export async function resumenSemanal(hasta = dia(new Date())): Promise<{ semana:
   L.push(`🧠 <b>Lo aprendido</b>\n${aprendizajes.map((a) => "• " + e(a)).join("\n")}`);
   if (revision.length) L.push(`🔁 <b>¿Funcionó lo que decidimos?</b>\n${revision.map((a) => "• " + e(a)).join("\n")}`);
   L.push(decisiones.length ? `✅ <b>Esta semana hago</b>\n${decisiones.map((a) => "• " + e(a)).join("\n")}` : "✅ Esta semana sigo igual: no hay datos para cambiar nada todavía.");
+  // 3 ideas de contenido para la semana (GUIA-CONTENIDO.md §8): repetir lo que ha funcionado, llevar al reel lo que
+  // estamos publicando en el blog y preparar el gancho del próximo reel de la cola con lo aprendido
+  const ideas: string[] = [];
+  const top = (await sql<{ datos: { vistas?: number; texto?: string } }[]>`select datos from seo.ig_metricas where tipo = 'reel' order by (datos->>'vistas')::int desc nulls last limit 1`)[0];
+  if (top) ideas.push(`Otro reel con el formato del que más ha funcionado («${(top.datos.texto ?? "").split("\n")[0].slice(0, 60)}», ${top.datos.vistas} visualiz.): mismo tipo de gancho y duración, otro problema del taller.`);
+  const [plan] = await sql<{ value: { items?: { fecha: string; titulo: string; estado?: string }[] } }[]>`select value from seo.settings where key = 'blog_plan'`;
+  const art = plan?.value?.items?.find((i) => i.fecha > hasta);
+  if (art) ideas.push(`Llevar a reel el artículo del blog del ${art.fecha.slice(5)}: «${art.titulo}» (las 3 claves en 30 s, con Tuerqui).`);
+  const [sig] = await sql<{ titulo: string; fecha: string | null }[]>`select titulo, fecha::text from seo.ig_cola where tipo in ('reel', 'carrusel') and estado = 'pendiente' and fecha > ${hasta}::date order by fecha limit 1`;
+  if (sig) ideas.push(`Próximo reel de la cola («${sig.titulo}», ${sig.fecha?.slice(5)}): revisar que el gancho de los 2 primeros segundos sea el problema, no la marca.`);
+  if (ideas.length) L.push(`💡 <b>Ideas de contenido para esta semana</b>\n${ideas.map((a) => "• " + e(a)).join("\n")}`);
+  semana.decisiones = decisiones; // (las ideas no se guardan como decisiones: son propuestas)
+  await sql`update seo.ig_semanas set datos = jsonb_set(datos, '{ideas}', ${sql.json(ideas as never)}) where semana = ${desde}`;
+  L.push(`📘 Guía que sigo: agente-ig/GUIA-CONTENIDO.md`);
   return { semana, texto: L.join("\n\n") };
 }

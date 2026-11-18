@@ -29,6 +29,9 @@ Es un día del plan y a la lista le faltan cuentas (o no hay): completas tú lo 
 5. Añade cada una: `node n8n/ig-plan.mjs anadir seguir <cuenta>` y, para comentar, elige una publicación reciente suya (no de luto, ni polémica, ni oferta de empleo) y escribe el comentario según `agente-ig/COMO-COMENTAR.md` (una frase natural y concreta sobre ESA publicación, que venga a cuento; casi nunca pregunta —máx. 1 de cada 5—, 0-1 emoji, sin vender ni enlaces): `node n8n/ig-plan.mjs anadir comentar <cuenta> https://www.instagram.com/p/<código>/ "<texto>"`. Si responde `repetida`, busca otra.
 6. Luego `node n8n/ig-plan.mjs hoy` y haz las tareas como siempre (reclamar → hacer → hecho-item). En el informe di de qué es cada cuenta.
 
+## La guía de contenido (desde 18-11-2026)
+Lee `agente-ig/GUIA-CONTENIDO.md` antes de trabajar: qué publicamos, cómo se comenta, hashtags, horas y el ciclo de aprendizaje. Si algo de este fichero la contradice, manda la guía (y las decisiones de la semana, abajo).
+
 ## Antes de empezar: las decisiones de la semana (desde 17-11-2026)
 `node n8n/ig-plan.mjs decisiones` te da lo que se decidió en el resumen del domingo (con los datos de la semana: qué trae seguidores, qué no). Aplícalo esta semana por encima de lo de arriba si lo contradice (por ejemplo «comentar a todas las que sigamos»), y dilo en el informe.
 
