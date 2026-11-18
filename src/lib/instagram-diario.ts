@@ -213,7 +213,9 @@ async function avisoHistoria(nuevo: string) {
   const [f] = await sql<{ titulo: string; tipo: string; datos: { historia_video?: string } | null }[]>`select titulo, tipo, datos from seo.ig_cola where id = ${nuevo}`;
   if (!f) return null;
   const id = `h-aviso-${nuevo}`;
-  const datos = { plantilla: "reel", reel: nuevo, etiqueta: f.tipo === "carrusel" ? "Nuevo en el perfil" : "Nuevo vídeo", titulo: f.titulo, texto: "Lo tienes en el perfil" };
+  // 18-11-2026: estilo 3 (claro, portada en tarjeta y Tuerqui con bocadillo)
+  const datos = { v: 3, plantilla: "reel", reel: nuevo, tuerqui: "senala", etiqueta: f.tipo === "carrusel" ? "Nuevo en el perfil" : "Nuevo vídeo", titulo: f.titulo,
+    dice: f.tipo === "carrusel" ? "Lo tienes en el perfil. ¡Desliza, que hay más!" : "Lo tienes en el perfil. ¡Dale al play!" };
   // si el reel trae su historia animada (datos.historia_video), se usa esa; si no, la imagen de /api/ig/historia
   const video = f.datos?.historia_video ?? null;
   await sql`insert into seo.ig_cola (id, tipo, titulo, texto, historia_url, video_url, datos) values (${id}, 'historia', ${"Aviso: " + f.titulo}, '', ${urlHistoria(id)}, ${video}, ${sql.json(datos)})

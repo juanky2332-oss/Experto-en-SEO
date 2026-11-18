@@ -278,7 +278,9 @@ export async function recuperar(id: string) {
 export async function compartir(a: Articulo, base: string) {
   const id = `blog-${a.id}`;
   // 17-11-2026: la historia del artículo usa la plantilla «blog» (poco texto: una historia dura 5 s) en vez de la tarjeta larga
-  const datos = { plantilla: "blog", etiqueta: "Nuevo en el blog", titulo: a.titulo.split(/[:|·—]\s/)[0].slice(0, 70), cierre: "📖 Léelo entero: enlace en el perfil" };
+  // 18-11-2026: estilo 3 (claro, Tuerqui con bocadillo); el enlace va en el perfil o en el sticker
+  const datos = { v: 3, plantilla: "blog", tuerqui: "senala", etiqueta: "Nuevo en el blog", titulo: a.titulo.split(/[:|·—]\s/)[0].slice(0, 70),
+    dice: "Se lee en menos de lo que tarda en salir el café.", cierre: "Léelo entero: enlace en el perfil" };
   const [e] = await sql<ElementoCola[]>`insert into seo.ig_cola (id, tipo, titulo, texto, portada_url, historia_url, datos)
     values (${id}, 'noticia', ${a.titulo}, ${textoInstagram(a)}, ${urlTarjeta(base, a.id, "post")}, ${`${base}/api/ig/historia?id=${id}`}, ${sql.json(datos as never)})
     on conflict (id) do update set datos = excluded.datos, historia_url = excluded.historia_url, estado = case when seo.ig_cola.estado in ('publicado', 'publicando', 'descartado') then seo.ig_cola.estado else 'pendiente' end

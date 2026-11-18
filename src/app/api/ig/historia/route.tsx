@@ -209,7 +209,8 @@ export async function GET(req: Request) {
   // ── Estilo 3 (18-11-2026): tarjeta moderna centrada + Tuerqui con bocadillo ──
   const lienzoV3 = (() => {
     if (d.v !== 3) return null;
-    const oscuro = d.tema ? d.tema === "oscuro" : ["noticia", "ia"].includes(d.plantilla);
+    // 18-11-2026 (él): «mejor las claras». Oscura solo si se pide con tema: "oscuro".
+    const oscuro = d.tema === "oscuro";
     const tinta = oscuro ? "#fff" : C.tinta;
     const suave = oscuro ? C.suave : C.gris;
     const acento = oscuro ? C.rosa : C.morado;
@@ -235,7 +236,7 @@ export async function GET(req: Request) {
     // el reparto con menos renglones, todos parecidos y SIN ningún renglón de una palabra suelta. Si no cabe, baja la letra.
     const anchoLetra = (ch: string) => (/[¿?]/.test(ch) ? 0.5 : /[A-ZÁÉÍÓÚÑ0-9]/.test(ch) ? 0.72 : /[ilj.,:;'!¡]/.test(ch) ? 0.3 : /[mw]/.test(ch) ? 0.92 : 0.62);
     const MAXW = 880;
-    const repartir = (size: number, lineas: number) => {
+    const repartir = (size: number, lineas: number, estricto = true) => {
       const anchos = palabras.map((segs) => segs.reduce((a, s) => a + [...s.w].reduce((b, ch) => b + anchoLetra(ch) * size - 2, 0), 0));
       const hueco = size * 0.26;
       const n = anchos.length;
@@ -248,9 +249,9 @@ export async function GET(req: Request) {
             let a = 0, max = 0, min = Infinity, ok = true;
             for (const c of todos) {
               const w = anchos.slice(a, c).reduce((x, y) => x + y, 0) + hueco * (c - a - 1);
-              if (w > MAXW || (c - a === 1 && n > lineas && anchos[a] < MAXW * 0.6)) ok = false;
+              if (w > MAXW || (estricto && c - a === 1 && n > lineas && anchos[a] < MAXW * 0.6)) ok = false;
               // la parte en color nunca se parte en dos renglones
-              if (c < n && palabras[c - 1].some((s) => s.c) && palabras[c].some((s) => s.c)) ok = false;
+              if (estricto && c < n && palabras[c - 1].some((s) => s.c) && palabras[c].some((s) => s.c)) ok = false;
               max = Math.max(max, w); min = Math.min(min, w); a = c;
             }
             if (ok && (!mejor || max - min < mejor.nota)) mejor = { cortes: todos, nota: max - min };
@@ -262,10 +263,12 @@ export async function GET(req: Request) {
       }
       return mejor as { cortes: number[]; nota: number } | null;
     };
-    let tt = largo > 44 ? 82 : largo > 30 ? 94 : 106;
+    let tt = d.plantilla === "reel" ? (largo > 30 ? 66 : 76) : largo > 44 ? 82 : largo > 30 ? 94 : 106;
     let reparto: ReturnType<typeof repartir> = null;
     // primero pocos renglones (bajando la letra hasta 24 px si hace falta); solo si no hay manera, uno más
     fuera: for (let lineas = 1; lineas <= 4; lineas++) for (let s = tt; s >= Math.max(tt - 24, 64); s -= 6) { const r = repartir(s, lineas); if (r) { reparto = r; tt = s; break fuera; } }
+    // plan B (título muy largo): letra pequeña y sin las reglas finas, pero nunca fuera de la pantalla
+    if (!reparto) fuera2: for (let lineas = 2; lineas <= 6; lineas++) { const r = repartir(60, lineas, false); if (r) { reparto = r; tt = 60; break fuera2; } }
     const renglones: { w: string; c: boolean }[][][] = [];
     { let a = 0; for (const c of reparto?.cortes ?? [palabras.length]) { renglones.push(palabras.slice(a, c)); a = c; } }
     // En los textos: espacio que no parte entre las dos últimas palabras (nunca una palabra sola en la última línea)
@@ -301,6 +304,13 @@ export async function GET(req: Request) {
               <div style={{ display: "flex", marginLeft: 24, fontSize: 38, fontWeight: 600, lineHeight: 1.25, color: tinta, flex: 1 }}>{sv(p)}</div>
             </div>
           ))}
+        </div>
+      );
+    } else if (d.plantilla === "reel" && portadaReel) {
+      // aviso del reel nuevo: su portada en una tarjeta, como un móvil
+      contenido = (
+        <div style={{ display: "flex", marginTop: 50, width: 440, height: 660, borderRadius: 40, overflow: "hidden", border: "8px solid #fff", boxShadow: "0 30px 80px rgba(60,20,120,0.22)" }}>
+          <img src={portadaReel} width={640} height={1138} style={{ width: 440, height: 782, marginTop: -61 }} />
         </div>
       );
     }
