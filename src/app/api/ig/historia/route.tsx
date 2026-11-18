@@ -207,9 +207,11 @@ export async function GET(req: Request) {
   const v2 = d.v === 2 || d.plantilla === "actualidad";
   const Titulo = ({ t, size, color, acento }: { t: string; size: number; color: string; acento: string }) => {
     const i = d.acento ? t.indexOf(d.acento) : -1;
+    const trozos = i < 0 ? [{ t, c: false }] : [{ t: t.slice(0, i), c: false }, { t: d.acento!, c: true }, { t: t.slice(i + d.acento!.length), c: false }];
+    const palabras = trozos.flatMap((p) => p.t.split(/s+/).filter(Boolean).map((w) => ({ w, c: p.c })));
     return (
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", textAlign: "center", fontSize: size, fontWeight: 800, lineHeight: 1.08, letterSpacing: -1.5, color }}>
-        {i < 0 ? t : <>{t.slice(0, i)}<span style={{ color: acento, margin: "0 0.22em" }}>{d.acento}</span>{t.slice(i + d.acento!.length)}</>}
+        {palabras.map((p, k) => <span key={k} style={{ color: p.c ? acento : color, margin: "0 0.13em" }}>{p.w}</span>)}
       </div>
     );
   };
@@ -233,10 +235,10 @@ export async function GET(req: Request) {
             {(d.items ?? []).slice(0, 3).map((it, i) => {
               const col = COL[it.cat.toLowerCase()] ?? C.rosa;
               return (
-                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: i ? 30 : 0, padding: "30px 40px", borderRadius: 32, background: oscuro ? "rgba(255,255,255,0.06)" : "#fff", border: `2px solid ${oscuro ? "rgba(255,255,255,0.10)" : C.borde}` }}>
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: i ? 24 : 0, padding: "26px 40px", borderRadius: 32, background: oscuro ? "rgba(255,255,255,0.06)" : "#fff", border: `2px solid ${oscuro ? "rgba(255,255,255,0.10)" : C.borde}` }}>
                   <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 4, color: col }}>{it.cat.toUpperCase()}</div>
-                  <div style={{ display: "flex", marginTop: 12, fontSize: 42, fontWeight: 700, lineHeight: 1.2, color: tinta, textAlign: "center", justifyContent: "center" }}>{it.titular}</div>
-                  {it.significa ? <div style={{ display: "flex", marginTop: 12, fontSize: 31, fontWeight: 500, lineHeight: 1.3, color: suave, textAlign: "center", justifyContent: "center" }}>→ {it.significa}</div> : null}
+                  <div style={{ display: "flex", marginTop: 10, fontSize: 38, fontWeight: 700, lineHeight: 1.2, color: tinta, textAlign: "center", justifyContent: "center" }}>{it.titular}</div>
+                  {it.significa ? <div style={{ display: "flex", marginTop: 10, fontSize: 29, fontWeight: 500, lineHeight: 1.3, color: suave, textAlign: "center", justifyContent: "center" }}>→ {it.significa}</div> : null}
                 </div>
               );
             })}
@@ -251,7 +253,7 @@ export async function GET(req: Request) {
           <div style={{ display: "flex", marginTop: 44 }}><Titulo t={d.titulo} size={t2} color={tinta} acento={acento} /></div>
           {d.fuente ? <div style={{ display: "flex", marginTop: 22, fontSize: 28, fontWeight: 500, color: suave }}>{d.fuente}</div> : null}
           {d.puntos?.length ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 70 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", marginTop: 70 }}>
               {d.puntos.slice(0, 2).map((p, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", marginTop: i ? 26 : 0, fontSize: 44, fontWeight: 600, color: tinta }}>
                   <div style={{ display: "flex", width: 54, height: 54, borderRadius: 27, background: DEGRADADO, color: "#fff", fontSize: 28, fontWeight: 800, alignItems: "center", justifyContent: "center", marginRight: 22 }}>{i + 1}</div>
@@ -274,6 +276,7 @@ export async function GET(req: Request) {
           : <div style={{ position: "absolute", top: -300, left: 240, width: 600, height: 600, borderRadius: 300, display: "flex", background: "rgba(224,92,255,0.12)" }} />}
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", flexDirection: "column", alignItems: "center", padding: "170px 90px 200px" }}>
           <Marca icono={icono} claro={!oscuro} />
+          <div style={{ display: "flex", height: 40 }} />
           <div style={{ display: "flex", flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>{medio}</div>
           {mascota ? <img src={mascota} width={tamM} height={tamM} style={{ width: tamM, height: tamM }} /> : null}
         </div>
