@@ -52,7 +52,7 @@ Versión 1 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuent
 
 ## 7. Actividad diaria (lo hace el agente, L-V)
 - **Primero 8 empresas de la Región** (industria, talleres, metal, instaladores, asociaciones) y **después 4 tiendas del Radar**.
-- **Comentar a todas las que sigamos** cuando tengan publicación reciente: devuelven el seguimiento el 8 % frente al 5 % de solo seguir (semana del 11-11).
+- **Comentar a las que sigamos** cuando tengan una publicación reciente que dé pie a un comentario de verdad (provisional: con tan pocos datos aún no se ve si comentar trae más seguidores que solo seguir; lo dirá el resumen del domingo cuando haya 10 o más casos de cada).
 - «Me gusta» selectivos (10-20 al día, máx. 3 por cuenta). Todo queda en el Radar.
 - Al terminar: quién nos sigue y quién nos da me gusta → Radar.
 
