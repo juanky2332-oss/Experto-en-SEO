@@ -106,7 +106,10 @@ if (cmd === 'cargar') {
   // semana del 23-11 18/8 y desde el 30-11 25/10. «me gusta»: el rango de VOL.megusta. Siempre despacio y en dos tandas (13:00 y 17:00).
   const VOL = hoy() >= '2026-11-30' ? { seguir: 25, comentar: 10, megusta: '30 y 40' } : hoy() >= '2026-11-23' ? { seguir: 18, comentar: 8, megusta: '20 y 30' } : { seguir: 12, comentar: 6, megusta: '10 y 20' };
   const faltan = { seguir: Math.max(0, VOL.seguir - n.s), comentar: Math.max(0, VOL.comentar - n.c) };
-  const buscar = plan && hora < 17 && (faltan.seguir || faltan.comentar);
+  // 19-11-2026: con --tarde (el PC se encendió después de las 18:45 y hoy no se ha hecho NADA) se busca igual hasta las 22:00,
+  // para que un día con el ordenador apagado no se quede sin hacer
+  const tardeSinNada = args.includes('--tarde') && n.s + n.c === 0 && hora < 22;
+  const buscar = plan && (hora < 17 || tardeSinNada) && (faltan.seguir || faltan.comentar);
   const r = { fecha: hoy(), megusta: VOL.megusta, ...(l.length ? { tareas: l } : {}), ...(buscar ? { buscar_lista: faltan } : {}) };
   console.log(JSON.stringify(l.length || buscar ? r : { nada_que_hacer: true }, null, 1));
 } else if (cmd === 'anadir') {

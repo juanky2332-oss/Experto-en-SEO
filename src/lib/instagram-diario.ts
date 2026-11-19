@@ -178,7 +178,13 @@ export async function tarde() {
   // el reel ya no se intenta aquí: sale a las 21:00 (reelNoche)
   const l = await sql<Movil[]>`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho
     and (reclamada_at is null or reclamada_at < now() - interval '60 minutes') order by orden`;
-  if (!l.length) return { ok: true, enviados: 0 };
+  if (!l.length) {
+    // 19-11-2026: día con seguir/comentar en el plan y NADA hecho ni lista → el ordenador ha estado apagado: aviso
+    const [plan] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_plan where fecha = ${hoy()} and estado <> 'rechazado' and tareas @> '[{"tipo":"seguir"}]'`;
+    const [hecho] = await sql<{ n: number }[]>`select count(*)::int n from seo.ig_movil where fecha = ${hoy()}`;
+    if (plan.n && !hecho.n) await telegram(`⚠️ <b>Instagram</b>: hoy todavía no se ha hecho la ruta de seguir, comentar y «me gusta» (el ordenador ha estado apagado a las 13:00 y a las 17:00).\nSi lo enciendes antes de las 22:00, la hace él solo. Si no, dímelo en Claude Code y la hago yo.`);
+    return { ok: true, enviados: 0, aviso: Boolean(plan.n && !hecho.n) };
+  }
   const seguir = l.filter((x) => x.tipo === "seguir");
   const comentar = l.filter((x) => x.tipo === "comentar");
   const partes = [`📱 <b>Tu lista de Instagram de hoy</b> (el ordenador estaba apagado; son 5 minutos desde el móvil)`];

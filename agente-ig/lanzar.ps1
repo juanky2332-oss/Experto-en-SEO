@@ -13,8 +13,16 @@ $candado = New-Object System.Threading.Mutex($false, 'Global\TransformaConIA-Ins
 if (-not $candado.WaitOne(0)) { "$(Get-Date -Format s) ya hay otro en marcha" | Out-File -Append $log; exit 0 }
 try {
   $corte = (Get-Date).Date.AddHours(18).AddMinutes(45)
-  if ((Get-Date) -ge $corte) { "$(Get-Date -Format s) fuera de hora" | Out-File -Append $log; exit 0 }
-  $hoy = node n8n/ig-plan.mjs hoy | Out-String
+  if ((Get-Date) -ge $corte) {
+    # 19-11-2026: si el PC se enciende tarde y hoy no se ha hecho nada, se hace igual (hasta las 22:30): la lista del móvil
+    # de las 19:00 sale vacía cuando el ordenador ha estado apagado, así que no hay nada con lo que pisarse
+    $hoy = node n8n/ig-plan.mjs hoy --tarde | Out-String
+    if ((Get-Date).Hour -ge 22 -or $hoy -notmatch 'buscar_lista') { "$(Get-Date -Format s) fuera de hora" | Out-File -Append $log; exit 0 }
+    $corte = (Get-Date).Date.AddHours(22).AddMinutes(30)
+    "$(Get-Date -Format s) encendido tarde y sin hacer: lo hago ahora" | Out-File -Append $log
+  } else {
+    $hoy = node n8n/ig-plan.mjs hoy | Out-String
+  }
   if ($hoy -match 'nada_que_hacer') { "$(Get-Date -Format s) nada pendiente" | Out-File -Append $log; exit 0 }
 
   $prompt = "Eres el agente diario de Instagram de Transforma con IA. Sigue al pie de la letra agente-ig/INSTRUCCIONES.md (léelo primero). Tareas pendientes de hoy:`n$hoy"
@@ -26,7 +34,7 @@ try {
   $segundos = [int]($corte - (Get-Date)).TotalSeconds
   if (-not $p.WaitForExit($segundos * 1000)) {
     Stop-Process -Id $p.Id -Force
-    "$(Get-Date -Format s) cortado a las 18:45" | Out-File -Append $log
+    "$(Get-Date -Format s) cortado a las $($corte.ToString('HH:mm'))" | Out-File -Append $log
     node n8n/ig-plan.mjs hecho "Me he quedado sin tiempo en el ordenador; lo que falte te llega a las 19:00 en la lista del móvil." | Out-Null
   }
   "$(Get-Date -Format s) terminado (código $($p.ExitCode))" | Out-File -Append $log
