@@ -5,6 +5,7 @@ import { subir } from "@/lib/redes";
 import { json, MODELO_RAPIDO } from "@/lib/ai";
 import { getRitmo, toca, tocaReel, proximos, bonita, DIA_SEMANA } from "@/lib/ritmo";
 import { noticiaDelDia, recolocarAtrasadas, coberturaHistorias } from "@/lib/ig-noticia";
+import { conversacionesDelDia } from "@/lib/ig-conversaciones";
 
 // Instagram en automático (decidido el 26-10-2026: «hazlo tú y dame el informe después»; el 27-10: cada 3 días y
 // a Telegram SOLO si ha pasado algo, ver src/lib/ritmo.ts).
@@ -175,6 +176,8 @@ type Movil = { id: number; tipo: string; cuenta: string; url: string; texto: str
 
 export async function tarde() {
   if ((await getRitmo()).pausas.instagram) return { ok: true, pausa: true };
+  // 19-11-2026: «Para escribir hoy» → hasta 3 empresas interesadas con su mensaje sugerido (los manda él desde el móvil)
+  if (DIA_SEMANA(hoy()) <= 5) await conversacionesDelDia().catch((e) => console.error("conversaciones", e));
   // el reel ya no se intenta aquí: sale a las 21:00 (reelNoche)
   const l = await sql<Movil[]>`select id, tipo, cuenta, url, texto from seo.ig_movil where fecha = ${hoy()} and not hecho
     and (reclamada_at is null or reclamada_at < now() - interval '60 minutes') order by orden`;
@@ -187,7 +190,10 @@ export async function tarde() {
   }
   const seguir = l.filter((x) => x.tipo === "seguir");
   const comentar = l.filter((x) => x.tipo === "comentar");
-  const partes = [`📱 <b>Tu lista de Instagram de hoy</b> (el ordenador estaba apagado; son 5 minutos desde el móvil)`];
+  // 19-11-2026: los comentarios los publica él desde el móvil (regla anti-bot); seguir solo sale aquí si el PC no pudo
+  const partes = [seguir.length
+    ? `📱 <b>Tu lista de Instagram de hoy</b> (lo que el ordenador no ha podido hacer; son 5 minutos desde el móvil)`
+    : `💬 <b>Tus comentarios de hoy</b> (preparados leyendo cada publicación; publícalos tú, uno cada poco, son 5 minutos)`];
   if (seguir.length) partes.push(`➕ <b>Seguir</b> (toca y pulsa «Seguir»):\n${seguir.map((x) => `• <a href="${esc(x.url)}">@${esc(x.cuenta)}</a>`).join("\n")}`);
   if (comentar.length) partes.push(`💬 <b>Comentar</b> (toca el texto para copiarlo, abre la publicación y pégalo):\n\n${comentar.map((x, i) => `${i + 1}. <a href="${esc(x.url)}">@${esc(x.cuenta)}</a>\n<code>${esc(x.texto)}</code>`).join("\n\n")}`);
   const botones = [{ text: "✅ Hecho", data: `app:mvok:${hoy()}` }, { text: "Hoy no", data: `app:mvno:${hoy()}` }];
