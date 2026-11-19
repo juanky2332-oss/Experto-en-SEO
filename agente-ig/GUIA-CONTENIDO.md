@@ -89,11 +89,11 @@ Versión 2.0 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 - Nunca promocionar contenido de Flownexion.
 
 ## 10. Lo que nunca
-Precios nuestros · comisiones · cupones · hashtags sin sentido · reels de vídeos ajenos · publicar algo de Flownexion sin su OK · inventar datos o casos · su cara · mensajes privados enviados por un programa.
+Precios nuestros · comisiones · cupones · hashtags sin sentido · reels de vídeos ajenos · publicar algo de Flownexion sin su OK · inventar datos o casos · su cara · mensajes privados enviados por un programa · **nada presencial** (ni visitas, ni «vamos a tu empresa»: todo por videollamada).
 
 ## 11. Del interés a la cita (el embudo, desde 19-11-2026)
 1. **Ven el reel** → cierre con PALABRA o «diagnóstico gratis 30 min».
-2. **Perfil** → bio directa → enlace a **`/diagnostico/`**: elige día y hora en dos toques (videollamada, o en su empresa si es de la Región). Antes iba a un formulario donde había que escribir su caso, y nadie lo hacía. El resto de la web también lleva ahí (menú, botones, blog, botón fijo del móvil).
+2. **Perfil** → bio directa → enlace a **`/diagnostico/`**: elige día y hora en dos toques, **solo por videollamada** (desde el 19-11-2026, él: «lo presencial no interesa para empezar; no digas nada presencial»; quitado de toda la web, la reserva, las páginas de ciudades y el blog). Antes iba a un formulario donde había que escribir su caso, y nadie lo hacía. El resto de la web también lleva ahí (menú, botones, blog, botón fijo del móvil).
 3. **Conversación** («Para escribir hoy»): cada día laborable a las 19:00 le llegan por Telegram **hasta 3 empresas que ya se han interesado** (nos siguen de vuelta o nos han dado varios «me gusta») con un mensaje sugerido que **abre conversación sin vender**. Lo manda **él** desde el móvil y pulsa «✅ Escrito» o «Saltar»; queda apuntado y no se repite (`src/lib/ig-conversaciones.ts`).
 4. **Si alguien escribe la PALABRA o contesta:** responder ese mismo día, preguntar qué tarea les quita más tiempo y proponer los 30 minutos con el enlace a `/diagnostico/`.
 5. **Se mide cada semana** (resumen del domingo): conversaciones abiertas, respuestas, citas y contactos con procedencia Instagram. Esto es lo que dice si vamos bien, no los «me gusta».

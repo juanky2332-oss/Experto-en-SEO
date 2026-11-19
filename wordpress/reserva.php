@@ -19,10 +19,9 @@ if ( ! function_exists( 'tcr_marcado' ) ) {
 <fieldset class="tcr-fs tcr-slotsfs"><legend class="tcr-leg"><span class="tcr-n">1</span> Elige día y hora <small>(hora de Madrid)</small></legend>
 <div class="tcr-slots" aria-live="polite" aria-busy="true"><p class="tcr-info">Buscando huecos libres…</p></div>
 <button type="button" class="tcr-more" hidden>Ver más días</button></fieldset>
-<fieldset class="tcr-fs"><legend class="tcr-leg"><span class="tcr-n">2</span> Cómo prefieres hacerlo</legend>
+<fieldset class="tcr-fs"><legend class="tcr-leg"><span class="tcr-n">2</span> Cómo será</legend>
 <div class="tcr-mod">
-<label class="tcr-opt"><input type="radio" name="modalidad" value="videollamada" checked><span><b>Videollamada</b><small>Desde cualquier lugar de España</small></span></label>
-<label class="tcr-opt"><input type="radio" name="modalidad" value="en tu empresa"><span><b>En tu empresa</b><small>Solo Región de Murcia</small></span></label>
+<label class="tcr-opt"><input type="radio" name="modalidad" value="videollamada" checked><span><b>Por videollamada</b><small>Desde tu oficina o tu móvil, estés donde estés. Te llega el enlace por correo.</small></span></label>
 </div>
 <div class="tcr-field tcr-loc" hidden><label for="tcr-localidad">Localidad de tu empresa (Región de Murcia)</label><input id="tcr-localidad" name="localidad" autocomplete="address-level2" maxlength="120"></div>
 </fieldset>

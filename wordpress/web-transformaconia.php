@@ -370,7 +370,7 @@ add_action( 'get_footer', function () {
     <p>Consultoría de inteligencia artificial y automatización de procesos para la industria. Apps IndunexIA (gestión, presupuestos y documentos), asistentes técnicos y mejoras sobre SAP o tu ERP.</p>
     <a class="tc-footer__mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a>
     <a class="tc-footer__ig" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener me" aria-label="Instagram de Transforma con IA (se abre en otra pestaña)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>@transformaconia.oficial</a>
-    <p>Murcia · En persona en la Región de Murcia y en remoto en toda España</p>
+    <p>Murcia · Por videollamada en toda España</p>
    </div>
    <div><h3>Industria</h3><ul>
     <li><a href="<?php echo $u( '/industria/' ); ?>">IA para la industria</a></li>

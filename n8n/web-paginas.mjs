@@ -221,7 +221,7 @@ const POR_QUE = [
   ['tuerca', 'Revisión humana en lo importante', 'La IA lee, clasifica y propone; las acciones importantes siempre piden confirmación a una persona de tu equipo.'],
   ['flujo', 'Sin cambiar tu ERP', 'Si tu ERP tiene API, nos conectamos de forma directa; si no la tiene, valoramos cómo adaptarlo. Cualquier mejora que se os ocurra se puede implementar en SAP o en el programa que uséis.'],
   ['objetivo', 'Lo pruebas antes de pagarlo todo', 'Piloto con tus datos reales en 1 a 3 semanas. Si no te ahorra tiempo, lo sabrás antes de invertir más.'],
-  ['mapa', 'Presencial y en remoto', 'En persona en la Región de Murcia y en remoto en toda España. Hablas siempre con quien lo construye.'],
+  ['mapa', 'Por videollamada', 'Diagnóstico y seguimiento por videollamada, en la Región de Murcia y en toda España. Hablas siempre con quien lo construye.'],
   ['euro', 'Presupuesto claro desde el principio', 'Diagnóstico gratis y presupuesto cerrado por escrito antes de empezar, sin sorpresas. El ERP, sin permanencia.'],
 ];
 // Calculadora orientativa [tc_calculadora] (shortcode del snippet #13; la tarifa vive allí)
@@ -249,7 +249,7 @@ const formContacto = (portada = false) => `<form class="tc-form" data-tc-form="c
 const FORM_CONTACTO = formContacto();
 
 const contactoSplit = (h2 = 'Cuéntanos qué proceso queréis automatizar') => `<section class="tc-sec" id="contacto"><div class="tc-wrap tc-split">
- <div class="tc-prose tc-reveal" style="gap:18px">${eyebrow('Diagnóstico gratis')}<h2>${h2}</h2><p>Así trabajamos: nos cuentas cómo lo hacéis hoy y te enviamos el diagnóstico por escrito, con qué automatizar primero, cómo y cuánto costaría. Lo lees con calma, lo compartes con quien quieras y decides sin prisas. Lo recibes en tu correo en 48 horas laborables.</p>${list(['Sin compromiso y sin permanencias', 'Presupuesto cerrado y gratis antes de empezar', 'Piloto con tus datos antes de pagar el total', 'Puesta en marcha en persona en Murcia, en remoto en toda España'])}<p>¿Prefieres el correo? <a class="tc-link" href="mailto:info@transformaconia.com">info@transformaconia.com</a></p></div>
+ <div class="tc-prose tc-reveal" style="gap:18px">${eyebrow('Diagnóstico gratis')}<h2>${h2}</h2><p>Así trabajamos: nos cuentas cómo lo hacéis hoy y te enviamos el diagnóstico por escrito, con qué automatizar primero, cómo y cuánto costaría. Lo lees con calma, lo compartes con quien quieras y decides sin prisas. Lo recibes en tu correo en 48 horas laborables.</p>${list(['Sin compromiso y sin permanencias', 'Presupuesto cerrado y gratis antes de empezar', 'Piloto con tus datos antes de pagar el total', 'Puesta en marcha en remoto, por videollamada'])}<p>¿Prefieres el correo? <a class="tc-link" href="mailto:info@transformaconia.com">info@transformaconia.com</a></p></div>
  <div class="tc-box tc-reveal" style="padding:clamp(22px,3vw,36px)">${FORM_CONTACTO}</div>
 </div></section>`;
 
@@ -376,7 +376,7 @@ const SECT_HOME = [
   ['rayo', 'IA para empresas instaladoras', 'Electricidad, climatización y frío: presupuestos y citas sin pasar la tarde al teléfono.', ['Presupuestos a partir de mediciones y listas de material', 'Facturas y albaranes de proveedor que se leen solos', 'Partes de trabajo dictados desde la obra'], '/ia-empresas-instaladoras/', 'Ver soluciones para empresas instaladoras'],
   ['fabrica', 'IA para fabricación industrial', 'Datos de producción sin papel y sin teclear dos veces.', ['Partes de producción y trazabilidad desde el móvil', 'Informes de producción y calidad que llegan solos', 'Pedidos de clientes y proveedores conectados con el ERP'], '/ia-fabricacion-industrial/', 'Ver soluciones para fabricación industrial'],
   ['caja', 'IA para distribución técnica', 'La referencia y la equivalencia correctas en segundos, también fuera de horario.', ['Asistente con tu catálogo, tus fichas y tu stock', 'Equivalencias entre marcas y referencias incompletas', 'Pedidos que llegan por correo directos al ERP'], '/distribucion-industrial/', 'Ver soluciones para distribución técnica'],
-  ['mapa', 'IA para empresas de la Región de Murcia', 'Consultoría de IA cercana: puesta en marcha en tu empresa si estás en la Región de Murcia y en remoto en el resto de España.', ['Diagnóstico gratuito por escrito', 'Piloto con tus datos antes de comprometer el presupuesto', 'Soporte en persona y en remoto'], '/consultor-ia-murcia/', 'Ver soluciones para empresas de Murcia'],
+  ['mapa', 'IA para empresas de la Región de Murcia', 'Consultoría de IA cercana, de Murcia: diagnóstico y puesta en marcha por videollamada.', ['Diagnóstico gratuito por escrito', 'Piloto con tus datos antes de comprometer el presupuesto', 'Soporte cercano por videollamada'], '/consultor-ia-murcia/', 'Ver soluciones para empresas de Murcia'],
 ];
 const sectHome = `<div class="tc-sects">${SECT_HOME.map(([i, t, f, it, u, l], n) => `<article class="tc-sectc tc-sectc--${n + 1} tc-reveal">${icon(i)}<h3>${t}</h3><p>${f}</p><ul class="tc-checks">${it.map((x) => `<li>${x}</li>`).join('')}</ul><a class="tc-link" href="${u}">${l}</a></article>`).join('')}</div><p class="tc-sects__otros tc-reveal">¿Tu empresa es de otro sector? <a class="tc-link" href="/otros-sectores/">Mira los otros sectores</a></p>`;
 const DOC_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
@@ -408,7 +408,7 @@ const FOTO_SOL = `<section class="tc-sec tc-sec--fotos" id="soluciones"><div cla
 
 // Señal local en la portada (2026-11-11): zonas con página propia, enlazadas desde la portada
 const ZONAS = [
-  ['Murcia y toda la región', '/consultor-ia-murcia/', 'Nuestra base · visita en tu empresa'],
+  ['Murcia y toda la región', '/consultor-ia-murcia/', 'Nuestra base · consultoría de IA'],
   ['Cartagena', '/automatizacion-industria-cartagena/', 'Talleres, contratas y calderería'],
   ['Molina de Segura', '/automatizacion-industria-molina-de-segura/', 'Alimentación, envase y distribución'],
   ['Lorca', '/automatizacion-industria-lorca/', 'Cárnico, agroindustria y maquinaria'],
@@ -416,7 +416,7 @@ const ZONAS = [
   ['Elche', '/automatizacion-industria-elche/', 'Calzado e industria auxiliar'],
   ['Albacete', '/automatizacion-industria-albacete/', 'Cuchillería y maquinaria agrícola'],
 ];
-const ZONAS_HOME = `<section class="tc-sec tc-sec--tight" id="donde-trabajamos"><div class="tc-wrap">${head('Dónde trabajamos', 'IA para talleres e industria de la Región de Murcia', 'En la Región de Murcia vamos a tu taller o nave; con el resto de España trabajamos en remoto.', '<a class="tc-link" href="/consultor-ia-murcia/">Automatización industrial en Murcia</a>')}
+const ZONAS_HOME = `<section class="tc-sec tc-sec--tight" id="donde-trabajamos"><div class="tc-wrap">${head('Dónde trabajamos', 'IA para talleres e industria de la Región de Murcia', 'Somos de Murcia y trabajamos por videollamada con talleres e industria de toda la región y del resto de España.', '<a class="tc-link" href="/consultor-ia-murcia/">Automatización industrial en Murcia</a>')}
 <div class="tc-sectores tc-reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${ZONAS.map(([t, u, d]) => `<a class="tc-sector" href="${u}">${icon('mapa')}<span><b>${t}</b><small>${d}</small></span></a>`).join('')}</div></div></section>`;
 
 P['transforma-con-ia'] = {
@@ -431,7 +431,7 @@ P['transforma-con-ia'] = {
 <header class="tc-hero tc-hero--home tc-hero--c">${DECO('a')}<div class="tc-wrap"><div class="tc-hero__copy">
   <span class="tc-live"><i></i>Expertos en IA de Murcia · más de 2&nbsp;años · Industria en toda España</span>
   <h1 class="tc-h1-home"><span>IA y automatización para</span> <span class="tc-grad tc-shine">empresas industriales</span></h1>
-  <p class="tc-lead">Quitamos el trabajo repetitivo de tu taller o empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP.<span class="tc-lead__mas"> Presencial en la Región de Murcia y en remoto en toda España.</span></p>
+  <p class="tc-lead">Quitamos el trabajo repetitivo de tu taller o empresa: documentos que se leen solos, presupuestos en minutos y datos conectados con tu ERP.<span class="tc-lead__mas"> Desde Murcia, por videollamada, para toda España.</span></p>
   <div class="tc-btns"><a class="tc-btn tc-btn--pill" href="/contacto/">${DOC_ICO}Pide tu diagnóstico gratis ${ARROW}</a></div>
   <ul class="tc-proof"><li><span><b>Diagnóstico por escrito</b> en 48&nbsp;h · <b>Piloto con tus datos</b> · <a class="tc-link" href="#calculadora">Haz la cuenta →</a></span></li></ul>
 </div></div></header>
@@ -482,7 +482,7 @@ P['industria'] = {
     ['¿Por dónde empieza una empresa industrial con la IA?', 'Por la tarea que más horas repite cada semana: presupuestos, pedidos, consultas de referencias o documentación. Se automatiza una, se mide y después se amplía.'],
     ['¿Funciona con SAP u otro ERP?', 'Sí. Si tu ERP tiene API, se conecta de forma directa. Si no la tiene, valoramos cómo adaptarlo. SAP es un buen ejemplo: cualquier idea para mejorarlo se puede implementar, y lo mismo en el programa que uséis.'],
     ['¿Qué pasa con la confidencialidad de mis datos?', 'Accesos mínimos, servidores en la Unión Europea siempre que es posible y nada se usa para entrenar modelos de terceros. Lo que montamos es tuyo.'],
-    ['¿Hacéis visitas a la nave o al taller?', 'Sí, en la Región de Murcia. Ver cómo trabajáis en persona es la mejor forma de detectar qué automatizar.'],
+    ['¿Cómo es el diagnóstico?', 'Por videollamada, 30 minutos: nos enseñas cómo trabajáis hoy y vemos juntos qué compensa automatizar.'],
   ])}</div></section>
 ${CALC_ENLACE}
 ${band('¿Tu sector no aparece?', 'Da igual: si hay tareas repetitivas con datos o documentos, hay algo que automatizar. Cuéntanos cómo trabajáis.')}`),
@@ -651,7 +651,7 @@ P['enlaces'] = {
   html: page(`<section class="tc-sec" style="padding-top:110px"><div class="tc-wrap" style="max-width:560px">
 <div class="tc-head tc-reveal" style="text-align:center;display:block"><div>${eyebrow('Transforma con IA · Murcia')}<h1 style="font-size:clamp(28px,6vw,40px)">Menos papeles en tu taller o industria</h1><p>Te decimos gratis qué se puede automatizar en tu empresa. Empieza por aquí:</p></div></div>
 <div style="display:grid;gap:12px;margin-top:22px">
-${[['/diagnostico/', '📅 Reserva tu diagnóstico gratis', '30 minutos por videollamada o en tu empresa. Elige día y hora en dos toques'],
+${[['/diagnostico/', '📅 Reserva tu diagnóstico gratis', '30 minutos por videollamada. Elige día y hora en dos toques'],
    ['/contacto/', '📝 Prefiero contarlo por escrito', 'Nos cuentas cómo trabajas y en 48 h te decimos qué automatizar primero'],
    ['/erp-industria/', '⚙️ IndunexIA Gestión', 'El programa de gestión con IA para talleres e industria'],
    ['/presupuestos-desde-plano/', '📐 IndunexIA Presupuestos', 'Del plano o la foto al presupuesto con tus tarifas'],
@@ -907,7 +907,7 @@ ${band('¿Tienes un problema parecido?', 'Cuéntanoslo y te decimos cómo lo res
 P['quienes-somos'] = {
   id: 7105, title: 'Quiénes somos',
   seo: ['Quiénes somos | Consultoría de IA industrial', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia automatizando procesos en empresas industriales.', 'quiénes somos transforma con ia'],
-  html: page(`${pagehead('<span>Quiénes somos</span>', 'Quiénes somos', 'Transforma con IA: consultoría de IA para la industria', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia. Venimos de la industria y construimos nosotros mismos lo que implantamos.', btn('/diagnostico/', 'Reserva tu diagnóstico gratis'), facts('En pocas palabras', [['Quiénes', 'Expertos en IA: consultores y desarrolladores'], ['Experiencia', 'Más de 2 años automatizando procesos'], ['Especialidad', 'Industria'], ['Dónde', 'Región de Murcia en persona y toda España en remoto']]))}
+  html: page(`${pagehead('<span>Quiénes somos</span>', 'Quiénes somos', 'Transforma con IA: consultoría de IA para la industria', 'Somos un grupo de expertos en IA de Murcia con más de 2 años de experiencia. Venimos de la industria y construimos nosotros mismos lo que implantamos.', btn('/diagnostico/', 'Reserva tu diagnóstico gratis'), facts('En pocas palabras', [['Quiénes', 'Expertos en IA: consultores y desarrolladores'], ['Experiencia', 'Más de 2 años automatizando procesos'], ['Especialidad', 'Industria'], ['Dónde', 'Murcia · por videollamada en toda España']]))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-grid tc-grid--3">${[['equipo', 'Hablas con quien lo construye', 'Sin intermediarios entre el diagnóstico y el código.'], ['objetivo', 'Pruebas con tus datos', 'Un piloto real antes de pagar el total.'], ['reloj', 'Sin permanencia', 'Si deja de servirte, lo dejas. Con 30 días de aviso.']].map(([i, t, p]) => `<article class="tc-box tc-reveal">${icon(i)}<h3>${t}</h3><p>${p}</p></article>`).join('')}</div></div></section>
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow('Quiénes construyen')}<h2>Un grupo de expertos en IA de Murcia</h2><p>Transforma con IA es una consultoría de inteligencia artificial y automatización de procesos para empresas industriales. Analizamos cómo trabaja la empresa, detectamos las tareas que más horas repiten y desarrollamos la solución: no hay intermediarios entre quien te escucha en el diagnóstico y quien escribe el código.</p><p>Venimos de la industria: conocemos el día a día de un taller, de una distribuidora o de un servicio técnico, con sus referencias, albaranes, plazos y urgencias, y de ahí sale el criterio para decidir qué compensa automatizar y qué no.</p><p>Enseñamos lo que hacemos en vídeos cortos, con datos de ejemplo, en nuestro <a class="tc-link" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener">Instagram @transformaconia.oficial</a>.</p></div>
 <div class="tc-box tc-reveal"><h3>Qué construimos</h3>${list(['Integraciones con el ERP (SAP u otros) y con el correo: pedidos, albaranes y facturas que entran sin teclear', 'Lectura automática de documentos: PDF, fotos y correos convertidos en datos validados', 'Agentes que consultan catálogos, fichas técnicas y bases de datos y responden con la referencia correcta', 'Automatizaciones con revisión humana en lo dudoso y confirmación en lo importante', 'Aplicaciones web a medida, usables desde el móvil, con usuarios y permisos'])}</div></div></section>
@@ -931,13 +931,13 @@ ${band('¿Tienes una tarea que te gustaría quitarte de encima?', 'Cuéntanos tu
 // mucho desde el móvil. Aquí se elige día y hora en dos toques ([tc_reserva], que ya guarda de dónde viene cada uno).
 P['diagnostico'] = {
   title: 'Diagnóstico gratis',
-  seo: ['Diagnóstico gratis de automatización · 30 min | Transforma con IA', 'Reserva 30 minutos por videollamada o en tu empresa (Región de Murcia) y te decimos qué tareas de tu taller o industria se pueden automatizar. Gratis y sin compromiso.', 'diagnóstico automatización gratis'],
+  seo: ['Diagnóstico gratis de automatización · 30 min | Transforma con IA', 'Reserva 30 minutos por videollamada y te decimos qué tareas de tu taller o industria se pueden automatizar. Gratis y sin compromiso.', 'diagnóstico automatización gratis'],
   html: page(`<header class="tc-hero tc-pagehead tc-pagehead--corta">${DECO('b')}<div class="tc-wrap"><div class="tc-hero__copy">
 <nav class="tc-crumbs" aria-label="Migas"><a href="/">Inicio</a><span aria-hidden="true">/</span><span>Diagnóstico gratis</span></nav>
 ${eyebrow('30 minutos · gratis · sin compromiso')}<h1>¿Cuántas horas se os van en papeles?</h1><p class="tc-lead">En 30 minutos vemos qué tareas de tu empresa se pueden automatizar: facturas, albaranes, presupuestos, cobros o lo que más os quite. Elige día y hora y listo.</p></div></div></header>
 <section class="tc-sec tc-sec--tight" id="reserva"><div class="tc-wrap" style="max-width:760px">
 <div class="tc-box tc-reveal" style="padding:clamp(18px,3vw,32px)">[tc_reserva titulo="0"]</div>
-<div class="tc-reveal" style="margin-top:22px">${list(['<b>Por videollamada</b> desde cualquier sitio, o <b>en tu empresa</b> si estás en la Región de Murcia', '<b>Sales con una idea clara</b> de qué automatizar primero y cuánto tiempo os ahorraría', '<b>Sin compromiso:</b> si te encaja, te enviamos después un presupuesto cerrado por escrito'])}</div>
+<div class="tc-reveal" style="margin-top:22px">${list(['<b>Por videollamada</b>, desde tu oficina o tu móvil, estés donde estés', '<b>Sales con una idea clara</b> de qué automatizar primero y cuánto tiempo os ahorraría', '<b>Sin compromiso:</b> si te encaja, te enviamos después un presupuesto cerrado por escrito'])}</div>
 <p class="tc-nota tc-reveal" style="margin-top:18px">¿Prefieres contárnoslo por escrito? <a href="/contacto/">Escríbenos aquí</a> o por mensaje directo en Instagram (<a href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener">@transformaconia.oficial</a>).</p>
 </div></section>`),
 };
@@ -955,17 +955,17 @@ ${eyebrow('Diagnóstico gratis')}<h1>Pide tu diagnóstico gratis</h1><p class="t
   <div style="display:grid;gap:12px"><h2 style="font-size:22px">Así trabajamos</h2>${list(['<b>Nos cuentas</b> las 2 o 3 tareas que más horas os quitan y qué programas usáis', '<b>Recibes por escrito</b>, en 48 horas laborables, qué automatizar primero, cómo y el presupuesto cerrado', '<b>Lo lees con calma</b>, lo compartes con tu socio o tu gestoría y decides sin prisas', 'Si quieres seguir, <b>montamos un piloto con tus datos</b> antes de pagar el proyecto completo'])}</div>
   <div style="display:grid;gap:10px">${eyebrow('Correo directo')}<a class="tc-mail" href="mailto:info@transformaconia.com">info@transformaconia.com</a><p>Si lo prefieres, escríbenos directamente. Llega al mismo sitio.</p></div>
   <div style="display:grid;gap:10px">${eyebrow('Instagram')}<a class="tc-mail" href="https://www.instagram.com/transformaconia.oficial/" target="_blank" rel="noopener">@transformaconia.oficial</a><p>Vídeos cortos con los programas funcionando. También puedes escribirnos por mensaje directo.</p></div>
-  <div style="display:grid;gap:10px"><h3>Dónde</h3><p>Estamos en Murcia y trabajamos en remoto con empresas de toda España. En la Región de Murcia vamos a tu empresa, taller o nave.</p></div>
+  <div style="display:grid;gap:10px"><h3>Dónde</h3><p>Estamos en Murcia y trabajamos por videollamada y en remoto con empresas de toda España.</p></div>
  </div></div></div></section>`),
 };
 
 P['consultor-ia-murcia'] = {
   title: 'Consultoría de IA en Murcia',
-  seo: ['Automatización industrial y digitalización en Murcia', 'Transformación digital para talleres y fábricas de la Región de Murcia: automatización, ERP e IA por zonas, con visita en tu empresa y diagnóstico gratis.', 'automatización industrial Murcia'],
-  html: page(`${pagehead('<span>Automatización industrial en Murcia</span>', 'Región de Murcia', 'Automatización industrial y digitalización para talleres y fábricas de Murcia', 'Automatizaciones, ERP para la industria, asistentes técnicos y herramientas a medida para empresas de Murcia, Cartagena, Lorca, Molina de Segura, Alcantarilla y el resto de la región. Vamos a tu empresa. <a class="tc-link" href="#donde-trabajamos">Dónde trabajamos</a>.', btn('/diagnostico/', 'Reserva tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Visitas presenciales', [['Murcia y pedanías', 'Sí'], ['Cartagena', 'Sí'], ['Lorca', 'Sí'], ['Molina de Segura', 'Sí'], ['Resto de la región', 'Sí']]))}
+  seo: ['Automatización industrial y digitalización en Murcia', 'Transformación digital para talleres y fábricas de la Región de Murcia: automatización, ERP e IA por zonas, con diagnóstico gratis por videollamada.', 'automatización industrial Murcia'],
+  html: page(`${pagehead('<span>Automatización industrial en Murcia</span>', 'Región de Murcia', 'Automatización industrial y digitalización para talleres y fábricas de Murcia', 'Automatizaciones, ERP para la industria, asistentes técnicos y herramientas a medida para empresas de Murcia, Cartagena, Lorca, Molina de Segura, Alcantarilla y el resto de la región. Diagnóstico gratis por videollamada. <a class="tc-link" href="#donde-trabajamos">Dónde trabajamos</a>.', btn('/diagnostico/', 'Reserva tu diagnóstico gratis') + btn('/casos/', 'Ver casos', true), facts('Dónde trabajamos', [['Murcia y pedanías', 'Sí'], ['Cartagena', 'Sí'], ['Lorca', 'Sí'], ['Molina de Segura', 'Sí'], ['Resto de la región', 'Sí']]))}
 <section class="tc-sec tc-sec--tight"><div class="tc-wrap tc-split"><div class="tc-prose tc-reveal">${eyebrow('Cerca de ti')}<h2>Un equipo de la tierra que conoce sus polígonos</h2><p>El tejido empresarial murciano tiene mucho de metal, mecanizado, distribución industrial, agroindustria y servicios técnicos. Conocemos bien ese mundo porque venimos de él, y sabemos que cada taller trabaja a su manera.</p><p>Por eso el diagnóstico parte de lo que nos cuentas de tu día a día y te lo enviamos por escrito. En la Región de Murcia la puesta en marcha la hacemos en tu empresa, y el resto en remoto para que sea más ágil y económico.</p></div><div class="tc-box tc-reveal"><h3>Qué podemos hacer juntos</h3>${list(['Implantar el ERP para la industria en tu taller o empresa', 'Automatizar pedidos, albaranes y facturas', 'Asistente técnico para tu catálogo o tu mostrador', 'Gestión documental: facturas y tickets que se registran solos', 'Mejoras y herramientas a medida sobre SAP o tu ERP', 'Formación práctica en IA para tu equipo'])}</div></div></section>
 <section class="tc-sec tc-sec--alt" id="donde-trabajamos"><div class="tc-wrap">${head('Dónde trabajamos', 'Automatización industrial en la Región de Murcia y alrededores', 'Cada zona industrial tiene sus sectores y sus polígonos. Estas son las páginas de cada ciudad.')}<div class="tc-grid tc-grid--3">${[
-    ['mapa', 'Automatización industrial en Cartagena', '/automatizacion-industria-cartagena/', 'Los Camachos, Cabezo Beaza y el entorno del puerto: talleres, mantenimiento y calderería. Visita en tu empresa.'],
+    ['mapa', 'Automatización industrial en Cartagena', '/automatizacion-industria-cartagena/', 'Los Camachos, Cabezo Beaza y el entorno del puerto: talleres, mantenimiento y calderería.'],
     ['mapa', 'Automatización industrial en Molina de Segura', '/automatizacion-industria-molina-de-segura/', 'La Polvorista, La Serreta y El Tapiado: alimentación, envase y distribución. Visita en el día.'],
     ['mapa', 'Automatización industrial en Lorca', '/automatizacion-industria-lorca/', 'Saprelorca y La Hoya: cárnico, agroindustria y maquinaria. Visita con cita previa.'],
     ['mapa', 'Automatización industrial en Alcantarilla', '/automatizacion-industria-alcantarilla/', 'Polígono Oeste y Cabezo Verde: distribución, almacén y talleres. Visita en el día.'],
@@ -974,7 +974,7 @@ P['consultor-ia-murcia'] = {
   ].map(([i, t, u, p]) => `<a class="tc-box tc-reveal" href="${u}">${icon(i)}<h3>${t}</h3><p>${p}</p><span class="tc-link">Ver la página</span></a>`).join('')}</div></div></section>
 <section class="tc-sec"><div class="tc-wrap">${head('Soluciones', 'Seis formas de empezar')}${servCards()}</div></section>
 <section class="tc-sec tc-sec--alt"><div class="tc-wrap">${head('Preguntas frecuentes', 'IA para empresas de Murcia')}${faq([
-    ['¿Hacéis visitas presenciales en Murcia?', 'Sí. En la Región de Murcia vamos a tu empresa, taller o nave para entender el proceso. El resto del proyecto se trabaja en remoto.'],
+    ['¿Cómo trabajáis con empresas de Murcia?', 'Somos de aquí, pero trabajamos por videollamada: diagnóstico de 30 minutos y el resto del proyecto en remoto, todo documentado.'],
     ['¿Trabajáis con empresas de fuera de la región?', 'Sí, con empresas de toda España en remoto: diagnóstico por escrito y puesta en marcha a distancia.'],
     ['¿Cuánto cuesta empezar?', 'El diagnóstico es gratis. Con lo que nos cuentes te enviamos por escrito qué automatizar primero y el presupuesto cerrado, sin compromiso.'],
   ])}</div></section>
