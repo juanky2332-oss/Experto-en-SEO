@@ -54,6 +54,14 @@ export async function programaSemana() {
   else if (reels < 2) avisos.push(`⚠️ Solo hay ${reels} publicación(es) en el feed esta semana.`);
   if (!dias.some((d) => d.tareas.some((t) => t.tipo === "seguir"))) avisos.push("⚠️ No hay días de seguir y comentar programados.");
   if (cola < 3) avisos.push(`⚠️ Después de esta semana solo quedan ${cola} publicación(es) en la cola${ult ? ` (el plan llega hasta el ${nombre(ult)})` : ""}.`);
+  // 19-11-2026 (guía 2.0, sección 11): lo que de verdad cuenta → conversaciones y citas de los últimos 7 días
+  const [emb] = await sql<{ msg: number; visitas: number; diag: number; reservas: number; contactos: number }[]>`select
+    (select count(*)::int from seo.ig_acciones where tipo = 'mensaje' and fecha > current_date - 7) msg,
+    (select count(*)::int from seo.visitas where evento = 'visita' and ref ilike '%instagram%' and created_at > now() - interval '7 days') visitas,
+    (select count(*)::int from seo.visitas where evento = 'visita' and ruta = '/diagnostico/' and created_at > now() - interval '7 days') diag,
+    (select count(*)::int from seo.reservas where not coalesce(es_prueba, false) and created_at > now() - interval '7 days') reservas,
+    (select count(*)::int from seo.contactos where not coalesce(es_prueba, false) and created_at > now() - interval '7 days') contactos`;
+  lineas.push(`\n🎯 <b>Embudo de la semana</b> (lo que cuenta)\nMensajes que has escrito: <b>${emb.msg}</b> · Visitas a la web desde Instagram: <b>${emb.visitas}</b> · Visitas a /diagnostico/: <b>${emb.diag}</b>\nCitas reservadas: <b>${emb.reservas}</b> · Contactos por la web: <b>${emb.contactos}</b>`);
   // 18-11-2026: las historias van con fecha; se avisa si el calendario se acaba en menos de 2 semanas
   const { coberturaHistorias } = await import("@/lib/ig-noticia");
   const cob = await coberturaHistorias();
