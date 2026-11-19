@@ -1,6 +1,6 @@
 # Guía de contenido de Instagram · @transformaconia.oficial
 
-Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias estilo 3; 1.2: calendario fijo y noticia del día; 1.3: regla anti-bot a fuego).
+Versión 2.0 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias estilo 3; 1.2: calendario fijo y noticia del día; 1.3: regla anti-bot a fuego; **2.0: de «que nos vean» a «que nos llamen»** — embudo, mensajes, comentarios a mano y prueba de pago).
 **Está también en el Radar** (apartados Instagram y Empresas que seguimos, con las decisiones de la semana). **Cada vez que se cambie este fichero:** `node --env-file=.env.local n8n/ig-guia.mjs` para que el Radar tenga la versión nueva.
 **La leen antes de trabajar:** Claude (al preparar publicaciones), el agente del ordenador (al seguir y comentar) y el sistema (control de calidad, avisos y resumen del domingo). Se revisa cada domingo con los datos: lo que cambie se apunta abajo, en «Cambios por los datos».
 
@@ -10,6 +10,8 @@ Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 - **El 98 % de quien nos ve NO nos sigue** (357 de 363 cuentas en 30 días). Nos ven porque **Instagram nos recomienda**, no por los seguidores ni por los hashtags.
 - Instagram recomienda lo que **se ve entero, se guarda y se comparte**. Todo lo de esta guía va a eso.
 - Objetivo de la cuenta: que **empresas e industria de la Región de Murcia** nos vean, confíen y pidan el **diagnóstico gratis**. Nada de vender en frío.
+- **Lo que de verdad cuenta (desde 19-11-2026): conversaciones y citas**, no los «me gusta». Punto de partida (30 días): 471 visualizaciones, 59 visitas a la web desde Instagram, 4 llegaron a /contacto/ y **0 contactos ni citas**. Todo lo de esta guía empuja a la sección 11 («Del interés a la cita»).
+- **Sin cara (decidido el 19-11-2026):** Juan Carlos no sale en nada. La cara de la marca es **Tuerqui**; la confianza se gana con demos reales, trucos útiles, cercanía en los mensajes y, cuando los haya, casos con permiso.
 
 ## 1. Qué publicamos (y qué no)
 | Sí | No |
@@ -25,14 +27,15 @@ Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 1. **Gancho en los 2 primeros segundos**: la frase del problema en grande + Tuerqui reaccionando. Nada de logos ni intros.
 2. **Duración 20-40 s.** Retención media actual: 7-13 s → el mensaje clave, antes del segundo 8.
 3. **Texto en pantalla** con las palabras que busca la gente (Instagram las lee).
-4. **Una sola idea por reel.** Cierre con una acción: «guárdalo», «mándaselo a quien…», «diagnóstico gratis en el perfil».
+4. **Una sola idea por reel.** Cierre directo en pantalla (último segundo, Tuerqui señalando): «Escríbenos «PALABRA» por mensaje» o «Diagnóstico gratis 30 min · enlace en el perfil».
 5. **Portada** con el problema en 4-6 palabras (es lo que se ve en el perfil).
 
 ## 3. El texto (pie)
 - **Primera línea = el problema con palabras clave** («¿Facturas de proveedor tecleadas a mano?»). Es lo que Instagram usa para buscar y recomendar.
 - 3-5 líneas cortas. Sin precios. La marca, como mucho una vez.
-- **Una llamada a la acción** que se turna: guárdalo · mándaselo a… · cuéntanos en comentarios · diagnóstico gratis (enlace en el perfil).
+- **Cierre SIEMPRE directo (desde 19-11-2026)**, justo antes de los hashtags: «👉 ¿Lo quieres en tu empresa? Escríbenos «PALABRA» por mensaje o reserva tu diagnóstico gratis de 30 min (enlace en el perfil).» La **PALABRA** es distinta en cada pieza (WEB, FACTURAS, PIEZA, MES, PLANO, ALBARANES…): así se sabe qué publicación trae cada conversación. Una pregunta para comentar puede ir antes (da conversación), pero el cierre directo no se quita. Modelo: `n8n/ig-cta-directo-2026-11.mjs`.
 - Enlaces: en el pie NO se pueden pulsar → «enlace en el perfil» o historia con sticker.
+- **La bio** (la cambia él a mano; la API no deja): nombre «Transforma con IA | Automatización industria»; texto: «🔩 Quitamos papeles a talleres e industria: facturas, presupuestos, albaranes · 🤖 Te lo enseña Tuerqui en vídeos cortos · 📍 Región de Murcia y toda España · 👇 Diagnóstico gratis 30 min». Enlace principal: `https://transformaconia.com/diagnostico/?utm_source=instagram&utm_medium=bio` (título «Diagnóstico gratis 30 min»); segundo enlace: `/enlaces/`.
 
 ## 4. Hashtags (máximo 5, siempre con sentido)
 - **1 grande del tema**: #inteligenciaartificial · #emprendedores · #pymes · #autonomos
@@ -45,7 +48,7 @@ Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 - **Reels: 21:00** (la noche da unas 6 veces más visualizaciones que el mediodía). Segundo intento 21:30.
 - **Historias: 20:30**, justo antes, para calentar.
 - **Blog: martes y viernes**; ese día, su historia «Nuevo en el blog».
-- Ritmo: **2-3 reels por semana**. Mejor menos y buenos que muchos flojos.
+- Ritmo: **2-3 reels por semana, tirando a 3** (los reels son lo único que llega a gente nueva; las historias solo las ven los seguidores). Mejor menos y buenos que muchos flojos.
 
 ## 6. Historias (duran 5 s: poco texto) · estilo 3, aprobado el 18-11-2026
 - **Siempre claras** (fondo claro), centradas y con aire. Plantilla `/api/ig/historia` con `v: 3`. La marca solo en el logo de arriba. Sin precios.
@@ -65,7 +68,7 @@ Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 ## 7. Actividad diaria (lo hace el agente, L-V)
 - ⛔ **REGLA A FUEGO (19-11-2026): que Instagram nunca nos tome por un bot.** Nada de probar cosas en la cuenta; solo lo que dice `INSTRUCCIONES.md`. Una acción cada 20-60 s, de una en una, nada en ráfaga; máximo 3-4 búsquedas al día; los 2 fragmentos de lectura, una vez al día. **Ante cualquier 429 o aviso: se para el día entero** y se avisa. Mejor hacer menos que arriesgar la cuenta. Volumen: 12/6 hasta el 29-11, 18/8 desde el 30-11 y 25/10 desde el 7-12, solo si no hay avisos.
 - **Primero 8 empresas de la Región** (industria, talleres, metal, instaladores, asociaciones) y **después 4 tiendas del Radar**.
-- **Comentar a las que sigamos** cuando tengan una publicación reciente que dé pie a un comentario de verdad (provisional: con tan pocos datos aún no se ve si comentar trae más seguidores que solo seguir; lo dirá el resumen del domingo cuando haya 10 o más casos de cada).
+- **Comentar a las que sigamos** cuando tengan una publicación reciente que dé pie a un comentario de verdad. **Desde el 19-11-2026 los comentarios los PUBLICA ÉL desde el móvil** (comentar con un programa es lo más arriesgado): el agente los prepara leyendo cada publicación y a las 19:00 le llegan por Telegram con el texto para copiar («Tus comentarios de hoy»). El agente solo sigue y da «me gusta».
 - «Me gusta» selectivos (10-20 al día, máx. 3 por cuenta). Todo queda en el Radar.
 - Al terminar: quién nos sigue y quién nos da me gusta → Radar.
 
@@ -75,13 +78,25 @@ Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 3. **Cada domingo 18:00**: resumen de la semana → quién nos sigue y por qué, qué publicación funcionó, si funcionó lo decidido la semana anterior, **decisiones** para la semana y **3 ideas de contenido** basadas en lo que ha funcionado.
 4. Las decisiones las aplica el agente (`ig-plan decisiones`) y Claude al preparar publicaciones. Los cambios que se consoliden se apuntan aquí abajo.
 
-## 9. Promoción pagada
-- **Todavía no** (decidido el 18-11-2026). Primero que lo orgánico llegue de forma constante.
-- Cuando toque: prueba pequeña (~15 €, 3-4 días) con un **reel NUESTRO** que ya haya funcionado, público **Región de Murcia, 28-60 años, empresas/autónomos/industria**, objetivo **visitas al perfil**. Seguir solo si cada visita cuesta menos de 0,30 € y llega algún seguidor o mensaje.
+## 9. Promoción pagada · prueba de 15 € (estudiada el 19-11-2026; la lanza él desde la app)
+- **Cuándo:** lunes 23-11 a miércoles 25-11 (3 días × 5 €), cuando la bio ya apunte a `/diagnostico/`. Días laborables: el dueño de un taller mira el móvil a mediodía y por la noche.
+- **Qué reel:** «Del plano a la factura, sin papeles» (14-11, `instagram.com/reel/DfvNMbnDMB0/`). Es el único con una muestra que vale: **115 visualizaciones, 106 cuentas, 7 s de media** (el siguiente, 40). Enseña TODO lo que hacemos en un solo flujo, que es justo lo que queremos que vea un taller. («¿Sabes cuánto te deben tus clientes?» retiene más, 11,9 s, pero solo lo vieron 6 cuentas: es ruido. Será la segunda prueba si esta funciona.)
+- **Cómo:** en el reel → «Promocionar» → objetivo **«Más visitas al perfil»** → público **«Crear el tuyo»**: Región de Murcia (y si deja, + Albacete y Alicante), **30-60 años**, intereses: pequeñas empresas, emprendimiento, fabricación, metalurgia, soldadura, mecanizado CNC, construcción, logística. **No** usar el público automático (Advantage+), que lo enseña a cualquiera.
+- **Cuánto ha funcionado (decidido ANTES de gastar):**
+  - ✅ **Sigue** (otra prueba de 15-30 € con el reel de cobros): coste por visita al perfil **< 0,30 €** y **al menos 1** de: mensaje de una empresa, reserva en `/diagnostico/` o 3+ seguidores nuevos que sean empresas del público.
+  - ❌ **Para** (no se gasta más): visita > 0,50 € o ninguna empresa del público entre los que llegan. Entonces se cambia el gancho, no el presupuesto.
+- **Cómo se mide:** Meta da el coste por visita; nosotros, las citas y contactos que entran con procedencia Instagram (`seo.reservas` / `seo.contactos`), los seguidores nuevos y si son empresas (Radar) y las conversaciones con palabra clave. El domingo 29-11 va al resumen con la decisión.
 - Nunca promocionar contenido de Flownexion.
 
 ## 10. Lo que nunca
-Precios nuestros · comisiones · cupones · hashtags sin sentido · reels de vídeos ajenos · publicar algo de Flownexion sin su OK · inventar datos o casos.
+Precios nuestros · comisiones · cupones · hashtags sin sentido · reels de vídeos ajenos · publicar algo de Flownexion sin su OK · inventar datos o casos · su cara · mensajes privados enviados por un programa.
+
+## 11. Del interés a la cita (el embudo, desde 19-11-2026)
+1. **Ven el reel** → cierre con PALABRA o «diagnóstico gratis 30 min».
+2. **Perfil** → bio directa → enlace a **`/diagnostico/`**: elige día y hora en dos toques (videollamada, o en su empresa si es de la Región). Antes iba a un formulario donde había que escribir su caso, y nadie lo hacía. El resto de la web también lleva ahí (menú, botones, blog, botón fijo del móvil).
+3. **Conversación** («Para escribir hoy»): cada día laborable a las 19:00 le llegan por Telegram **hasta 3 empresas que ya se han interesado** (nos siguen de vuelta o nos han dado varios «me gusta») con un mensaje sugerido que **abre conversación sin vender**. Lo manda **él** desde el móvil y pulsa «✅ Escrito» o «Saltar»; queda apuntado y no se repite (`src/lib/ig-conversaciones.ts`).
+4. **Si alguien escribe la PALABRA o contesta:** responder ese mismo día, preguntar qué tarea les quita más tiempo y proponer los 30 minutos con el enlace a `/diagnostico/`.
+5. **Se mide cada semana** (resumen del domingo): conversaciones abiertas, respuestas, citas y contactos con procedencia Instagram. Esto es lo que dice si vamos bien, no los «me gusta».
 
 ---
 
