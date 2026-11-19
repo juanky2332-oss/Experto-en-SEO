@@ -1,6 +1,6 @@
 # Guía de contenido de Instagram · @transformaconia.oficial
 
-Versión 1.2 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias con el estilo 3; 1.2: calendario fijo y noticia del día).
+Versión 1.3 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cuenta (1.1: historias estilo 3; 1.2: calendario fijo y noticia del día; 1.3: regla anti-bot a fuego).
 **Está también en el Radar** (apartados Instagram y Empresas que seguimos, con las decisiones de la semana). **Cada vez que se cambie este fichero:** `node --env-file=.env.local n8n/ig-guia.mjs` para que el Radar tenga la versión nueva.
 **La leen antes de trabajar:** Claude (al preparar publicaciones), el agente del ordenador (al seguir y comentar) y el sistema (control de calidad, avisos y resumen del domingo). Se revisa cada domingo con los datos: lo que cambie se apunta abajo, en «Cambios por los datos».
 
@@ -63,6 +63,7 @@ Versión 1.2 · 18-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 - **Noticia del día** (automática): el radar busca noticias cada mañana a las 8 (Región de Murcia, ayudas, industria, automatización, factura electrónica, IA útil). A las 13:00 se elige, si la hay, UNA real y útil para una pyme de aquí; se prepara con su fuente (el medio del enlace) y 2 pasos que se pueden hacer hoy, y llega por Telegram con botón «Quitar». Sale a las 20:30 **como extra** (no quita ninguna programada). Si no hay nada que valga, no sale nada. Una noticia que no sale su día se descarta (una noticia vieja no vale). Prueba sin guardar: `/api/cron/instagram?fase=noticia&prueba=1`.
 
 ## 7. Actividad diaria (lo hace el agente, L-V)
+- ⛔ **REGLA A FUEGO (19-11-2026): que Instagram nunca nos tome por un bot.** Nada de probar cosas en la cuenta; solo lo que dice `INSTRUCCIONES.md`. Una acción cada 20-60 s, de una en una, nada en ráfaga; máximo 3-4 búsquedas al día; los 2 fragmentos de lectura, una vez al día. **Ante cualquier 429 o aviso: se para el día entero** y se avisa. Mejor hacer menos que arriesgar la cuenta. Volumen: 12/6 hasta el 29-11, 18/8 desde el 30-11 y 25/10 desde el 7-12, solo si no hay avisos.
 - **Primero 8 empresas de la Región** (industria, talleres, metal, instaladores, asociaciones) y **después 4 tiendas del Radar**.
 - **Comentar a las que sigamos** cuando tengan una publicación reciente que dé pie a un comentario de verdad (provisional: con tan pocos datos aún no se ve si comentar trae más seguidores que solo seguir; lo dirá el resumen del domingo cuando haya 10 o más casos de cada).
 - «Me gusta» selectivos (10-20 al día, máx. 3 por cuenta). Todo queda en el Radar.
