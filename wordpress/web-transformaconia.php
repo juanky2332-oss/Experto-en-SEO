@@ -294,7 +294,7 @@ add_action( 'wp_footer', function () {
       sessionStorage.setItem('tcAtr',JSON.stringify(ATR));}}catch(x){ATR={};}
   tcMedir('visita');
   document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(!a)return;var h=a.getAttribute('href')||'';
-    if(/^mailto:|^tel:|\/contacto\/|\/diseno-web\/|wa\.me/.test(h)||a.matches('.tc-btn,.tc-webband__b,.tc-sticky a'))tcMedir('clic',(a.textContent.trim().replace(/\s+/g,' ').slice(0,60)||h)+' → '+h.replace('https://transformaconia.com',''));},{passive:true});
+    if(/^mailto:|^tel:|\/contacto\/|\/diagnostico\/|\/diseno-web\/|wa\.me/.test(h)||a.matches('.tc-btn,.tc-webband__b,.tc-sticky a'))tcMedir('clic',(a.textContent.trim().replace(/\s+/g,' ').slice(0,60)||h)+' → '+h.replace('https://transformaconia.com',''));},{passive:true});
   try{var cm=sessionStorage.getItem('tcCalc'),ct=document.querySelector('form[data-tc-form="contacto"] textarea[name=mensaje]');
     if(cm&&ct){if(!ct.value)ct.value=cm;sessionStorage.removeItem('tcCalc');}}catch(x){}
   var FORM='https://paneln8n.transformaconia.com/webhook/web-transformaconia';
@@ -356,7 +356,7 @@ add_action( 'get_footer', function () {
 <aside class="tc-webband tc-webband--erp" aria-label="Diagnóstico gratuito">
  <div class="tc-wrap tc-webband__in">
   <p class="tc-webband__t">¿Trabajas en una empresa industrial? Cuéntanos cómo trabajáis y te enviamos por escrito qué tareas de compras, almacén y facturación se pueden automatizar y cuánto costaría. También puedes ver nuestro ERP para la industria, IndunexIA Gestión.</p>
-  <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/contacto/' ); ?>">Pedir diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
+  <span class="tc-webband__acts"><a class="tc-webband__b" href="<?php echo $u( '/diagnostico/' ); ?>">Reservar diagnóstico gratis →</a> <a class="tc-webband__b" href="<?php echo $u( '/erp-industria/' ); ?>">Ver el ERP para la industria →</a></span>
  </div>
 </aside>
 		<?php
@@ -399,7 +399,7 @@ add_action( 'get_footer', function () {
     <li><a href="<?php echo $u( '/category/ia-en-la-industria/' ); ?>">IA en la industria</a></li>
     <li><a href="<?php echo $u( '/category/gestion-y-facturacion/' ); ?>">Gestión y facturación</a></li>
     <li><a href="<?php echo $u( '/category/actualidad-ia/' ); ?>">Actualidad IA</a></li>
-    <li><a href="<?php echo $u( '/contacto/' ); ?>">Diagnóstico gratis</a></li>
+    <li><a href="<?php echo $u( '/diagnostico/' ); ?>">Diagnóstico gratis</a></li>
     <li><a href="<?php echo $u( '/privacidad/' ); ?>">Privacidad</a></li>
    </ul></div>
   </div>
@@ -441,7 +441,7 @@ add_filter( 'the_content', function ( $c ) {
 		'actualidad-ia'         => array(
 			'¿Qué puede hacer esto por tu empresa?',
 			'Somos una consultoría de IA y automatización especializada en la industria. Gratis y sin compromiso, te enviamos por escrito qué se puede automatizar en tu caso y cuánto costaría.',
-			array( array( '/contacto/', 'Pide tu diagnóstico gratis →', true ) ),
+			array( array( '/diagnostico/', 'Reserva tu diagnóstico gratis →', true ) ),
 		),
 	);
 	$clave = 'actualidad-ia';
@@ -767,7 +767,7 @@ add_action( 'template_redirect', function () {
 		echo '<p class="tc-lead">Todavía no hay artículos aquí.</p>';
 	}
 	echo '</div></section>';
-	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-band"><div><h2>¿Quieres aplicar la IA en tu empresa?</h2><p>Somos una consultoría de automatización especializada en la industria. Cuéntanos qué tarea os quita más tiempo y te enviamos por escrito qué se puede automatizar y cuánto costaría.</p></div><div class="tc-btns"><a class="tc-btn" href="' . esc_url( home_url( '/contacto/' ) ) . '">Pide tu diagnóstico gratis</a></div></div></div></section>';
+	echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-band"><div><h2>¿Quieres aplicar la IA en tu empresa?</h2><p>Somos una consultoría de automatización especializada en la industria. Cuéntanos qué tarea os quita más tiempo y te enviamos por escrito qué se puede automatizar y cuánto costaría.</p></div><div class="tc-btns"><a class="tc-btn" href="' . esc_url( home_url( '/diagnostico/' ) ) . '">Reserva tu diagnóstico gratis</a></div></div></div></section>';
 	echo '</div>';
 	get_footer();
 	exit;
@@ -920,12 +920,12 @@ body.single-post .content-inner table th,body.single-post .content-inner table t
 }, 30 );
 /* Botón fijo «Diagnóstico gratis» en el móvil: aparece al bajar y se esconde cuando hay un formulario o la llamada final a la vista */
 add_action( 'wp_footer', function () {
-	if ( is_page( 'contacto' ) || is_404() ) {
+	if ( is_page( array( 'contacto', 'diagnostico' ) ) || is_404() ) {
 		return;
 	}
 	?>
 <?php $tc_erp = is_page( 'erp-industria' ); ?>
-<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/contacto/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA Gestión por dentro' : 'Pide tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+<div class="tc-sticky" aria-hidden="true"><a href="<?php echo esc_url( $tc_erp ? TC_DEMO_URL : home_url( '/diagnostico/' ) ); ?>" tabindex="-1"><?php echo $tc_erp ? 'Ver IndunexIA Gestión por dentro' : 'Reserva tu diagnóstico gratis'; ?> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
 <script id="tc-sticky-js">
 (function(){var s=document.querySelector('.tc-sticky');if(!s)return;document.body.classList.add('tc-con-sticky');
   var tapan=0,antes=null,mostrar=function(){var on=window.scrollY>window.innerHeight*.9&&!tapan;if(on===antes)return;antes=on;s.classList.toggle('is-on',on);s.setAttribute('aria-hidden',on?'false':'true');s.firstElementChild.tabIndex=on?0:-1;};
