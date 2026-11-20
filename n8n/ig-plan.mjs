@@ -110,9 +110,39 @@ if (cmd === 'cargar') {
   // 19-11-2026: con --tarde (el PC se encendió después de las 18:45 y hoy no se ha hecho NADA) se busca igual hasta las 22:00,
   // para que un día con el ordenador apagado no se quede sin hacer
   const tardeSinNada = args.includes('--tarde') && n.s + n.c === 0 && hora < 22;
-  const buscar = plan && (hora < 17 || tardeSinNada) && (faltan.seguir || faltan.comentar);
-  const r = { fecha: hoy(), megusta: VOL.megusta, ...(l.length ? { tareas: l } : {}), ...(buscar ? { buscar_lista: faltan } : {}) };
-  console.log(JSON.stringify(l.length || buscar ? r : { nada_que_hacer: true }, null, 1));
+  // 20-11-2026: GRUPO DEL DÍA (n8n/ig-grupos.mjs): empresas del Radar ya estudiadas y puntuadas para hoy (y las pendientes
+  // de días anteriores). Si hay grupo, NO se busca en Instagram para seguir (menos búsquedas = menos riesgo de bot):
+  // solo se buscan publicaciones de esas mismas cuentas para preparar los comentarios.
+  let grupo = [];
+  try {
+    grupo = await sql`select id, cuenta, nombre, provincia, sector, puntos, motivo, grupo, fecha::text from seo.ig_objetivos
+      where estado = 'pendiente' and fecha <= ${hoy()}::date order by fecha, orden limit ${faltan.seguir}`;
+  } catch { /* sin tabla todavía */ }
+  const enHora = plan && (hora < 17 || tardeSinNada);
+  const buscar = enHora && (faltan.seguir || faltan.comentar);
+  const r = {
+    fecha: hoy(), megusta: VOL.megusta, ...(l.length ? { tareas: l } : {}),
+    ...(enHora && grupo.length ? { grupo, comentarios_a_preparar: faltan.comentar } : buscar ? { buscar_lista: faltan } : {}),
+  };
+  console.log(JSON.stringify(l.length || (enHora && grupo.length) || buscar ? r : { nada_que_hacer: true }, null, 1));
+} else if (cmd === 'grupo-hecho') {
+  // node n8n/ig-plan.mjs grupo-hecho <id> seguida
+  // node n8n/ig-plan.mjs grupo-hecho <id> saltada "<motivo>"   → queda TACHADA en el Radar («No seguir») con el motivo
+  const [id, estado, motivo = ''] = args;
+  if (!['seguida', 'saltada'].includes(estado) || (estado === 'saltada' && !motivo)) throw new Error('Uso: grupo-hecho <id> seguida | grupo-hecho <id> saltada "<motivo>"');
+  const [o] = await sql`update seo.ig_objetivos set estado = ${estado}, nota = ${motivo || null}, hecho_at = now() where id = ${Number(id)} and estado = 'pendiente'
+    returning cuenta, dominio, puntos`;
+  if (!o) { console.log('no'); process.exit(0); }
+  if (estado === 'seguida') {
+    // cuenta en el volumen del día (como la lista de siempre) y queda apuntada aquí y en el Radar
+    const [{ m }] = await sql`select coalesce(max(orden), -1) + 1 m from seo.ig_movil where fecha = ${hoy()}`;
+    await sql`insert into seo.ig_movil (fecha, orden, tipo, cuenta, url, hecho) values (${hoy()}, ${m}, 'seguir', ${o.cuenta}, ${`https://www.instagram.com/${o.cuenta}/`}, true)`;
+    await sql`insert into seo.ig_acciones (tipo, cuenta, url, fecha) values ('seguir', ${o.cuenta}, ${`https://www.instagram.com/${o.cuenta}/`}, ${hoy()})`;
+    await radar('', { domain: o.dominio, handle: o.cuenta, tipo: 'seguir', texto: `Seguida desde el grupo del día (puntuación ${o.puntos}/100)` });
+  } else {
+    await radar('', { domain: o.dominio, handle: o.cuenta, tipo: 'descartada', texto: `Saltada al revisar su perfil: ${motivo}` });
+  }
+  console.log('ok');
 } else if (cmd === 'anadir') {
   // node n8n/ig-plan.mjs anadir seguir <cuenta>   ·   node n8n/ig-plan.mjs anadir comentar <cuenta> <url> "<texto>"
   // mete una tarea en la lista de hoy (la usa el agente en «Buscar la lista»); no repite cuentas ya seguidas ni publicaciones ya comentadas

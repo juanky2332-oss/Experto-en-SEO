@@ -12,6 +12,13 @@ New-Item -ItemType Directory -Force (Join-Path $PSScriptRoot 'logs') | Out-Null
 $candado = New-Object System.Threading.Mutex($false, 'Global\TransformaConIA-Instagram')
 if (-not $candado.WaitOne(0)) { "$(Get-Date -Format s) ya hay otro en marcha" | Out-File -Append $log; exit 0 }
 try {
+  # 20-11-2026: los lunes, antes de nada, se rehacen los grupos del día con lo último del Radar (incluida la cantera):
+  # lo ya hecho no se toca; lo pendiente se reparte de nuevo para las 3 semanas siguientes
+  $marca = Join-Path $PSScriptRoot ("logs\grupos-" + (Get-Date -Format 'yyyy-MM-dd') + '.ok')
+  if ((Get-Date).DayOfWeek -eq 'Monday' -and -not (Test-Path $marca)) {
+    node --env-file=.env.local n8n/ig-grupos.mjs --dias=15 2>&1 | Out-File -Append $log
+    New-Item -ItemType File -Force $marca | Out-Null
+  }
   $corte = (Get-Date).Date.AddHours(18).AddMinutes(45)
   if ((Get-Date) -ge $corte) {
     # 19-11-2026: si el PC se enciende tarde y hoy no se ha hecho nada, se hace igual (hasta las 22:30): la lista del móvil
