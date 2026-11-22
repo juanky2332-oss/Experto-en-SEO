@@ -167,7 +167,8 @@ export async function reelNoche() {
   // su historia de aviso, ahora que ha salido (la pasada de las 13:10 no podía ponerla)
   if (r.startsWith("✅")) await avisoHistoria(reel).catch((e) => console.error("aviso historia", e));
   if (ok) await sql`update seo.ig_plan set estado = 'hecho', hecho_at = now() where fecha = ${hoy()}`;
-  await telegram(`🎬 ${r.split("\n\nQuedan")[0]}${ok ? "" : "\nLo vuelvo a intentar a las 21:30; si quieres, escribe /reel."}`);
+  // 22-11-2026: también sale los sábados a las 22:30 (el mejor reel hasta ahora, 14-11 a las 22:47); segundo intento media hora después
+  await telegram(`🎬 ${r.split("\n\nQuedan")[0]}${ok ? "" : "\nLo vuelvo a intentar en media hora; si quieres, escribe /reel."}`);
   return { ok, reel };
 }
 

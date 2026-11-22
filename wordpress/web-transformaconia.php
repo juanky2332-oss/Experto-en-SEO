@@ -1519,6 +1519,8 @@ function init(T){
 	<?php
 }, 40 );
 
+add_filter( 'rank_math/sitemap/enable_caching', '__return_false' );
+
 /* Blog centrado en el cliente industrial (29-10-2026): las noticias generales de IA (categoría «Actualidad IA») siguen
  * en la web pero fuera de Google y del mapa del sitio, para que Google vea una consultoría de IA industrial y no un blog
  * de noticias. También fuera los artículos que giran en torno a una herramienta interna por su marca. */
@@ -1544,6 +1546,11 @@ add_filter( 'rank_math/frontend/robots', function ( $robots ) {
 } );
 add_filter( 'rank_math/sitemap/entry', function ( $url, $type, $object ) {
 	if ( 'post' === $type && is_object( $object ) && tc_fuera_de_google( $object->ID ) ) {
+		return false;
+	}
+	/* 22-11-2026: la categoría lleva noindex, así que tampoco va en el mapa del sitio (Search Console avisaba de la contradicción).
+	 * El mapa se genera al momento (sin la caché de Rank Math) para que estos cambios se vean sin esperar. */
+	if ( 'term' === $type && is_object( $object ) && isset( $object->slug ) && 'actualidad-ia' === $object->slug ) {
 		return false;
 	}
 	return $url;

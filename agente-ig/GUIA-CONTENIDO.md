@@ -46,6 +46,7 @@ Versión 2.0 · 19-11-2026 · acordada con Juan Carlos tras el estudio de la cue
 
 ## 5. Cuándo
 - **Reels: 21:00** (la noche da unas 6 veces más visualizaciones que el mediodía). Segundo intento 21:30.
+- **Sábado noche, 22:30 (desde 22-11-2026)**: el mejor reel hasta ahora («Del plano a la factura», 115 vistas) salió un sábado a las 22:47. Un reel cada sábado a las 22:30 (reintento 23:00), con su historia de aviso. Semanas de 3 piezas: 2 entre semana + 1 el sábado. Comparar cada sábado con los de entre semana en el resumen del domingo; si no rinde más tras 3 sábados, se vuelve a entre semana.
 - **Historias: 20:30**, justo antes, para calentar.
 - **Blog: martes y viernes**; ese día, su historia «Nuevo en el blog».
 - Ritmo: **2-3 reels por semana, tirando a 3** (los reels son lo único que llega a gente nueva; las historias solo las ven los seguidores). Mejor menos y buenos que muchos flojos.
