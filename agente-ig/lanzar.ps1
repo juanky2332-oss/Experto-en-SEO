@@ -36,7 +36,7 @@ try {
   $tools = 'Read,ToolSearch,Bash(node n8n/ig-plan.mjs:*),mcp__chrome-ig,mcp__plugin_ecc_chrome-devtools'
   $salida = Join-Path $PSScriptRoot ("logs\" + (Get-Date -Format 'yyyy-MM-dd_HHmm') + '-claude.log')
   $p = Start-Process -FilePath "$env:USERPROFILE\.local\bin\claude.exe" -NoNewWindow -PassThru `
-    -ArgumentList @('-p', ('"' + $prompt.Replace('"', '\"') + '"'), '--allowedTools', $tools, '--max-turns', '200') `
+    -ArgumentList @('-p', ('"' + $prompt.Replace('"', '\"') + '"'), '--allowedTools', ('"' + $tools + '"'), '--max-turns', '200') `
     -RedirectStandardOutput $salida -RedirectStandardError ($salida + '.err')
   $segundos = [int]($corte - (Get-Date)).TotalSeconds
   if (-not $p.WaitForExit($segundos * 1000)) {
