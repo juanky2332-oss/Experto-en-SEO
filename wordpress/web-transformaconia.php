@@ -670,6 +670,14 @@ function tc_es_archivo() {
 add_action( 'pre_get_posts', function ( $q ) {
 	if ( ! is_admin() && $q->is_main_query() && ( $q->is_home() || $q->is_category() || $q->is_tag() || $q->is_author() || $q->is_search() ) ) {
 		$q->set( 'posts_per_page', 12 );
+		/* 24-11-2026: /blog/ enseña solo las guías (las noticias de «Actualidad IA» llevan noindex y hundían las guías en la página 3-4,
+		 * donde Google no llegaba: «Rastreada, sin indexar» en /blog/ y 4 guías sin descubrir). Las noticias siguen en su categoría. */
+		if ( $q->is_home() ) {
+			$act = get_category_by_slug( 'actualidad-ia' );
+			if ( $act ) {
+				$q->set( 'category__not_in', array( (int) $act->term_id ) );
+			}
+		}
 		if ( $q->is_search() ) {
 			$q->set( 'post_type', 'post' );
 		}
@@ -741,6 +749,18 @@ add_action( 'template_redirect', function () {
 		echo '<a class="' . ( $activa === $c->term_id ? 'is-on' : '' ) . '" href="' . esc_url( get_category_link( $c ) ) . '">' . esc_html( $c->name ) . '</a>';
 	}
 	echo '</nav>';
+	if ( is_home() && $pag <= 1 ) {
+		/* 24-11-2026: texto propio de /blog/ con las guías por tema (enlaces internos para que Google las descubra y las valore) */
+		$g = function ( $slug, $txt ) {
+			return '<a href="' . esc_url( home_url( '/' . $slug . '/' ) ) . '">' . esc_html( $txt ) . '</a>';
+		};
+		echo '<section class="tc-sec tc-sec--tight"><div class="tc-wrap"><div class="tc-catdesc">';
+		echo '<p>Aquí reunimos lo que aprendemos implantando inteligencia artificial y programas de gestión en talleres, fábricas e instaladores de la Región de Murcia: qué funciona, qué cuesta y por dónde empezar, sin jerga.</p>';
+		echo '<p><strong>Facturación y papeles:</strong> ' . $g( 'factura-electronica-empresas', 'factura electrónica obligatoria' ) . ', ' . $g( 'verifactu-pymes-industriales', 'Verifactu' ) . ', ' . $g( 'automatizar-facturas-proveedores', 'facturas de proveedor sin teclear' ) . ', ' . $g( 'digitalizar-albaranes-pyme', 'digitalizar albaranes' ) . ' y ' . $g( 'albaran-digital-parte-trabajo', 'parte de trabajo firmado en el móvil' ) . '.</p>';
+		echo '<p><strong>Taller y fábrica:</strong> ' . $g( 'erp-taller-pequeno', 'ERP para un taller pequeño' ) . ', ' . $g( 'coste-hora-maquina-taller', 'coste hora-máquina' ) . ', ' . $g( 'control-stock-repuestos', 'control de stock de repuestos' ) . ', ' . $g( 'automatizar-compras-empresa', 'automatizar compras' ) . ', ' . $g( 'mantenimiento-predictivo-ia', 'mantenimiento predictivo con IA' ) . ' e ' . $g( 'informes-produccion-semanales', 'informes de producción sin Excel' ) . '.</p>';
+		echo '<p><strong>Ayudas y primeros pasos:</strong> ' . $g( 'ayudas-digitalizacion-pyme-murcia', 'ayudas para digitalizar una pyme en Murcia' ) . ', ' . $g( 'kit-consulting-ia', 'Kit Consulting de IA' ) . ' y ' . $g( 'consultoria-ia-murcia-industria', 'cómo implantar IA en una pyme industrial' ) . '.</p>';
+		echo '</div></div></section>';
+	}
 	if ( is_category() && $pag <= 1 && ! empty( $desc_h ) ) {
 		/* resto de la descripción de la categoría (con enlaces a los servicios) */
 		$resto = $desc_h;

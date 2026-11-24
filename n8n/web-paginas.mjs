@@ -544,7 +544,7 @@ ${planes()}
     ['¿Cumple Verifactu?', 'Verifactu todavía no es obligatorio. Cuando lo sea, adaptaremos el programa y te lo comunicaremos.'],
     ['¿Qué pasa si quiero dejarlo?', 'No hay permanencia. Avisas con 30 días y te llevas tus datos exportados.'],
   ])}</div></section>
-${guias([['ERP para talleres: qué necesita uno pequeño', '/erp-taller-pequeno/', 'Lo imprescindible antes de elegir programa'], ['Coste hora máquina: cómo calcularlo', '/coste-hora-maquina-taller/', 'La base para presupuestar sin perder dinero'], ['Albarán digital y parte de trabajo', '/albaran-digital-parte-trabajo/', 'Firma en el móvil y factura el mismo día'], ['Control de stock de repuestos', '/control-stock-repuestos/', 'Deja de comprar dos veces la misma pieza'], ['Verifactu para pymes industriales', '/verifactu-pymes-industriales/', 'Qué cambia en tu facturación y cuándo']])}
+${guias([['ERP para talleres: qué necesita uno pequeño', '/erp-taller-pequeno/', 'Lo imprescindible antes de elegir programa'], ['Coste hora máquina: cómo calcularlo', '/coste-hora-maquina-taller/', 'La base para presupuestar sin perder dinero'], ['Albarán digital y parte de trabajo', '/albaran-digital-parte-trabajo/', 'Firma en el móvil y factura el mismo día'], ['Control de stock de repuestos', '/control-stock-repuestos/', 'Deja de comprar dos veces la misma pieza'], ['Verifactu para pymes industriales', '/verifactu-pymes-industriales/', 'Qué cambia en tu facturación y cuándo'], ['Factura electrónica obligatoria', '/factura-electronica-empresas/', 'Qué tiene que hacer un taller y desde cuándo'], ['Automatizar compras', '/automatizar-compras-empresa/', 'Solicitudes, ofertas y pedidos sin perseguir a nadie']])}
 <div id="contacto-erp">${band('¿Lo vemos con tus trabajos y tus precios?', 'Cuéntanos cómo presupuestáis hoy y te enviamos por escrito cómo quedaría en IndunexIA Gestión, con un ejemplo de tu taller y tu margen.', btn(DEMO_URL, DEMO_TXT) + btn('/diagnostico/', 'Reserva tu diagnóstico gratis', true))}</div>`),
 };
 
@@ -978,7 +978,7 @@ P['consultor-ia-murcia'] = {
     ['¿Trabajáis con empresas de fuera de la región?', 'Sí, con empresas de toda España en remoto: diagnóstico por escrito y puesta en marcha a distancia.'],
     ['¿Cuánto cuesta empezar?', 'El diagnóstico es gratis. Con lo que nos cuentes te enviamos por escrito qué automatizar primero y el presupuesto cerrado, sin compromiso.'],
   ])}</div></section>
-${guias([['Cómo implantar IA en una pyme industrial de Murcia', '/consultoria-ia-murcia-industria/', 'Por dónde empezar y cómo elegir proveedor'], ['Kit Consulting de inteligencia artificial', '/kit-consulting-ia/', 'Ayudas para la consultoría de IA y su estado']])}
+${guias([['Cómo implantar IA en una pyme industrial de Murcia', '/consultoria-ia-murcia-industria/', 'Por dónde empezar y cómo elegir proveedor'], ['Kit Consulting de inteligencia artificial', '/kit-consulting-ia/', 'Ayudas para la consultoría de IA y su estado'], ['Ayudas para digitalizar tu pyme en Murcia', '/ayudas-digitalizacion-pyme-murcia/', 'Qué ayudas hay en la Región y cómo encajan'], ['Mantenimiento predictivo con IA', '/mantenimiento-predictivo-ia/', 'De avisar de la avería a evitarla']])}
 ${band('¿Eres de la Región de Murcia?', 'Escríbenos y pasamos por tu empresa a ver qué se puede automatizar.')}`),
 };
 
