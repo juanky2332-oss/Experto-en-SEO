@@ -122,7 +122,7 @@ S.mantenimiento = {
 /* ============================================================ INSTALADORAS */
 S.instaladoras = {
   slug: 'ia-empresas-instaladoras', titulo: 'IA para empresas instaladoras',
-  seo: ['Software para empresas instaladoras con IA', 'Software para empresas instaladoras: presupuestos desde mediciones, documentación de obra, partes dictados y revisiones. Diagnóstico gratis.', 'software para empresas instaladoras'],
+  seo: ['ERP y software para empresas instaladoras, con IA','ERP y software para empresas instaladoras: presupuestos desde mediciones, partes dictados, documentación de obra y revisiones. Diagnóstico gratis.','erp empresas instaladoras,software para empresas instaladoras,programa gestión instaladores'],
   eb: 'Electricidad, climatización y fontanería industrial',
   h1: 'Software para empresas instaladoras: presupuestos, obra y documentación sin tardes de oficina',
   lead: 'Una instaladora cierra obras, pero las obras no se cierran del todo hasta que el papel está en orden. Ayudamos a presupuestar más rápido, a documentar mientras se trabaja y a recordar cada revisión periódica.',

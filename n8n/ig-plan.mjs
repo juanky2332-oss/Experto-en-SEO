@@ -105,7 +105,9 @@ if (cmd === 'cargar') {
   // Subida escalonada (16-11-2026, el dueño quiere crecer más rápido sin que Instagram nos frene): semana del 16-11 12/6,
   // semana del 23-11 18/8 y desde el 30-11 25/10. «me gusta»: el rango de VOL.megusta. Siempre despacio y en dos tandas (13:00 y 17:00).
   // 19-11-2026: hubo un 429 (por pruebas en la API, no por el volumen) → la subida se retrasa una semana, poco a poco
-  const VOL = hoy() >= '2026-12-07' ? { seguir: 25, comentar: 10, megusta: '30 y 40' } : hoy() >= '2026-11-30' ? { seguir: 18, comentar: 8, megusta: '20 y 30' } : { seguir: 12, comentar: 6, megusta: '10 y 20' };
+  // 24-11-2026 (estudio): seguimos a 135 y nos siguen 14. Seguir a más con tan poca vuelta huele a bot → la subida se congela
+  // en 12/6 hasta que nos devuelvan el follow al menos 1 de cada 5 (se revisa en el resumen del domingo; GUIA-CONTENIDO.md §7).
+  const VOL = { seguir: 12, comentar: 6, megusta: '10 y 20' };
   const faltan = { seguir: Math.max(0, VOL.seguir - n.s), comentar: Math.max(0, VOL.comentar - n.c) };
   // 19-11-2026: con --tarde (el PC se encendió después de las 18:45 y hoy no se ha hecho NADA) se busca igual hasta las 22:00,
   // para que un día con el ordenador apagado no se quede sin hacer
