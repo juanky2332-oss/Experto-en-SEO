@@ -84,10 +84,22 @@ export async function GET(req: Request) {
   const claro = ["consejo", "respuesta", "app", "problema", "blog"].includes(d.plantilla);
   const degradado = d.plantilla === "pregunta";
 
+  // 26-11-2026 (él: «no se ve bien el contenido del recuadro»): la portada de un carrusel es 4:5 y se recortaba como si fuera
+  // de reel (9:16), cortando el texto por los lados. Ahora se carga ENTERA y la tarjeta toma su proporción.
   let portadaReel: string | null = null;
+  let propPortada = 9 / 16; // ancho / alto
   if (d.plantilla === "reel" && d.reel) {
     const [r] = await sql<{ portada_url: string | null }[]>`select portada_url from seo.ig_cola where id = ${d.reel}`;
-    if (r?.portada_url) portadaReel = await aDataUrl(r.portada_url, 640, 1138);
+    if (r?.portada_url) {
+      const pr = await fetch(r.portada_url);
+      if (pr.ok) {
+        const img = sharp(Buffer.from(await pr.arrayBuffer()));
+        const m = await img.metadata();
+        if (m.width && m.height) propPortada = m.width / m.height;
+        const buf = await img.resize(800, undefined, { fit: "inside" }).jpeg({ quality: 88 }).toBuffer();
+        portadaReel = `data:image/jpeg;base64,${buf.toString("base64")}`;
+      }
+    }
   }
   const cand = d.tuerqui === false ? null : (d.tuerqui || TUERQUI[d.plantilla] || null);
   const pose = cand && POSES.has(cand) ? cand : null;
@@ -307,10 +319,13 @@ export async function GET(req: Request) {
         </div>
       );
     } else if (d.plantilla === "reel" && portadaReel) {
-      // aviso del reel nuevo: su portada en una tarjeta, como un móvil
+      // aviso de la publicación nueva: su portada ENTERA en una tarjeta con su misma proporción (sin recortar el texto)
+      const alto = 660;
+      const ancho = Math.min(760, Math.round(alto * propPortada));
+      const altoReal = Math.round(ancho / propPortada);
       contenido = (
-        <div style={{ display: "flex", marginTop: 50, width: 440, height: 660, borderRadius: 40, overflow: "hidden", border: "8px solid #fff", boxShadow: "0 30px 80px rgba(60,20,120,0.22)" }}>
-          <img src={portadaReel} width={640} height={1138} style={{ width: 440, height: 782, marginTop: -61 }} />
+        <div style={{ display: "flex", marginTop: 50, width: ancho + 16, height: altoReal + 16, borderRadius: 40, overflow: "hidden", border: "8px solid #fff", boxShadow: "0 30px 80px rgba(60,20,120,0.22)" }}>
+          <img src={portadaReel} width={ancho} height={altoReal} style={{ width: ancho, height: altoReal }} />
         </div>
       );
     }
